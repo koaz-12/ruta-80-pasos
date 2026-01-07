@@ -5,8 +5,9 @@
     gap: 60px;
     align-items: center;
     padding: 100px 20px 100px 20px;
-    /* Top padding for fixed header */
     overflow-x: auto;
+    width: 100%;
+    /* No fixed height, let it scroll naturally with page or be container-based */
 }
 
 /* Segments & Paths */
@@ -16,6 +17,7 @@
     flex-direction: column;
     align-items: center;
     position: relative;
+    padding: 0;
 }
 
 .segment-label {
@@ -27,6 +29,8 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 2px;
+    width: 100%;
+    text-align: center;
 }
 
 .path-row {
@@ -50,6 +54,9 @@
     gap: var(--gap-size);
     justify-content: center;
     position: relative;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 50px;
 }
 
 /* Tiles */
@@ -59,6 +66,7 @@
     background-color: var(--card-bg);
     border: 2px solid var(--path-color);
     border-radius: 50%;
+    /* Original Round Shape */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -87,6 +95,7 @@
 
 .tile.checkpoint {
     border-radius: 8px;
+    /* Slightly rounded for checkpoints */
     border-color: var(--accent-color);
     background-color: rgba(31, 111, 235, 0.1);
 }
@@ -147,17 +156,7 @@
     font-size: 1.2rem;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     z-index: 20;
-    animation: bounce 0.5s infinite alternate;
-}
-
-@keyframes bounce {
-    from {
-        transform: translateY(0);
-    }
-
-    to {
-        transform: translateY(-5px);
-    }
+    transition: all 0.5s ease;
 }
 
 @media (max-width: 768px) {
@@ -168,7 +167,7 @@
     }
 
     .board-container {
-        align-items: flex-start;
+        align-items: center;
         padding-bottom: 100px;
     }
 }

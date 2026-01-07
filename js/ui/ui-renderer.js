@@ -26,49 +26,158 @@ export class UIRenderer {
         bus.on('STATE_UPDATED', (state) => this.updateBoard(state));
         bus.on('TURN_CHANGED', (data) => this.updateControls(data));
         bus.on('NETWORK_READY', (data) => this.updateLobbyStatus(data));
+        bus.on('NETWORK_ERROR', (err) => this.showNetworkError(err));
+        bus.on('LOBBY_PLAYERS_UPDATED', (players) => this.updatePlayerList(players)); // New Event
         bus.on('SHOW_CHAR_SELECT', (classes) => this.showCharSelection(classes));
         bus.on('DICE_ROLLED', (val) => this.showDiceAnimation(val));
+        bus.on('STATE_RESET', () => this.resetInterface());
+
+        bus.on('SHOW_DECISION', (data) => this.showDecisionModal(data));
+        bus.on('SHOW_CARD', (data) => this.showCardModal(data));
+        bus.on('START_COMBAT', (data) => this.showCombatModal(data));
+    }
+
+    resetInterface() {
+        this.elements.lobby.classList.remove('hidden');
+        this.elements.gameHeader.classList.add('hidden');
+        this.elements.board.classList.add('hidden');
+        this.elements.controls.classList.add('hidden');
+        this.elements.charModal.classList.add('hidden');
+
+        // Reset lobby visual state if needed
+        this.elements.statusMsg.textContent = "Conectando...";
+        this.elements.statusMsg.classList.add('hidden');
+        this.elements.copyBtn.classList.add('hidden');
+        document.getElementById('btn-offline').textContent = "💀 Jugar Solo (Offline)";
     }
 
     showDiceAnimation(val) {
         const overlay = document.getElementById('dice-overlay');
         const visual = document.getElementById('dice-visual');
-        const result = document.getElementById('dice-result');
 
         overlay.classList.remove('hidden');
-        visual.style.animation = 'shake 0.5s infinite';
-        result.classList.add('hidden');
-        visual.textContent = '🎲';
 
-        // Stop shaking and show result after 1s
+        // 1. Construct 3D Cube Faces dynamically
+        visual.innerHTML = '';
+        visual.className = 'dice-cube rolling';
+        visual.style.transform = ''; // Clear previous rotation
+
+        // Using standard dice layout for "face-N" classes
+        // 1=front, 2=right, 3=back, 4=left, 5=top, 6=bottom (My CSS logic: 1, 2, 3, 4, 5, 6 mapped differently)
+        // Adjusting JS face creation to match CSS transforms:
+        // .face-1 (Y=0), .face-2 (Y=90), .face-3 (Y=180), .face-4 (Y=-90), .face-5 (X=90), .face-6 (X=-90)
+        // Let's map strict dice numbers to these faces randomly or sequentially?
+        // Let's just put numbers 1-6 on faces 1-6 for simplicity of mapping.
+
+        for (let i = 1; i <= 6; i++) {
+            const face = document.createElement('div');
+            face.className = `dice-face face-${i}`;
+            face.dataset.val = i;
+
+            // Create pips based on value
+            // 1: center
+            // 2: top-left, bottom-right
+            // 3: top-left, center, bottom-right
+            // 4: corners
+            // 5: corners + center
+            // 6: two columns of 3
+
+            const pipCount = i;
+            for (let p = 0; p < pipCount; p++) {
+                const pip = document.createElement('span');
+                pip.className = 'pip';
+                face.appendChild(pip);
+            }
+
+            // Highlight the winner face if already known? No, wait for stop.
+            visual.appendChild(face);
+        }
+
+        // 2. Stop and Land on Result after 1s
         setTimeout(() => {
-            visual.style.animation = 'none';
-            visual.textContent = ''; // Hide emoji
-            result.textContent = val;
-            result.classList.remove('hidden');
-        }, 1000);
+            visual.classList.remove('rolling');
 
-        // Hide overlay after 2s (sync with engine delay)
+            // Calculate rotation to show face 'val' to camera (front)
+            // Target: We want face 'val' to end up at rotate(0).
+            // So we apply the INVERSE rotation of the face.
+
+            let x = 0, y = 0;
+            switch (val) {
+                case 1: x = 0; y = 0; break;      // face-1 is at 0,0. 
+                case 2: x = 0; y = -90; break;    // face-2 is at Y=90. rotateY(-90) brings it front.
+                case 3: x = 0; y = -180; break;   // face-3 is at Y=180.
+                case 4: x = 0; y = 90; break;     // face-4 is at Y=-90.
+                case 5: x = -90; y = 0; break;    // face-5 is at X=90.
+                case 6: x = 90; y = 0; break;     // face-6 is at X=-90.
+            }
+
+            // Add some noise/full spins for realism (+360 or +720) so it spins TO the result
+            const extraX = 720; // 2 full spins
+            const extraY = 720;
+
+            visual.style.transform = `rotateX(${x + extraX}deg) rotateY(${y + extraY}deg)`;
+
+        }, 800);
+
+        // Hide overlay after 3s
         setTimeout(() => {
             overlay.classList.add('hidden');
-        }, 2000);
+            visual.innerHTML = ''; // Clean up
+        }, 3000);
     }
 
     updateLobbyStatus(data) {
-        if (data.myId === 'OFFLINE_1') {
-            this.elements.statusMsg.textContent = "Modo Offline Iniciado";
-            return;
+        console.log("updateLobbyStatus caled with:", data);
+        if (data.myId === 'OFFLINE_1') return; // Offline doesn't use waiting room
+
+        // Show code in new Waiting Room UI
+        const codeDisplay = document.getElementById('room-code-display');
+        if (codeDisplay) {
+            console.log("Updating room code display to:", data.myId);
+            codeDisplay.textContent = data.myId;
         }
-        this.elements.statusMsg.innerHTML = `CÓDIGO DE SALA: <br><strong style="font-size:2em; color:#fff">${data.myId}</strong>`;
-        this.elements.copyBtn.classList.remove('hidden');
-        this.elements.copyBtn.onclick = () => {
-            navigator.clipboard.writeText(data.myId);
-            this.elements.copyBtn.textContent = "✅ ¡Copiado!";
-            setTimeout(() => this.elements.copyBtn.textContent = "📋 Copiar Código", 2000);
-        };
+
+        // Ensure waiting room is visible (for Client joining late or Host)
+        document.getElementById('main-menu-actions').classList.add('hidden');
+        document.getElementById('waiting-room-panel').classList.remove('hidden');
+
+        // Call update player list with current single player (me)
+        this.updatePlayerList([{ name: 'Yo (Host/Client)', id: data.myId }]);
+    }
+
+    updatePlayerList(players) {
+        const list = document.getElementById('connected-players-list');
+        if (!list) return;
+
+        list.innerHTML = players.map(p => `
+            <div class="player-badge" style="background:rgba(255,255,255,0.1); padding:10px; border-radius:8px; display:flex; justify-content:space-between;">
+                <span>👤 ${p.name || 'Jugador'}</span>
+                <span style="opacity:0.5; font-size:0.8em;">${p.id ? p.id.substr(-4) : '???'}</span>
+            </div>
+        `).join('');
+
+        const count = players.length;
+        document.getElementById('waiting-msg').textContent = `Esperando jugadores... (${count} conectados)`;
+    }
+
+    showNetworkError(err) {
+        // Show error in the lobby status
+        const codeDisplay = document.getElementById('room-code-display');
+        if (codeDisplay) {
+            codeDisplay.innerHTML = `<span style="color:red; font-size:1rem;">Error de Red: ${err.type || err}</span>`;
+        }
+        document.getElementById('waiting-msg').textContent = "Error conectando al servidor.";
+        console.error("Network Error:", err);
     }
 
     showGameInterface(state) {
+        console.log("showGameInterface called with role:", state.role);
+        // If it's Online (Host/Client), we stay in Lobby until character select starts
+        if (state.role !== 'OFFLINE') {
+            console.log("Online mode detected. Keeping lobby visible.");
+            return;
+        }
+
         this.elements.lobby.classList.add('hidden');
         this.elements.gameHeader.classList.remove('hidden');
         this.elements.board.classList.remove('hidden');
@@ -165,6 +274,82 @@ export class UIRenderer {
             this.elements.btnRoll.disabled = true;
             this.elements.btnRoll.textContent = `Esperando a ${activePlayer.name}...`;
         }
+    }
+
+    showDecisionModal({ options, player }) {
+        const modal = document.getElementById('decision-modal');
+        const container = document.getElementById('decision-options');
+        container.innerHTML = '';
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerHTML = `<strong>${opt.label}</strong> <span>${opt.hazard === 'Combate' ? '⚔️' : '🛡️'}</span>`;
+            btn.onclick = () => {
+                modal.classList.add('hidden');
+                bus.emit('UI_DECISION_MADE', opt.id);
+            };
+            container.appendChild(btn);
+        });
+        modal.classList.remove('hidden');
+    }
+
+    showCardModal({ type, card }) {
+        const modal = document.getElementById('card-modal');
+        const title = document.getElementById('card-title');
+        const desc = document.getElementById('card-desc');
+        const typeTitle = document.getElementById('card-type');
+        const icon = document.querySelector('.card-icon');
+        const btn = document.getElementById('btn-close-card');
+
+        typeTitle.textContent = type === 'LOOT' ? "HALLAZGO" : "EVENTO";
+        icon.textContent = type === 'LOOT' ? "💎" : "📜";
+        title.textContent = card.title || "Carta Desconocida";
+        desc.textContent = card.desc || "Efecto misterioso...";
+
+        modal.classList.remove('hidden');
+
+        // Simple close handler
+        btn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_CARD_CLOSED');
+        };
+    }
+
+    showCombatModal({ player, enemyLevel }) {
+        const modal = document.getElementById('combat-modal');
+        const pRollVal = document.getElementById('player-roll-val');
+        const eRollVal = document.getElementById('enemy-roll-val');
+        const msg = document.getElementById('combat-result');
+        const btnRoll = document.getElementById('btn-combat-roll');
+        const btnCont = document.getElementById('btn-combat-continue');
+
+        modal.classList.remove('hidden');
+        btnRoll.classList.remove('hidden');
+        btnCont.classList.add('hidden');
+        pRollVal.textContent = "0";
+        eRollVal.textContent = "0";
+        msg.textContent = `¡Enemigo Nvl ${enemyLevel}! Tira para defenderte.`;
+
+        btnRoll.onclick = () => {
+            const pRoll = Math.floor(Math.random() * 6) + 1 + (player.stats.weapons || 0); // Bonus?
+            const eRoll = Math.floor(Math.random() * 6) + 1 + enemyLevel;
+
+            pRollVal.textContent = pRoll;
+            eRollVal.textContent = eRoll;
+
+            const win = pRoll >= eRoll;
+            msg.textContent = win ? "¡VICTORIA! 🎉" : "¡HERIDO! 💔 -1 Vida";
+            msg.style.color = win ? '#238636' : '#da3633';
+
+            btnRoll.classList.add('hidden');
+            btnCont.classList.remove('hidden');
+
+            btnCont.onclick = () => {
+                modal.classList.add('hidden');
+                bus.emit('UI_COMBAT_RESULT', { win, damage: 1 });
+            };
+        };
     }
 }
 

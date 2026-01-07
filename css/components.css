@@ -104,6 +104,26 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
+.btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--hazard-color);
+    transform: scale(1.1);
+}
+
 .btn-lobby.secondary {
     background: transparent;
     border-color: var(--text-secondary);
@@ -369,57 +389,211 @@
     color: var(--text-secondary);
 }
 
-/* Dice Animation */
+/* Dice Animation 3D Real */
 .dice-container-large {
+    perspective: 1000px;
+    width: 200px;
+    height: 200px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    transform: scale(0);
-    animation: popIn 0.3s forwards;
-}
-
-@keyframes popIn {
-    to {
-        transform: scale(1);
-    }
+    align-items: center;
 }
 
 .dice-cube {
-    font-size: 8rem;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
-    animation: shake 0.5s infinite;
+    width: 100px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    /* Better friction curve: fast start, smooth deceleration */
+    transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+    /* Starting rotation for "hand" hold */
+    transform: rotateX(-30deg) rotateY(-30deg);
 }
 
-.dice-result-text {
-    font-size: 4rem;
-    font-weight: 800;
-    color: var(--gold-color);
-    text-shadow: 0 0 20px black;
-    margin-top: -20px;
-    animation: slideUp 0.3s;
+.dice-cube.rolling {
+    animation: tumble 0.6s infinite linear;
 }
 
-@keyframes shake {
+.dice-cube.rolling::after {
+    /* Remove emoji overlay, show actual tumbling 3D faces */
+    display: none;
+}
+
+.dice-face {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 16px;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+    backface-visibility: hidden;
+
+    /* Grid for Pips */
+    display: grid;
+    grid-template-areas:
+        "a . c"
+        "e g f"
+        "d . b";
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    padding: 12px;
+}
+
+.pip {
+    display: block;
+    align-self: center;
+    justify-self: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #333;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5);
+}
+
+.dice-cube.stopped .dice-face .pip {
+    background-color: #238636;
+    /* Green pips on win/stop */
+}
+
+/* Posicionar las 6 caras del cubo (Translate Z = mitad del ancho = 50px) */
+.face-1 {
+    transform: rotateY(0deg) translateZ(50px);
+}
+
+.face-1 .pip:nth-child(1) {
+    grid-area: g;
+}
+
+.face-2 {
+    transform: rotateY(90deg) translateZ(50px);
+}
+
+.face-2 .pip:nth-child(1) {
+    grid-area: a;
+}
+
+.face-2 .pip:nth-child(2) {
+    grid-area: b;
+}
+
+.face-3 {
+    transform: rotateY(180deg) translateZ(50px);
+}
+
+.face-3 .pip:nth-child(1) {
+    grid-area: a;
+}
+
+.face-3 .pip:nth-child(2) {
+    grid-area: g;
+}
+
+.face-3 .pip:nth-child(3) {
+    grid-area: b;
+}
+
+.face-4 {
+    transform: rotateY(-90deg) translateZ(50px);
+}
+
+.face-4 .pip:nth-child(1) {
+    grid-area: a;
+}
+
+.face-4 .pip:nth-child(2) {
+    grid-area: c;
+}
+
+.face-4 .pip:nth-child(3) {
+    grid-area: d;
+}
+
+.face-4 .pip:nth-child(4) {
+    grid-area: b;
+}
+
+.face-5 {
+    transform: rotateX(90deg) translateZ(50px);
+}
+
+.face-5 .pip:nth-child(1) {
+    grid-area: a;
+}
+
+.face-5 .pip:nth-child(2) {
+    grid-area: c;
+}
+
+.face-5 .pip:nth-child(3) {
+    grid-area: g;
+}
+
+.face-5 .pip:nth-child(4) {
+    grid-area: d;
+}
+
+.face-5 .pip:nth-child(5) {
+    grid-area: b;
+}
+
+.face-6 {
+    transform: rotateX(-90deg) translateZ(50px);
+}
+
+.face-6 .pip:nth-child(1) {
+    grid-area: a;
+}
+
+.face-6 .pip:nth-child(2) {
+    grid-area: c;
+}
+
+.face-6 .pip:nth-child(3) {
+    grid-area: e;
+}
+
+.face-6 .pip:nth-child(4) {
+    grid-area: f;
+}
+
+.face-6 .pip:nth-child(5) {
+    grid-area: d;
+}
+
+.face-6 .pip:nth-child(6) {
+    grid-area: b;
+}
+
+/* Remove old numeric content */
+.dice-face::before {
+    content: none;
+}
+
+@keyframes tumble {
     0% {
-        transform: rotate(0deg) translate(0, 0);
+        transform: rotate3d(1, 1, 1, 0deg);
     }
 
     25% {
-        transform: rotate(10deg) translate(5px, 5px);
+        transform: rotate3d(2, 1, -1, 120deg);
     }
 
     50% {
-        transform: rotate(-10deg) translate(-5px, -5px);
+        transform: rotate3d(-1, 2, 1, 240deg);
     }
 
     75% {
-        transform: rotate(5deg) translate(5px, -5px);
+        transform: rotate3d(1, -2, 2, 300deg);
     }
 
     100% {
-        transform: rotate(0deg) translate(0, 0);
+        transform: rotate3d(1, 1, 1, 360deg);
     }
+}
+
+.dice-result-text {
+    display: none;
 }
 
 .combat-msg {

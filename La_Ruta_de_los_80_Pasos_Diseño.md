@@ -96,3 +96,27 @@ Para que el juego mantenga la tensión sin ser imposible al inicio ni aburrido a
 | **Negociante** | Trueque Doble | Guardar su habilidad para el Tramo Medio donde los recursos escasean. |
 | **Comerciante** | +1 Comida | Inicio seguro. Puede permitirse un turno lento sin penalización de vida. |
 | **Escudero** | +1 Armadura | Especialista en combate "seguro". Mitiga la mala suerte en los dados. |
+
+## 4. Archivo de Futuras Mecánicas (Backlog) 📦
+*Guardado para futura implementación.*
+
+### A. Sistema de Casillas (Blue & Purple)
+*   **Casillas Azules (Aleatorio):** Funcionarán como una "ruleta".
+    *   **50% Loot (Bueno):** Encuentras suministros o beneficios.
+    *   **50% Evento (Malo):** Te encuentras una trampa, pierdes vida o algo negativo.
+    *   *Concepto:* Riesgo/Recompensa. ¿Te arriesgas a pisar lo azul?
+*   **Casillas Moradas (Combate Zombie Obligatorio):**
+    *   **Enemigo:** Siempre hay Zombies (1 o 2, dependiendo de dificultad/tramo).
+    *   **Recompensa:** Al ganar el combate, el Zombie suelta Loot (Armas o Comida).
+    *   *Concepto:* Farmear recursos a través de la violencia.
+
+### B. Combate PvP (Jugador contra Jugador)
+*   **Trigger:** Si un jugador termina su turno en la misma casilla que otro jugador (excluyendo Inicio/Refugio).
+*   **Mecánica:** Combate automático de dados.
+*   **Consecuencia:** El perdedor pierde **1 Corazón**. Ambos permanecen en la casilla (no se empujan hacia atrás).
+
+### C. Mecánica de Hambre Estricta
+*   **Si Comida = 0:**
+    *   El jugador pierde **1 Corazón**.
+    *   Y además **PIERDE EL TURNO** (No puede tirar dados para avanzar ese turno).
+    *   *Objetivo:* Hacer la gestión de comida crítica para no quedarse estancado.

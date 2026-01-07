@@ -29,26 +29,53 @@
             <h1>LA RUTA DE LOS<br><span class="highlight">80 PASOS</span></h1>
             <p class="lobby-subtitle">Survival RPG Online</p>
 
-            <div class="lobby-actions">
-                <button id="btn-offline" class="btn-lobby secondary">💀 Jugar Solo (Offline)</button>
-                <div class="separator" style="height:1px; background:rgba(255,255,255,0.1); width:100%; margin: 10px 0">
+            <!-- Main Menu Actions -->
+            <div id="main-menu-actions" class="lobby-actions">
+                <div class="online-group">
+                    <input type="text" id="room-input" placeholder="CÓDIGO SALA" maxlength="6">
+                    <div class="button-row">
+                        <button id="btn-join-room" class="btn-lobby">UNIRSE</button>
+                        <button id="btn-create-room" class="btn-lobby secondary">CREAR</button>
+                    </div>
                 </div>
 
-                <button id="btn-create-room" class="btn-lobby">👑 Crear Sala Online</button>
+                <div class="divider" style="height:1px; background:rgba(255,255,255,0.1); margin:5px 0;"></div>
 
-                <div class="join-section">
-                    <input type="text" id="room-input" placeholder="CÓDIGO (Ej: R80-1234)" maxlength="8">
-                    <button id="btn-join-room" class="btn-lobby secondary">🚀 Unirse</button>
-                </div>
+                <button id="btn-offline" class="btn-lobby ghost" style="font-size: 0.9em; opacity: 0.8;">
+                    💀 Jugar Offline
+                </button>
+                <div id="status-msg" class="status-msg"></div>
             </div>
 
-            <div id="connection-status" class="status-msg hidden">Conectando...</div>
-            <button id="btn-copy-code" class="btn-option hidden"
-                style="margin: 0 auto; background: var(--accent-color); justify-content: center;">📋 Copiar
-                Código</button>
+            <!-- Waiting Room Panel (Hidden by default) -->
+            <div id="waiting-room-panel" class="lobby-actions hidden" style="text-align:center;">
+                <h2 style="color:var(--text-secondary); font-size:1rem; margin-bottom:10px;">TU CÓDIGO DE SALA</h2>
+                <div id="room-code-display" class="room-code-box"
+                    style="font-size:3rem; font-weight:800; color:var(--accent-color); letter-spacing:5px; margin:10px 0; user-select:text;">
+                    ...</div>
+                <button id="btn-copy-code" class="btn-icon"
+                    style="margin:0 auto; width:100%; border-radius:8px; font-size:1rem; gap:10px;">Copiar Código
+                    📋</button>
+
+                <div class="divider" style="height:1px; background:rgba(255,255,255,0.1); margin:20px 0;"></div>
+
+                <h3 style="font-size:1rem; color:var(--text-secondary);">JUGADORES CONECTADOS:</h3>
+                <div id="connected-players-list" class="player-list"
+                    style="margin:15px 0; min-height:50px; display:flex; flex-direction:column; gap:10px;">
+                    <!-- Player badges injected here -->
+                </div>
+
+                <div class="divider" style="height:1px; background:rgba(255,255,255,0.1); margin:20px 0;"></div>
+                <p id="waiting-msg" class="status-msg" style="margin-bottom:20px;">Esperando jugadores...</p>
+                <button id="btn-start-host" class="btn-primary" style="width:100%; font-size:1.2rem;">¡EMPEZAR PARTIDA!
+                    🚀</button>
+                <button id="btn-cancel-wait" class="btn-lobby ghost" style="margin-top:10px; font-size: 0.9em;">Cancelar
+                    / Volver</button>
+            </div>
         </div>
 
         <header class="game-header hidden" id="game-header">
+            <button id="btn-back-lobby" class="btn-icon" title="Volver al Lobby">🏠</button>
             <div>
                 <h1>La Ruta <span class="highlight">80</span></h1>
                 <div id="online-info" class="online-badge hidden">...</div>
@@ -61,7 +88,7 @@
         </header>
 
         <main class="board-container hidden">
-            <!-- TRAMO 1: El Inicio (10 Pasos) -->
+            <!-- TRAMO 1 -->
             <section class="segment linear" id="segment-1">
                 <div class="segment-label">ZONA A: El Despertar</div>
                 <div class="path-row">
@@ -78,7 +105,7 @@
                 </div>
             </section>
 
-            <!-- TRAMO 2: La Primera Bifurcación (3 Caminos) -->
+            <!-- TRAMO 2 -->
             <section class="segment branching-3" id="segment-2">
                 <div class="segment-label">ZONA B: Rutas Peligrosas</div>
                 <div class="branch-container">
@@ -110,7 +137,7 @@
                 </div>
             </section>
 
-            <!-- TRAMO 3: Convergencia (8 Pasos) -->
+            <!-- TRAMO 3 -->
             <section class="segment linear" id="segment-3">
                 <div class="segment-label">ZONA C: El Puente</div>
                 <div class="path-row">
@@ -125,7 +152,7 @@
                 </div>
             </section>
 
-            <!-- TRAMO 4: Segunda Bifurcación (2 Caminos) -->
+            <!-- TRAMO 4 -->
             <section class="segment branching-2" id="segment-4">
                 <div class="segment-label">ZONA D: La Decisión</div>
                 <div class="branch-container">
@@ -150,11 +177,91 @@
                 </div>
             </section>
 
-            <!-- TRAMO 5: Final (Simulado) -->
-            <section class="segment linear final-stretch" id="segment-5">
-                <div class="segment-label">ZONA E: El Infierno (Meta)</div>
+            <!-- TRAMO 5 (Internal Snake) -->
+            <section class="segment linear" id="segment-5">
+                <div class="segment-label">ZONA 5: El Valle Estrecho</div>
                 <div class="path-row">
-                    <div class="tile checkpoint" data-index="34">...</div>
+                    <div class="tile checkpoint" data-index="34">34</div>
+                    <div class="tile" data-index="35">35</div>
+                    <div class="tile loot" data-index="36">36</div>
+                    <div class="tile" data-index="37">37</div>
+                    <div class="tile event" data-index="38">38</div>
+                    <div class="tile" data-index="39">39</div>
+                    <div class="tile" data-index="40">40</div>
+                    <div class="tile hazard" data-index="41">41</div>
+                </div>
+                <!-- Break row -->
+                <div class="path-row">
+                    <div class="tile" data-index="42">42</div>
+                    <div class="tile" data-index="43">43</div>
+                    <div class="tile loot" data-index="44">44</div>
+                    <div class="tile" data-index="45">45</div>
+                    <div class="tile" data-index="46">46</div>
+                    <div class="tile event" data-index="47">47</div>
+                    <div class="tile" data-index="48">48</div>
+                    <div class="tile" data-index="49">49</div>
+                    <div class="tile checkpoint" data-index="50">50</div>
+                </div>
+            </section>
+
+            <!-- TRAMO 6 (Starts LEFT now) -->
+            <section class="segment branching-2" id="segment-6">
+                <div class="segment-label">ZONA 6: El Dilema</div>
+                <div class="branch-container">
+                    <!-- Ruta Segura (Larga) -->
+                    <div class="branch path-top">
+                        <div class="tile" data-index="51">51</div>
+                        <div class="tile" data-index="52">52</div>
+                        <div class="tile loot" data-index="53">53</div>
+                        <div class="tile" data-index="54">54</div>
+                        <div class="tile event" data-index="55">55</div>
+                        <div class="tile" data-index="56">56</div>
+                        <div class="tile" data-index="57">57</div>
+                        <div class="tile" data-index="58">58</div>
+                        <div class="tile" data-index="59">59</div>
+                        <div class="tile" data-index="60">60</div>
+                        <div class="tile" data-index="61">61</div>
+                        <div class="tile loot" data-index="62">62</div>
+                        <div class="tile" data-index="63">63</div>
+                        <div class="tile" data-index="64">64</div>
+                    </div>
+                    <!-- Ruta Mortal (Corta) -->
+                    <div class="branch path-bot">
+                        <div class="tile hazard" data-index="51b">51</div>
+                        <div class="tile hazard" data-index="52b">52</div>
+                        <div class="tile hazard" data-index="53b">53</div>
+                        <div class="tile hazard" data-index="54b">54</div>
+                        <div class="tile hazard" data-index="55b">55</div>
+                        <div class="tile hazard" data-index="56b">56</div>
+                        <div class="tile hazard" data-index="57b">57</div>
+                        <div class="tile hazard" data-index="58b">58</div>
+                        <div class="tile hazard" data-index="59b">59</div>
+                        <div class="tile hazard" data-index="60b">60</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRAMO 7 -->
+            <section class="segment linear" id="segment-7">
+                <div class="segment-label">ZONA 7: La Ascensión</div>
+                <div class="path-row">
+                    <div class="tile checkpoint" data-index="65">65</div>
+                    <div class="tile event" data-index="66">66</div>
+                    <div class="tile" data-index="67">67</div>
+                    <div class="tile hazard" data-index="68">68</div>
+                    <div class="tile" data-index="69">69</div>
+                    <div class="tile" data-index="70">70</div>
+                    <div class="tile hazard" data-index="71">71</div>
+                    <div class="tile" data-index="72">72</div>
+                    <div class="tile loot" data-index="73">73</div>
+                    <div class="tile" data-index="74">74</div>
+                </div>
+            </section>
+
+            <!-- TRAMO 8 -->
+            <section class="segment linear final-stretch" id="segment-8">
+                <div class="segment-label">ZONA FINAL: El Infierno</div>
+                <div class="path-row">
                     <div class="tile hazard" data-index="75">75</div>
                     <div class="tile hazard" data-index="76">76</div>
                     <div class="tile hazard" data-index="77">77</div>
@@ -166,7 +273,7 @@
         </main>
 
         <footer class="game-controls hidden">
-            <button class="btn-primary">Tirar Dados 🎲</button>
+            <button id="btn-action-roll" class="btn-primary">Tirar Dados 🎲</button>
             <div class="stats">
                 <span>❤️ Vida: 3</span>
                 <span>🍗 Comida: 2</span>
@@ -238,12 +345,15 @@
         <div class="modal-content">
             <h2>💀 Jugar Offline</h2>
             <p>¿Cuántos supervivientes?</p>
-            <div class="options-container" style="flex-direction: row; justify-content: center; gap: 10px;">
+            <div class="options-container"
+                style="flex-direction: row; justify-content: center; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-primary btn-player-count" data-count="1">1</button>
                 <button class="btn-primary btn-player-count" data-count="2">2</button>
                 <button class="btn-primary btn-player-count" data-count="3">3</button>
                 <button class="btn-primary btn-player-count" data-count="4">4</button>
             </div>
+            <button id="btn-cancel-offline" class="btn-lobby secondary"
+                style="margin-top: 20px; padding: 10px 20px; font-size: 0.9rem;">Cancelar</button>
         </div>
     </div>
 
