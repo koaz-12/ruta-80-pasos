@@ -1,0 +1,174 @@
+/* Board Container */
+.board-container {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+    align-items: center;
+    padding: 100px 20px 100px 20px;
+    /* Top padding for fixed header */
+    overflow-x: auto;
+}
+
+/* Segments & Paths */
+.segment {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.segment-label {
+    position: absolute;
+    top: -30px;
+    left: 0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.path-row {
+    display: flex;
+    gap: var(--gap-size);
+    position: relative;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 50px;
+}
+
+.branch-container {
+    display: grid;
+    gap: 30px;
+    width: 100%;
+    justify-content: center;
+}
+
+.branch {
+    display: flex;
+    gap: var(--gap-size);
+    justify-content: center;
+    position: relative;
+}
+
+/* Tiles */
+.tile {
+    width: var(--tile-size);
+    height: var(--tile-size);
+    background-color: var(--card-bg);
+    border: 2px solid var(--path-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    position: relative;
+    transition: all 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.tile:hover {
+    transform: scale(1.15);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+    z-index: 10;
+}
+
+/* Tile Types */
+.tile.start {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.tile.checkpoint {
+    border-radius: 8px;
+    border-color: var(--accent-color);
+    background-color: rgba(31, 111, 235, 0.1);
+}
+
+.tile.hazard {
+    border-color: var(--hazard-color);
+    color: var(--hazard-color);
+    background: radial-gradient(circle, rgba(218, 54, 51, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.tile.event {
+    border-color: #a371f7;
+    color: #a371f7;
+}
+
+.tile.loot {
+    border-color: var(--gold-color);
+    color: var(--gold-color);
+}
+
+.tile.finish {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-color);
+    color: white;
+    font-size: 1.2rem;
+    border: 4px solid white;
+    box-shadow: 0 0 20px rgba(88, 166, 255, 0.6);
+}
+
+/* Connections */
+.tile:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--gap-size) * -1 - 2px);
+    top: 50%;
+    width: var(--gap-size);
+    height: 2px;
+    background-color: var(--path-color);
+    z-index: -1;
+    transform: translateY(-50%);
+}
+
+.branch .tile:last-child::after {
+    display: none;
+}
+
+/* Player Token */
+.player-token {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    z-index: 20;
+    animation: bounce 0.5s infinite alternate;
+}
+
+@keyframes bounce {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-5px);
+    }
+}
+
+@media (max-width: 768px) {
+    .tile {
+        --tile-size: 40px;
+        --gap-size: 15px;
+        font-size: 0.8rem;
+    }
+
+    .board-container {
+        align-items: flex-start;
+        padding-bottom: 100px;
+    }
+}

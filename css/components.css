@@ -1,0 +1,430 @@
+/* Header */
+.game-header {
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 900;
+    border-bottom: 1px solid var(--path-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+}
+
+.game-header h1 {
+    font-size: 1.5rem;
+    /* Smaller for header */
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.game-header .subtitle {
+    display: none;
+    /* Hide subtitle to save space */
+}
+
+/* New Stats Location in Header */
+.header-stats {
+    display: flex;
+    gap: 15px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Controls */
+.game-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(13, 17, 23, 0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--path-color);
+    padding: 15px 30px;
+    /* Simplify footer since stats moved up */
+    display: flex;
+    justify-content: center;
+    /* Center the roll button */
+    align-items: center;
+    z-index: 100;
+}
+
+.game-controls .stats {
+    display: none;
+}
+
+/* Hide old stats */
+
+/* Buttons */
+.btn-primary,
+.btn-lobby {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--hazard-color);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(218, 54, 51, 0.3);
+}
+
+.btn-lobby {
+    background: linear-gradient(90deg, var(--path-color) 0%, #21262d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 20px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-lobby.secondary {
+    background: transparent;
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    /* Higher than lobby (2000) */
+    transition: opacity 0.3s;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 2px solid var(--path-color);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.btn-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--path-color);
+    color: var(--text-primary);
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Roboto Mono', monospace;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.online-badge {
+    background: rgba(35, 134, 54, 0.2);
+    color: #238636;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: inline-block;
+    border: 1px solid #238636;
+}
+
+/* Card UI */
+.card-display {
+    width: 300px;
+    height: 450px;
+    perspective: 1000px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    cursor: pointer;
+}
+
+.card-display.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+    border: 4px solid #fff;
+}
+
+.card-front {
+    background: linear-gradient(135deg, #2d2d2d 0%, #000000 100%);
+    border-color: var(--path-color);
+}
+
+.card-front h3 {
+    font-size: 2rem;
+    color: var(--text-secondary);
+    letter-spacing: 5px;
+    margin-bottom: 20px;
+}
+
+.card-front .card-icon {
+    font-size: 5rem;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+}
+
+.card-back {
+    background: #161b22;
+    transform: rotateY(180deg);
+    border-color: var(--accent-color);
+    justify-content: space-between;
+    padding-top: 50px;
+    padding-bottom: 30px;
+}
+
+.card-back h3 {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    font-weight: 800;
+}
+
+.card-back p {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+/* Combat UI */
+.combat-arena {
+    max-width: 600px;
+    width: 95%;
+}
+
+.combat-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.combatant {
+    text-align: center;
+}
+
+.combatant h3 {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.vs-divider {
+    font-weight: 900;
+    color: var(--hazard-color);
+    font-size: 1.5rem;
+}
+
+.combat-dice-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    min-height: 40px;
+    margin-bottom: 5px;
+}
+
+.die {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 8px;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 0 #ccc;
+}
+
+.die.enemy {
+    background: var(--hazard-color);
+    color: white;
+    box-shadow: 0 4px 0 #a01b19;
+}
+
+/* Character Selection */
+.character-grid {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.char-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--path-color);
+    border-radius: 12px;
+    padding: 20px;
+    width: 150px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.char-card:hover {
+    background: var(--accent-color);
+    box-shadow: 0 0 20px rgba(88, 166, 255, 0.4);
+    transform: translateY(-5px);
+    border-color: transparent;
+}
+
+.char-card:hover h3,
+.char-card:hover .char-stats {
+    color: #0d1117;
+}
+
+.char-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.char-stats {
+    font-size: 0.9rem;
+    font-family: 'Roboto Mono', monospace;
+    color: var(--text-secondary);
+}
+
+/* Dice Animation */
+.dice-container-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0);
+    animation: popIn 0.3s forwards;
+}
+
+@keyframes popIn {
+    to {
+        transform: scale(1);
+    }
+}
+
+.dice-cube {
+    font-size: 8rem;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    animation: shake 0.5s infinite;
+}
+
+.dice-result-text {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--gold-color);
+    text-shadow: 0 0 20px black;
+    margin-top: -20px;
+    animation: slideUp 0.3s;
+}
+
+@keyframes shake {
+    0% {
+        transform: rotate(0deg) translate(0, 0);
+    }
+
+    25% {
+        transform: rotate(10deg) translate(5px, 5px);
+    }
+
+    50% {
+        transform: rotate(-10deg) translate(-5px, -5px);
+    }
+
+    75% {
+        transform: rotate(5deg) translate(5px, -5px);
+    }
+
+    100% {
+        transform: rotate(0deg) translate(0, 0);
+    }
+}
+
+.combat-msg {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 20px 0;
+    min-height: 1.5em;
+}

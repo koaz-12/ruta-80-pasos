@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Ruta de los 80 Pasos - Prototipo</title>
+
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/lobby.css">
+    <link rel="stylesheet" href="css/board.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;800&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- PeerJS CDN -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+    <div class="app-container">
+        <!-- Pantalla de Conexión (Lobby) -->
+        <div id="lobby-screen" class="lobby-container">
+            <h1>LA RUTA DE LOS<br><span class="highlight">80 PASOS</span></h1>
+            <p class="lobby-subtitle">Survival RPG Online</p>
+
+            <div class="lobby-actions">
+                <button id="btn-offline" class="btn-lobby secondary">💀 Jugar Solo (Offline)</button>
+                <div class="separator" style="height:1px; background:rgba(255,255,255,0.1); width:100%; margin: 10px 0">
+                </div>
+
+                <button id="btn-create-room" class="btn-lobby">👑 Crear Sala Online</button>
+
+                <div class="join-section">
+                    <input type="text" id="room-input" placeholder="CÓDIGO (Ej: R80-1234)" maxlength="8">
+                    <button id="btn-join-room" class="btn-lobby secondary">🚀 Unirse</button>
+                </div>
+            </div>
+
+            <div id="connection-status" class="status-msg hidden">Conectando...</div>
+            <button id="btn-copy-code" class="btn-option hidden"
+                style="margin: 0 auto; background: var(--accent-color); justify-content: center;">📋 Copiar
+                Código</button>
+        </div>
+
+        <header class="game-header hidden" id="game-header">
+            <div>
+                <h1>La Ruta <span class="highlight">80</span></h1>
+                <div id="online-info" class="online-badge hidden">...</div>
+            </div>
+
+            <div class="header-stats" id="header-stats">
+                <!-- Stats injected here -->
+                <span>Esperando...</span>
+            </div>
+        </header>
+
+        <main class="board-container hidden">
+            <!-- TRAMO 1: El Inicio (10 Pasos) -->
+            <section class="segment linear" id="segment-1">
+                <div class="segment-label">ZONA A: El Despertar</div>
+                <div class="path-row">
+                    <div class="tile start" data-index="1">1</div>
+                    <div class="tile" data-index="2">2</div>
+                    <div class="tile" data-index="3">3</div>
+                    <div class="tile event" data-index="4">4</div>
+                    <div class="tile" data-index="5">5</div>
+                    <div class="tile" data-index="6">6</div>
+                    <div class="tile loot" data-index="7">7</div>
+                    <div class="tile" data-index="8">8</div>
+                    <div class="tile" data-index="9">9</div>
+                    <div class="tile checkpoint" data-index="10">10</div>
+                </div>
+            </section>
+
+            <!-- TRAMO 2: La Primera Bifurcación (3 Caminos) -->
+            <section class="segment branching-3" id="segment-2">
+                <div class="segment-label">ZONA B: Rutas Peligrosas</div>
+                <div class="branch-container">
+                    <div class="branch path-top">
+                        <div class="tile" data-index="11">11</div>
+                        <div class="tile" data-index="12">12</div>
+                        <div class="tile hazard" data-index="13">13</div>
+                        <div class="tile" data-index="14">14</div>
+                        <div class="tile" data-index="15">15</div>
+                        <div class="tile" data-index="16">16</div>
+                        <div class="tile" data-index="17">17</div>
+                    </div>
+                    <div class="branch path-mid">
+                        <div class="tile" data-index="11b">11</div>
+                        <div class="tile event" data-index="12b">12</div>
+                        <div class="tile" data-index="13b">13</div>
+                        <div class="tile" data-index="14b">14</div>
+                        <div class="tile" data-index="15b">15</div>
+                        <div class="tile hazard" data-index="16b">16</div>
+                        <div class="tile" data-index="17b">17</div>
+                    </div>
+                    <div class="branch path-bot">
+                        <div class="tile hazard" data-index="11c">11</div>
+                        <div class="tile hazard" data-index="12c">12</div>
+                        <div class="tile" data-index="13c">13</div>
+                        <div class="tile loot" data-index="14c">14</div>
+                        <div class="tile" data-index="15c">15</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRAMO 3: Convergencia (8 Pasos) -->
+            <section class="segment linear" id="segment-3">
+                <div class="segment-label">ZONA C: El Puente</div>
+                <div class="path-row">
+                    <div class="tile checkpoint" data-index="18">18</div>
+                    <div class="tile" data-index="19">19</div>
+                    <div class="tile" data-index="20">20</div>
+                    <div class="tile event" data-index="21">21</div>
+                    <div class="tile" data-index="22">22</div>
+                    <div class="tile" data-index="23">23</div>
+                    <div class="tile" data-index="24">24</div>
+                    <div class="tile checkpoint" data-index="25">25</div>
+                </div>
+            </section>
+
+            <!-- TRAMO 4: Segunda Bifurcación (2 Caminos) -->
+            <section class="segment branching-2" id="segment-4">
+                <div class="segment-label">ZONA D: La Decisión</div>
+                <div class="branch-container">
+                    <div class="branch path-left">
+                        <div class="tile" data-index="26">26</div>
+                        <div class="tile hazard" data-index="27">27</div>
+                        <div class="tile" data-index="28">28</div>
+                        <div class="tile" data-index="29">29</div>
+                        <div class="tile" data-index="30">30</div>
+                        <div class="tile" data-index="31">31</div>
+                    </div>
+                    <div class="branch path-right">
+                        <div class="tile" data-index="26b">26</div>
+                        <div class="tile" data-index="27b">27</div>
+                        <div class="tile event" data-index="28b">28</div>
+                        <div class="tile" data-index="29b">29</div>
+                        <div class="tile" data-index="30b">30</div>
+                        <div class="tile hazard" data-index="31b">31</div>
+                        <div class="tile" data-index="32b">32</div>
+                        <div class="tile" data-index="33b">33</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRAMO 5: Final (Simulado) -->
+            <section class="segment linear final-stretch" id="segment-5">
+                <div class="segment-label">ZONA E: El Infierno (Meta)</div>
+                <div class="path-row">
+                    <div class="tile checkpoint" data-index="34">...</div>
+                    <div class="tile hazard" data-index="75">75</div>
+                    <div class="tile hazard" data-index="76">76</div>
+                    <div class="tile hazard" data-index="77">77</div>
+                    <div class="tile hazard" data-index="78">78</div>
+                    <div class="tile hazard" data-index="79">79</div>
+                    <div class="tile finish" data-index="80">80</div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="game-controls hidden">
+            <button class="btn-primary">Tirar Dados 🎲</button>
+            <div class="stats">
+                <span>❤️ Vida: 3</span>
+                <span>🍗 Comida: 2</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de Decisión -->
+    <div id="decision-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>⚠️ Bifurcación en el Camino</h2>
+            <p>Debes elegir tu destino:</p>
+            <div id="decision-options" class="options-container"></div>
+        </div>
+    </div>
+
+    <!-- Visualizador de Cartas -->
+    <div id="card-modal" class="modal-overlay hidden">
+        <div class="card-display">
+            <div class="card-inner">
+                <div class="card-front">
+                    <h3 id="card-type">EVENTO</h3>
+                    <div class="card-icon">❓</div>
+                </div>
+                <div class="card-back">
+                    <h3 id="card-title">Título de la Carta</h3>
+                    <p id="card-desc">Descripción.</p>
+                    <button id="btn-close-card" class="btn-primary"
+                        style="margin-top:20px; width:100%">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Combate -->
+    <div id="combat-modal" class="modal-overlay hidden">
+        <div class="modal-content combat-arena">
+            <h2>⚔️ COMBATE ⚔️</h2>
+            <div class="combat-display">
+                <div class="combatant player-side">
+                    <h3>TÚ</h3>
+                    <div class="combat-dice-container" id="player-dice"></div>
+                    <p id="player-roll-val">0</p>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="combatant enemy-side">
+                    <h3>ENEMIGO</h3>
+                    <div class="combat-dice-container" id="enemy-dice"></div>
+                    <p id="enemy-roll-val">0</p>
+                </div>
+            </div>
+            <p id="combat-result" class="combat-msg">¡Tira los dados!</p>
+            <button id="btn-combat-roll" class="btn-primary">ATACAR 🎲</button>
+            <button id="btn-combat-continue" class="btn-primary hidden">CONTINUAR</button>
+        </div>
+    </div>
+
+    <!-- Modal Selección de Personaje -->
+    <div id="character-modal" class="modal-overlay hidden">
+        <div class="modal-content character-select">
+            <h2>Elige tu Superviviente</h2>
+            <p id="char-select-msg" style="margin-bottom:15px; color:#aaa">Jugador 1</p>
+            <div class="character-grid"></div>
+        </div>
+    </div>
+
+    <!-- Modal Cantidad de Jugadores (Hotseat) -->
+    <div id="players-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>💀 Jugar Offline</h2>
+            <p>¿Cuántos supervivientes?</p>
+            <div class="options-container" style="flex-direction: row; justify-content: center; gap: 10px;">
+                <button class="btn-primary btn-player-count" data-count="1">1</button>
+                <button class="btn-primary btn-player-count" data-count="2">2</button>
+                <button class="btn-primary btn-player-count" data-count="3">3</button>
+                <button class="btn-primary btn-player-count" data-count="4">4</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Dados (Animación Global) -->
+    <div id="dice-overlay" class="modal-overlay hidden" style="background: rgba(0,0,0,0.6); backdrop-filter: none;">
+        <div class="dice-container-large">
+            <div id="dice-visual" class="dice-cube">🎲</div>
+            <div id="dice-result" class="dice-result-text hidden">6</div>
+        </div>
+    </div>
+
+    <!-- Main Module Entry Point -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

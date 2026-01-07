@@ -1,0 +1,41 @@
+:root {
+    --bg-color: #0d1117;
+    --card-bg: #161b22;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --accent-color: #58a6ff;
+    --hazard-color: #da3633;
+    --toxic-color: #238636;
+    --gold-color: #d29922;
+    --path-color: #30363d;
+    --path-active: #1f6feb;
+
+    --tile-size: 50px;
+    --gap-size: 20px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.highlight {
+    color: var(--hazard-color);
+    text-shadow: 0 0 10px rgba(218, 54, 51, 0.4);
+}
+
+.hidden {
+    display: none !important;
+}
