@@ -22,6 +22,39 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
+    transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
+}
+
+/* Vertical Mobile Mode */
+.board-container.mobile-rotated {
+    /* Rotate -90deg (Counter-Clockwise) so Left (Start) is Bottom */
+    transform: rotate(-90deg);
+    /* Swap dimensions logic: Height becomes Width logic */
+    /* We want the rotated board to FILL the screen.
+       Screen: 400w x 800h.
+       Board:  800w x 400h (after rotation).
+    */
+    /* Fix alignment after rotation. Origin Center? */
+    transform-origin: center center;
+
+    /* Force size to match viewport inverted? 
+       Actually, if flex item, it has size.
+       Just rotating it might clip it.
+    */
+    width: 100vh !important;
+    height: 100vw !important;
+
+    /* Centering adjustment might be needed due to dimension swap */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -50vh;
+    /* Half of new width */
+    margin-top: -50vw;
+    /* Half of new height */
+
+    z-index: 10;
+    /* Ensure on top of other non-UI */
 }
 
 /* SVG takes full space */
