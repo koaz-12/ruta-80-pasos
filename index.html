@@ -44,6 +44,11 @@
                 <button id="btn-offline" class="btn-lobby ghost" style="font-size: 0.9em; opacity: 0.8;">
                     💀 Jugar Offline
                 </button>
+                <button id="btn-editor-mode" class="btn-lobby ghost"
+                    style="font-size: 0.9em; opacity: 0.6; margin-top: 10px; display: none;">
+                    <!-- Initially hidden, shown by JS if Dev -->
+                    🛠️ Editor
+                </button>
                 <div id="status-msg" class="status-msg"></div>
             </div>
 
@@ -88,197 +93,43 @@
         </header>
 
         <main class="board-container hidden">
-            <!-- TRAMO 1 -->
-            <section class="segment linear" id="segment-1">
-                <div class="segment-label">ZONA A: El Despertar</div>
-                <div class="path-row">
-                    <div class="tile start" data-index="1">1</div>
-                    <div class="tile" data-index="2">2</div>
-                    <div class="tile" data-index="3">3</div>
-                    <div class="tile event" data-index="4">4</div>
-                    <div class="tile" data-index="5">5</div>
-                    <div class="tile" data-index="6">6</div>
-                    <div class="tile loot" data-index="7">7</div>
-                    <div class="tile" data-index="8">8</div>
-                    <div class="tile" data-index="9">9</div>
-                    <div class="tile checkpoint" data-index="10">10</div>
-                </div>
             </section>
+    </div>
+    </section>
+    </div>
 
-            <!-- TRAMO 2 -->
-            <section class="segment branching-3" id="segment-2">
-                <div class="segment-label">ZONA B: Rutas Peligrosas</div>
-                <div class="branch-container">
-                    <div class="branch path-top">
-                        <div class="tile" data-index="11">11</div>
-                        <div class="tile" data-index="12">12</div>
-                        <div class="tile hazard" data-index="13">13</div>
-                        <div class="tile" data-index="14">14</div>
-                        <div class="tile" data-index="15">15</div>
-                        <div class="tile" data-index="16">16</div>
-                        <div class="tile" data-index="17">17</div>
-                    </div>
-                    <div class="branch path-mid">
-                        <div class="tile" data-index="11b">11</div>
-                        <div class="tile event" data-index="12b">12</div>
-                        <div class="tile" data-index="13b">13</div>
-                        <div class="tile" data-index="14b">14</div>
-                        <div class="tile" data-index="15b">15</div>
-                        <div class="tile hazard" data-index="16b">16</div>
-                        <div class="tile" data-index="17b">17</div>
-                    </div>
-                    <div class="branch path-bot">
-                        <div class="tile hazard" data-index="11c">11</div>
-                        <div class="tile hazard" data-index="12c">12</div>
-                        <div class="tile" data-index="13c">13</div>
-                        <div class="tile loot" data-index="14c">14</div>
-                        <div class="tile" data-index="15c">15</div>
-                    </div>
-                </div>
-            </section>
+    <!-- EDITOR ASSETS (Visual Props) -->
+    <div id="editor-props" style="display:none;"> <!-- Hidden by default, Editor picks them up -->
+        <div class="tile decoration" data-index="d1"></div>
+        <div class="tile decoration" data-index="d2"></div>
+        <div class="tile decoration" data-index="d3"></div>
 
-            <!-- TRAMO 3 -->
-            <section class="segment linear" id="segment-3">
-                <div class="segment-label">ZONA C: El Puente</div>
-                <div class="path-row">
-                    <div class="tile checkpoint" data-index="18">18</div>
-                    <div class="tile" data-index="19">19</div>
-                    <div class="tile" data-index="20">20</div>
-                    <div class="tile event" data-index="21">21</div>
-                    <div class="tile" data-index="22">22</div>
-                    <div class="tile" data-index="23">23</div>
-                    <div class="tile" data-index="24">24</div>
-                    <div class="tile checkpoint" data-index="25">25</div>
-                </div>
-            </section>
+        <!-- Connector 1:3 (One path to three) -->
+        <div class="connector-box split-3">
+            <div class="c-stem-main"></div> <!-- Main input -->
+            <div class="c-bar"></div> <!-- Crossbar -->
+            <div class="c-stem-l"></div> <!-- Left out -->
+            <div class="c-stem-c"></div> <!-- Center out -->
+            <div class="c-stem-r"></div> <!-- Right out -->
+        </div>
 
-            <!-- TRAMO 4 -->
-            <section class="segment branching-2" id="segment-4">
-                <div class="segment-label">ZONA D: La Decisión</div>
-                <div class="branch-container">
-                    <div class="branch path-left">
-                        <div class="tile" data-index="26">26</div>
-                        <div class="tile hazard" data-index="27">27</div>
-                        <div class="tile" data-index="28">28</div>
-                        <div class="tile" data-index="29">29</div>
-                        <div class="tile" data-index="30">30</div>
-                        <div class="tile" data-index="31">31</div>
-                    </div>
-                    <div class="branch path-right">
-                        <div class="tile" data-index="26b">26</div>
-                        <div class="tile" data-index="27b">27</div>
-                        <div class="tile event" data-index="28b">28</div>
-                        <div class="tile" data-index="29b">29</div>
-                        <div class="tile" data-index="30b">30</div>
-                        <div class="tile hazard" data-index="31b">31</div>
-                        <div class="tile" data-index="32b">32</div>
-                        <div class="tile" data-index="33b">33</div>
-                    </div>
-                </div>
-            </section>
+        <!-- Connector 1:2 (One path to two) -->
+        <div class="connector-box split-2">
+            <div class="c-stem-main"></div>
+            <div class="c-bar-small"></div>
+            <div class="c-stem-l"></div>
+            <div class="c-stem-r"></div>
+        </div>
+    </div>
+    </main>
 
-            <!-- TRAMO 5 (Internal Snake) -->
-            <section class="segment linear" id="segment-5">
-                <div class="segment-label">ZONA 5: El Valle Estrecho</div>
-                <div class="path-row">
-                    <div class="tile checkpoint" data-index="34">34</div>
-                    <div class="tile" data-index="35">35</div>
-                    <div class="tile loot" data-index="36">36</div>
-                    <div class="tile" data-index="37">37</div>
-                    <div class="tile event" data-index="38">38</div>
-                    <div class="tile" data-index="39">39</div>
-                    <div class="tile" data-index="40">40</div>
-                    <div class="tile hazard" data-index="41">41</div>
-                </div>
-                <!-- Break row -->
-                <div class="path-row">
-                    <div class="tile" data-index="42">42</div>
-                    <div class="tile" data-index="43">43</div>
-                    <div class="tile loot" data-index="44">44</div>
-                    <div class="tile" data-index="45">45</div>
-                    <div class="tile" data-index="46">46</div>
-                    <div class="tile event" data-index="47">47</div>
-                    <div class="tile" data-index="48">48</div>
-                    <div class="tile" data-index="49">49</div>
-                    <div class="tile checkpoint" data-index="50">50</div>
-                </div>
-            </section>
-
-            <!-- TRAMO 6 (Starts LEFT now) -->
-            <section class="segment branching-2" id="segment-6">
-                <div class="segment-label">ZONA 6: El Dilema</div>
-                <div class="branch-container">
-                    <!-- Ruta Segura (Larga) -->
-                    <div class="branch path-top">
-                        <div class="tile" data-index="51">51</div>
-                        <div class="tile" data-index="52">52</div>
-                        <div class="tile loot" data-index="53">53</div>
-                        <div class="tile" data-index="54">54</div>
-                        <div class="tile event" data-index="55">55</div>
-                        <div class="tile" data-index="56">56</div>
-                        <div class="tile" data-index="57">57</div>
-                        <div class="tile" data-index="58">58</div>
-                        <div class="tile" data-index="59">59</div>
-                        <div class="tile" data-index="60">60</div>
-                        <div class="tile" data-index="61">61</div>
-                        <div class="tile loot" data-index="62">62</div>
-                        <div class="tile" data-index="63">63</div>
-                        <div class="tile" data-index="64">64</div>
-                    </div>
-                    <!-- Ruta Mortal (Corta) -->
-                    <div class="branch path-bot">
-                        <div class="tile hazard" data-index="51b">51</div>
-                        <div class="tile hazard" data-index="52b">52</div>
-                        <div class="tile hazard" data-index="53b">53</div>
-                        <div class="tile hazard" data-index="54b">54</div>
-                        <div class="tile hazard" data-index="55b">55</div>
-                        <div class="tile hazard" data-index="56b">56</div>
-                        <div class="tile hazard" data-index="57b">57</div>
-                        <div class="tile hazard" data-index="58b">58</div>
-                        <div class="tile hazard" data-index="59b">59</div>
-                        <div class="tile hazard" data-index="60b">60</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TRAMO 7 -->
-            <section class="segment linear" id="segment-7">
-                <div class="segment-label">ZONA 7: La Ascensión</div>
-                <div class="path-row">
-                    <div class="tile checkpoint" data-index="65">65</div>
-                    <div class="tile event" data-index="66">66</div>
-                    <div class="tile" data-index="67">67</div>
-                    <div class="tile hazard" data-index="68">68</div>
-                    <div class="tile" data-index="69">69</div>
-                    <div class="tile" data-index="70">70</div>
-                    <div class="tile hazard" data-index="71">71</div>
-                    <div class="tile" data-index="72">72</div>
-                    <div class="tile loot" data-index="73">73</div>
-                    <div class="tile" data-index="74">74</div>
-                </div>
-            </section>
-
-            <!-- TRAMO 8 -->
-            <section class="segment linear final-stretch" id="segment-8">
-                <div class="segment-label">ZONA FINAL: El Infierno</div>
-                <div class="path-row">
-                    <div class="tile hazard" data-index="75">75</div>
-                    <div class="tile hazard" data-index="76">76</div>
-                    <div class="tile hazard" data-index="77">77</div>
-                    <div class="tile hazard" data-index="78">78</div>
-                    <div class="tile hazard" data-index="79">79</div>
-                    <div class="tile finish" data-index="80">80</div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="game-controls hidden">
-            <button id="btn-action-roll" class="btn-primary">Tirar Dados 🎲</button>
-            <div class="stats">
-                <span>❤️ Vida: 3</span>
-                <span>🍗 Comida: 2</span>
-            </div>
-        </footer>
+    <footer class="game-controls hidden">
+        <button id="btn-action-roll" class="btn-primary">Tirar Dados 🎲</button>
+        <div class="stats">
+            <span>❤️ Vida: 3</span>
+            <span>🍗 Comida: 2</span>
+        </div>
+    </footer>
     </div>
 
     <!-- Modal de Decisión -->

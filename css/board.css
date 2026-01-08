@@ -1,146 +1,540 @@
-/* Board Container */
+/* --- BOARD CONTAINER (SVG Canvas) --- */
 .board-container {
-    display: flex;
-    flex-direction: column;
-    gap: 60px;
-    align-items: center;
-    padding: 100px 20px 100px 20px;
-    overflow-x: auto;
+    position: relative;
+    /* Hybrid Layout: Flex Item */
+    flex: 1;
+    /* Fill remaining vertical space */
     width: 100%;
-    /* No fixed height, let it scroll naturally with page or be container-based */
+    min-height: 0;
+    /* Crucial for flex scrolling */
+    z-index: 0;
+
+    background-color: #f7f5e6;
+
+    /* Immersive Border (Wood/Table Effect) */
+    border: 15px solid #4a3b2a;
+    box-shadow:
+        inset 0 0 60px rgba(0, 0, 0, 0.6),
+        /* Inner depth */
+        0 0 0 2px #2a2118;
+    /* Outer outline */
+
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
-/* Segments & Paths */
-.segment {
+/* SVG takes full space */
+#game-board-svg {
+    display: block;
     width: 100%;
+    height: 100%;
+}
+
+/* Tile hover animation */
+.tile-group {
+    transition: transform 0.2s ease;
+}
+
+.tile-group:hover {
+    filter: brightness(1.1);
+}
+
+/* Deck hover */
+.deck:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+#dice-svg:hover {
+    filter: brightness(1.05);
+}
+
+/* Hide old structural elements */
+.board-zone,
+.segment,
+.branch-container,
+#tile-container,
+#center-panel,
+#editor-props {
+    display: none !important;
+}
+
+/* Editor Mode specific frame enhancement */
+.editor-active .board-container {
+    border: 4px dashed #666;
+    /* Dashed line to indicate editable zone */
+    background: #1a1a1a;
+}
+
+/* Hide other zones for now */
+.zone-right,
+.zone-top,
+.zone-left {
+    display: none !important;
+}
+
+/* --- ZONE BOTTOM STYLING --- */
+.zone-bottom {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    gap: 0;
+    /* Tiles touch or close? Sketch touches. */
+}
+
+/* Segment 1: Start + Linear (1-10) */
+#segment-1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#segment-1 .path-row {
+    display: flex;
+    gap: 0;
+    /* Sketch shows connected tiles like a tape */
+    padding: 0;
+    margin: 0;
+    background: none;
+    backdrop-filter: none;
+    border: none;
+    align-items: center;
+    /* Center aligned items */
+}
+
+/* NEW START BOX STYLING */
+.start-box {
+    width: 120px;
+    height: 120px;
+    background: #f4e7d5;
+    border: 3px solid #333;
+    color: #333;
+    border-radius: 4px;
+    font-size: 1.5rem;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: -2px;
+    /* Connect */
+    z-index: 2;
+}
+
+/* TILES 1-10 (Rectangular strip) */
+#segment-1 .tile {
+    width: 50px;
+    height: 50px;
+    background: #f4e7d5;
+    /* Paper */
+    border: 2px solid #555;
+    border-radius: 0;
+    /* Square tiles per sketch */
+    margin-right: -2px;
+    /* Overlap borders */
+    color: #333;
+    box-shadow: none;
+    display: flex;
+    /* Ensure flex for centering numbers */
+    justify-content: center;
+    align-items: center;
+}
+
+#segment-1 .tile:hover {
+    transform: none;
+    /* Disable zoom for construction */
+    background: #ddd;
+}
+
+/* SEGMENT 2: BRANCHING (11-17) - CLEAN STATE */
+#segment-2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
     position: relative;
     padding: 0;
 }
 
-.segment-label {
+/* --- CENTER PANEL --- */
+#center-panel {
     position: absolute;
-    top: -30px;
-    left: 0;
-    font-family: 'Roboto Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    width: 100%;
-    text-align: center;
-}
-
-.path-row {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
-    gap: var(--gap-size);
-    position: relative;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 50px;
+    gap: 40px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    border-radius: 20px;
+    border: 2px dashed #aaa;
 }
 
-.branch-container {
-    display: grid;
-    gap: 30px;
-    width: 100%;
-    justify-content: center;
-}
-
-.branch {
+.deck {
+    width: 80px;
+    height: 120px;
+    border: 2px solid #555;
+    border-radius: 8px;
     display: flex;
-    gap: var(--gap-size);
+    flex-direction: column;
     justify-content: center;
-    position: relative;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 50px;
+    align-items: center;
+    cursor: pointer;
+    background: #fff;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
 }
 
-/* Tiles */
-.tile {
-    width: var(--tile-size);
-    height: var(--tile-size);
-    background-color: var(--card-bg);
-    border: 2px solid var(--path-color);
-    border-radius: 50%;
-    /* Original Round Shape */
+.deck:hover {
+    transform: scale(1.05);
+}
+
+.deck-blue .card-back {
+    font-size: 2rem;
+    color: #44f;
+}
+
+.deck-red .card-back {
+    font-size: 2rem;
+    color: #f44;
+}
+
+.dice-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#dice-display {
+    font-size: 3rem;
+    width: 60px;
+    height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    position: relative;
-    transition: all 0.3s;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #fff;
 }
 
-.tile:hover {
-    transform: scale(1.15);
-    border-color: var(--text-primary);
-    color: var(--text-primary);
-    box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+/* The Container */
+#segment-2 .branch-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px;
+    background: transparent;
+    /* No shape for now */
+    width: auto;
+    height: auto;
+    border: none;
+    clip-path: none;
+    filter: none;
+    border-radius: 0;
+}
+
+/* --- GLOBAL TILE RESET (SQUARE & UNIFORM) --- */
+.tile,
+.start-box,
+.finish-box,
+.connector-box {
+    width: 50px;
+    height: 50px;
+    background: #f4e7d5 !important;
+    /* Force paper color always */
+    border: 2px solid #555 !important;
+    border-radius: 4px !important;
+    /* Slight rounded square or 0 for sharp */
+    color: #333 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-family: 'Roboto Mono', monospace;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+    position: relative;
     z-index: 10;
 }
 
-/* Tile Types */
-.tile.start {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+/* Neutralize special tiles for Layout Mode */
+.tile.event,
+.tile.hazard,
+.tile.loot,
+.tile.checkpoint,
+.tile.start,
+.tile.finish,
+.tile.decoration {
+    background: #f4e7d5 !important;
+    border-color: #555 !important;
+    color: #333 !important;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1) !important;
 }
 
-.tile.checkpoint {
-    border-radius: 8px;
-    /* Slightly rounded for checkpoints */
-    border-color: var(--accent-color);
-    background-color: rgba(31, 111, 235, 0.1);
+/* Empty Decoration Tiles (Optional distinction?) */
+.tile.decoration {
+    border-style: dashed !important;
+    opacity: 0.8;
 }
 
-.tile.hazard {
-    border-color: var(--hazard-color);
-    color: var(--hazard-color);
-    background: radial-gradient(circle, rgba(218, 54, 51, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+/* Connector Boxes Specific */
+.connector-box {
+    background: transparent !important;
+    /* Transparent to show 'paths' */
+    border: none !important;
+    box-shadow: none !important;
+    width: 80px;
+    height: 80px;
+    z-index: 5;
+    /* Below tiles */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.tile.event {
-    border-color: #a371f7;
-    color: #a371f7;
-}
-
-.tile.loot {
-    border-color: var(--gold-color);
-    color: var(--gold-color);
-}
-
-.tile.finish {
-    width: 60px;
-    height: 60px;
-    background: var(--accent-color);
-    color: white;
-    font-size: 1.2rem;
-    border: 4px solid white;
-    box-shadow: 0 0 20px rgba(88, 166, 255, 0.6);
-}
-
-/* Connections */
-.tile:not(:last-child)::after {
+/* Common path style for connectors */
+.connector-box::before,
+.connector-box::after {
     content: '';
     position: absolute;
-    right: calc(var(--gap-size) * -1 - 2px);
-    top: 50%;
-    width: var(--gap-size);
-    height: 2px;
-    background-color: var(--path-color);
-    z-index: -1;
-    transform: translateY(-50%);
+    background: #d4c5a9;
+    /* Match path color */
+    border: 2px solid #555;
+    box-sizing: border-box;
 }
 
-.branch .tile:last-child::after {
+/* SPLIT 3: 1 input (bottom) -> 3 outputs (top) */
+/* "Pitchfork" shape */
+.connector-box.split-3 {
+    width: 100px;
+    /* Wider */
+}
+
+/* The horizontal bar */
+.connector-box.split-3::before {
+    width: 100%;
+    height: 20px;
+    top: 20px;
+    left: 0;
+    border-radius: 4px;
+}
+
+/* The vertical stems */
+.connector-box.split-3::after {
+    /* Trick: Use a gradient or multiple shadows to create 3 lines? 
+       Actually, cleaner to use SVG or just multiple internal divs.
+       For simple CSS, let's just make it a block that connects.
+    */
+    content: none;
+}
+
+/* Better approach: Inner divs for paths */
+.connector-path {
+    position: absolute;
+    background: #e0d0b0;
+    border: 2px solid #555;
+}
+
+/* Start & Finish Box specific size */
+.start-box,
+.finish-box {
+    width: 100px;
+    height: 100px;
+    font-size: 1.2rem;
+    z-index: 100;
+}
+
+/* Editor helpers */
+.editor-active .tile:hover {
+    border-color: #007bff !important;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+    z-index: 999;
+}
+
+/* Branch specific alignment */
+.branch .tile {
+    width: 50px;
+    height: 50px;
+    background: #f4e7d5;
+    border: 2px solid #555;
+    border-radius: 0;
+    margin-right: -2px;
+}
+
+.branch {
+    gap: -2px;
+    /* Connected strip */
+}
+
+/* Remove the specific connector element */
+.connector-split-3 {
     display: none;
+}
+
+/* The Vertical Distribution Bar */
+.connector-split-3::before {
+    display: none;
+}
+
+/* The Horizontal Spurs connect to the Branch Starts */
+/* We'll use the background div for the fill to blend them */
+.connector-split-3-bg {
+    display: none;
+}
+
+/* We need explicit horizontal connectors for Top and Bot because they are far apart.
+   Actually, the user wants "connected to tile 10".
+   Let's make one big block that connects them all seamlessly. */
+
+/* --- BOARD BACKGROUND & AESTHETICS --- */
+.board-container {
+    background-color: #f7f5e6;
+    /* Papyrus/Beige */
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d9d4c5' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+    position: relative;
+    /* Use grid only for zones if needed, but we seem to be going absolute */
+}
+
+/* --- TILE STYLES (Pastel + Sketch) --- */
+.tile {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-family: 'Patrick Hand', 'Comic Sans MS', cursive;
+    /* Sketch font */
+    color: #333;
+    border: 3px solid #333 !important;
+    /* Defined black border */
+    border-radius: 6px;
+    /* Slightly rounded */
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.2s;
+    background-color: #fff;
+    /* Fallback */
+    z-index: 10;
+}
+
+/* Small hover effect */
+.tile:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+/* --- 4-COLOR CYCLE CLASSES --- */
+/* We will assign these via JS or nth-child logic, but JS is safer for map generation */
+.tile.color-blue {
+    background-color: #a2d2ff !important;
+}
+
+/* Blue */
+.tile.color-red {
+    background-color: #ffafcc !important;
+}
+
+/* Red/Pinkish */
+.tile.color-yellow {
+    background-color: #fdfcdc !important;
+}
+
+/* Yellow */
+.tile.color-green {
+    background-color: #cdb4db !important;
+}
+
+/* Purple/Green?? Let's fix */
+/* Pastel Green */
+.tile.color-green {
+    background-color: #bde0fe !important;
+}
+
+/* Wait, let's clearer specific colors */
+
+/* Revised Pastels */
+.tile.c-1 {
+    background-color: #FFADAD !important;
+}
+
+/* Red */
+.tile.c-2 {
+    background-color: #FFD6A5 !important;
+}
+
+/* Orange/Yellow */
+.tile.c-3 {
+    background-color: #FDFFB6 !important;
+}
+
+/* Yellow */
+.tile.c-4 {
+    background-color: #CAFFBF !important;
+}
+
+/* Green */
+.tile.c-5 {
+    background-color: #9BF6FF !important;
+}
+
+/* Cyan */
+.tile.c-6 {
+    background-color: #A0C4FF !important;
+}
+
+/* Blue */
+.tile.c-7 {
+    background-color: #BDB2FF !important;
+}
+
+/* Purple */
+.tile.c-8 {
+    background-color: #FFC6FF !important;
+}
+
+/* Pink */
+
+/* Explicit requested 4-cycle */
+.tile.p-blue {
+    background-color: #A0C4FF !important;
+}
+
+.tile.p-red {
+    background-color: #FFADAD !important;
+}
+
+.tile.p-yellow {
+    background-color: #FDFFB6 !important;
+}
+
+.tile.p-green {
+    background-color: #CAFFBF !important;
+}
+
+/* START & FINISH */
+.start-box {
+    background-color: #e5e5e5 !important;
+    border: 4px solid #333 !important;
+    color: #333;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.finish-box {
+    background-color: #ef233c !important;
+    /* Strong red for Finish */
+    color: white !important;
+    border: 4px solid #333 !important;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Player Token */
@@ -160,14 +554,11 @@
 }
 
 @media (max-width: 768px) {
-    .tile {
-        --tile-size: 40px;
-        --gap-size: 15px;
-        font-size: 0.8rem;
-    }
-
     .board-container {
-        align-items: center;
-        padding-bottom: 100px;
+        transform: scale(0.6);
+        transform-origin: top left;
+        width: 166%;
+        /* Compensate scale */
+        margin-bottom: -40%;
     }
 }

@@ -24,16 +24,72 @@ body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-primary);
-    min-height: 100vh;
+    height: 100vh;
+    /* Fixed viewport height */
+    width: 100vw;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    position: relative;
+    /* Context for absolute children */
+    padding: 0;
+    /* Remove default padding to allow edge-to-edge */
+    overflow: hidden;
+    /* Prevent body scroll */
 }
 
 .highlight {
     color: var(--hazard-color);
     text-shadow: 0 0 10px rgba(218, 54, 51, 0.4);
+}
+
+/* Landscape Warning */
+#landscape-warning {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0d1117;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+#landscape-warning .msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#landscape-warning .icon {
+    font-size: 60px;
+    animation: rotate-phone 2s infinite ease-in-out;
+}
+
+@keyframes rotate-phone {
+
+    0%,
+    10% {
+        transform: rotate(0deg);
+    }
+
+    40%,
+    60% {
+        transform: rotate(-90deg);
+    }
+
+    90%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@media screen and (orientation: portrait) {
+    #landscape-warning {
+        display: flex;
+    }
 }
 
 .hidden {

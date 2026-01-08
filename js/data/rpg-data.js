@@ -1,10 +1,10 @@
 // Configuración de RPG: Clases y Cartas
 
 export const CLASSES = [
-    { id: 'medic', name: 'Curandero', life: 4, food: 2, weapons: 0, bonus: 'Vida+' },
-    { id: 'soldier', name: 'Combatiente', life: 3, food: 2, weapons: 1, bonus: 'Doble Dado' },
-    { id: 'scout', name: 'Explorador', life: 3, food: 3, weapons: 0, bonus: 'Comida+' },
-    { id: 'tank', name: 'Escudero', life: 3, food: 2, weapons: 0, bonus: 'Defensa' }
+    { id: 'medic', name: 'Curandero', life: 4, food: 2, weapons: 0, bonus: 'Vida+', icon: '🧙' },
+    { id: 'soldier', name: 'Combatiente', life: 3, food: 2, weapons: 1, bonus: 'Doble Dado', icon: '⚔️' },
+    { id: 'scout', name: 'Explorador', life: 3, food: 3, weapons: 0, bonus: 'Comida+', icon: '🧭' },
+    { id: 'tank', name: 'Escudero', life: 3, food: 2, weapons: 0, bonus: 'Defensa', icon: '🛡️' }
 ];
 
 // Helper para efectos (se pasarán stats por referencia)

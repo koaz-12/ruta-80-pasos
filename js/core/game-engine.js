@@ -92,7 +92,13 @@ export class GameEngine {
             myId = `OFFLINE_${store.state.playersReady + 1}`;
         }
 
-        const newStats = { life: cls.life, maxLife: 5, food: cls.food, weapons: cls.weapons };
+        const newStats = {
+            life: cls.life,
+            maxLife: 5,
+            food: cls.food,
+            weapons: cls.weapons,
+            class: cls // Include full class info (icon, name, bonus)
+        };
 
         if (role === 'CLIENT') {
             network.send({
@@ -163,70 +169,79 @@ export class GameEngine {
         bus.emit('DICE_ROLLED', roll);
         network.send({ type: 'DICE_ROLLED', value: roll });
 
-        // Wait for animation (e.g., 2 seconds)
-        // Wait for animation (3s UI + 0.5s buffer)
+        // Wait for animation (3.5s)
         await new Promise(r => setTimeout(r, 3500));
 
-        // 3. Move Animation
+        // 3. Calculate Path
         let remaining = roll;
         let currentPos = player.pos;
+        const path = [currentPos];
+        let branchHit = false;
 
         while (remaining > 0) {
-            await new Promise(r => setTimeout(r, 400));
-
-            // Check for branching BEFORE moving
             const node = this.boardGraph[currentPos];
 
-            // If current node allows branching (and it's not the start of a turn where we just decided)
-            // Note: Simplification - we usually branch at the END of a node sequence (e.g. at 10 to go to 11/11b).
-            // Logic: if node has array next, we stop and ask.
-
-            // HOWEVER: in our graph loop, 'next' is where we are going.
-            // If currentPos is '10', next is ['11', '11b']
-
+            // Branch Check
             if (Array.isArray(node.next)) {
-                // BRANCHING POINT REACHED
-                // Stop movement and ask user
-                this.pendingMove = {
-                    playerIndex: pIndex,
-                    remainingSteps: remaining // Logic choice: Do we consume steps on decision? classic parchis no, RPG maybe.
-                    // Simple RPG: reset steps or carry over? Let's say we stop there and move next turn?
-                    // Or, just pause, ask, and resume.
-                };
+                branchHit = true;
+                this.pendingMove = { playerIndex: pIndex, remainingSteps: remaining };
 
-                // If it's pure auto-move, we need UI intervention.
-                // For this refactor: Stop immediately and trigger UI.
+                // If client playing remotely, stop logic here (wait for UI)
                 if (store.state.role === 'CLIENT' && store.state.myId !== player.id) {
-                    // Start waiting for host/other player decision
                     return;
                 }
 
-                // Ask UI
+                // Trigger Decision UI
                 bus.emit('SHOW_DECISION', {
-                    options: node.branchInfo, // { id, label, hazard }
+                    options: node.branchInfo,
                     player: player
                 });
-                return; // BREAK LOOP, wait for decision event
+                break; // Stop path building here
             }
 
             const nextPos = node.next;
             if (!nextPos) break; // End of map
 
             currentPos = nextPos;
-            player.pos = currentPos;
+            path.push(currentPos);
             remaining--;
 
-            store.setPlayers(players);
-            this.syncState();
-
-            if (currentPos === '80') break; // Win condition check later
+            if (currentPos === '80') break;
         }
 
-        // Eventos de casilla (SOLO si terminamos el movimiento)
-        this.checkTileEvent(player);
+        // 4. Emit Movement Animation (if we moved)
+        if (path.length > 1) {
+            // Update Logic Position Immediately (or after? Let's update after for safety, or optimistically?)
+            // For animation consistency, update Logic at end. 
+            // BUT UI needs to animate. UI uses 'PLAYER_MOVING'.
 
-        // Turn passing is handled inside checkTileEvent or after combat/event resolution
-        // if no event blocked it.
+            console.log("Moving Player along path:", path);
+
+            // Promise wrapper to wait for animation
+            await new Promise(resolve => {
+                const onComplete = () => {
+                    bus.off('ANIMATION_COMPLETE', onComplete);
+                    resolve();
+                };
+                bus.on('ANIMATION_COMPLETE', onComplete);
+
+                // Trigger UI Animation
+                bus.emit('PLAYER_MOVING', { playerId: player.id, path: path });
+
+                // Fallback timeout in case UI fails
+                setTimeout(onComplete, 5000 + (path.length * 500));
+            });
+
+            // Update Final Position in State
+            player.pos = currentPos;
+            store.setPlayers(players);
+            this.syncState();
+        }
+
+        // 5. Post-Move Logic (if not branching)
+        if (!branchHit) {
+            this.checkTileEvent(player);
+        }
     }
 
     resumeTurnAfterDecision(choiceId) {

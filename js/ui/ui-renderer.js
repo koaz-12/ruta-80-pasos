@@ -35,6 +35,8 @@ export class UIRenderer {
         bus.on('SHOW_DECISION', (data) => this.showDecisionModal(data));
         bus.on('SHOW_CARD', (data) => this.showCardModal(data));
         bus.on('START_COMBAT', (data) => this.showCombatModal(data));
+
+        bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
     resetInterface() {
@@ -187,6 +189,9 @@ export class UIRenderer {
             this.elements.onlineInfo.classList.remove('hidden');
             this.elements.onlineInfo.textContent = state.role === 'HOST' ? '👑 Host' : '👤 Client';
         }
+
+        // FORCE RENDER OF PLAYERS AT POS 1
+        setTimeout(() => this.updateBoard(state), 100);
     }
 
     showCharSelection(data) {
@@ -214,29 +219,14 @@ export class UIRenderer {
     }
 
     updateBoard(state) {
-        // Limpiar tokens anteriores
-        document.querySelectorAll('.player-token').forEach(el => el.remove());
+        // Draw Players on SVG Board
+        if (this.boardRenderer) {
+            this.boardRenderer.drawPlayers(state.players);
+        } else {
+            console.warn("BoardRenderer not linked to UIRenderer yet.");
+        }
 
-        state.players.forEach((p, index) => {
-            if (!p.stats) return; // Jugador no listo aún
-
-            const targetTile = document.querySelector(`.tile[data-index="${p.pos}"]`);
-            if (targetTile) {
-                const token = document.createElement('div');
-                token.className = 'player-token';
-                token.innerHTML = index === 0 ? '👑' : '👤';
-                token.style.backgroundColor = index === 0 ? '#58a6ff' : '#da3633';
-                token.style.zIndex = p.id === state.myId ? 10 : 5;
-                targetTile.appendChild(token);
-
-                // Auto-scroll si es el turno actual
-                if (index === state.turnIndex) {
-                    token.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                }
-            }
-        });
-
-        // Actualizar Stats del jugador local
+        // Stats Update Logic (Keep existing)
         // Actualizar Stats del jugador ACTIVO (Hotseat friendly)
         const activePlayer = store.getActivePlayer();
         const me = store.getPlayer(state.myId);
@@ -350,6 +340,16 @@ export class UIRenderer {
                 bus.emit('UI_COMBAT_RESULT', { win, damage: 1 });
             };
         };
+    }
+    handlePlayerMovement(data) {
+        if (this.boardRenderer) {
+            this.boardRenderer.animateMove(data.playerId, data.path, () => {
+                bus.emit('ANIMATION_COMPLETE');
+            });
+        } else {
+            // Fallback if no renderer
+            setTimeout(() => bus.emit('ANIMATION_COMPLETE'), 1000);
+        }
     }
 }
 

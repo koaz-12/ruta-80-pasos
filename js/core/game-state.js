@@ -20,7 +20,7 @@ class GameState {
         if (role === 'OFFLINE') {
             this.state.players = [];
             for (let i = 1; i <= playerCount; i++) {
-                this.state.players.push({ id: `OFFLINE_${i}`, name: `Jugador ${i}`, pos: '1', stats: null });
+                this.state.players.push({ id: `OFFLINE_${i}`, name: `Jugador ${i}`, pos: '0', stats: null });
             }
             // Set first player as current "myId" logic for compatibility, although in hotseat we switch perspective
             this.state.myId = 'OFFLINE_1';
