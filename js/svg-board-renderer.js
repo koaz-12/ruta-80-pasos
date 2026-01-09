@@ -183,57 +183,71 @@ export class SVGBoardRenderer {
     }
 
     centerCamera() {
-        // Goal: Center the 1400x850 board in the viewport
-        const boardW = this.width;
-        const boardH = this.height;
-        const screenW = this.svg.clientWidth || window.innerWidth;
-        const screenH = this.svg.clientHeight || window.innerHeight;
+        // Goal: Center the 1400x850 board in the viewport with Smart Zoom
+        // The container is 100dvh x 100dvw (Rotated)
+        // SVG Logic Dimensions:
+        // Width  (Local X) = 1400
+        // Height (Local Y) = 850
 
-        // Determine "Best Fit" zoom
-        // In vertical mode, Screen W corresponds to Board H (inverted) but ViewBox doesn't care about rotation visual.
-        // ViewBox is strictly SVG local coords (0..1400).
-        // If the CONTAINER is rotated -90deg, 
-        // Visual Width of SVG on Screen = CSS Height of Container = 100vw
-        // Visual Height of SVG on Screen = CSS Width of Container = 100vh
+        // CSS/Visual Dimensions of Wrapper (rotated):
+        // Wrapper Width = 100dvh (e.g. 800px)
+        // Wrapper Height = 100dvw (e.g. 360px)
 
-        // Wait, if rotated:
-        // SVG X-axis (0..1400) runs Bottom-to-Top on screen.
-        // SVG Y-axis (0..850) runs Left-to-Right on screen.
+        // HOWEVER, SVG `clientWidth` inside the wrapper will reflect the wrapper's logical dims.
+        // Inside Wrapper: width is 100dvh (800), height is 100dvw (360).
 
-        // So Board Width (1400, X) needs to fit in Screen Height.
-        // Board Height (850, Y) needs to fit in Screen Width.
+        const svgW = this.svg.clientWidth || window.innerHeight; // 800 (Visual Height)
+        const svgH = this.svg.clientHeight || window.innerWidth; // 360 (Visual Width)
 
-        // Zoom factors:
-        // zoomX = ScreenHeight / BoardWidth (1400)
-        // zoomY = ScreenWidth / BoardHeight (850)
-        // fitZoom = min(zoomX, zoomY) ... but since we control zoom inside SVG.
+        // We want to fit Board Y (850) into Screen Width (Visual Width, svgH)
+        const zoomFitWidth = svgH / this.height; // e.g. 390 / 850 = 0.45
 
-        // Simplified: Start with a zoom that shows most of the board.
-        // 0.5 is usually good for mobile to see context.
-        // Let's rely on updateViewBox to handle the clipping.
-        // Just set Center X/Y to Center of Board.
+        // We want to fit Board X (1400) into Screen Height (Visual Height, svgW)
+        const zoomFitHeight = svgW / this.width; // e.g. 844 / 1400 = 0.60
 
-        const cx = boardW / 2; // 700
-        const cy = boardH / 2; // 425
+        // "Better lengthwise" implies prioritizing the Long Axis (Height).
+        // If we strictly FitHeight (0.60), we crop width (lose ~200px).
+        // If we strictly FitWidth (0.45), we letterbox height (lose ~250px).
 
-        // Camera X/Y in my system tends to be Top-Left of ViewBox?
-        // updateViewBox: viewBox = `${this.camera.x} ...`
-        // Yes, x/y is Top-Left.
+        // HYBRID APPROACH:
+        // Try to fill more of the height, accepting slight width cropping (users can pan).
+        // Let's blend: 70% lean towards FitHeight (bigger), 30% FitWidth (safety).
+        // Actually, let's just zoom in a bit more than FitWidth.
 
-        // So we want Center(700,425) to be at Center of ViewPort.
-        // ViewPort Width (in SVG units) = boardW / zoom
-        // ViewPort Height (in SVG units) = boardH / zoom
+        // Calculate a zoom such that we only crop non-essential margins.
+        // Let's try to match zoomFitHeight but capped to not lose too much width.
+        // Allow losing up to 10% of width on each side?
 
-        // Let's pick a default zoom.
-        this.camera.zoom = 0.6; // Slightly zoomed out to see context
-        if (window.innerWidth < 768) this.camera.zoom = 0.45; // More zoom out on mobile
+        // Let's try a weighted average closer to FitHeight to make it pop.
+        let idealZoom = (zoomFitWidth * 0.4) + (zoomFitHeight * 0.6);
 
-        const viewW = this.width / this.camera.zoom;
-        const viewH = this.height / this.camera.zoom;
+        // Safety: Don't zoom OUT more than FitWidth (avoid black borders on sides)
+        // idealZoom = Math.max(idealZoom, zoomFitWidth);
+
+        // Simplify: User wants it to look good on mobile. Bigger is usually better.
+        // Let's use zoomFitHeight but clamp it if it cuts off too much width.
+        // safeZoom = svgH / (this.height * 0.8) (Shows 80% of board width)
+        const maxSupportedZoom = svgH / (this.height * 0.85); // Allow cropping 15% width
+        idealZoom = Math.min(zoomFitHeight, maxSupportedZoom);
+
+        // Ensure we at least cover width (no black side bars)
+        idealZoom = Math.max(idealZoom, zoomFitWidth);
+
+        // Update Camera
+        this.camera.zoom = idealZoom;
+
+        // Center:
+        // Board Center: 700, 425.
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+
+        const viewW = svgW / this.camera.zoom;
+        const viewH = svgH / this.camera.zoom;
 
         this.camera.x = cx - (viewW / 2);
         this.camera.y = cy - (viewH / 2);
 
+        console.log(`Smart Zoom: ${idealZoom.toFixed(3)} (FitW: ${zoomFitWidth.toFixed(3)}, FitH: ${zoomFitHeight.toFixed(3)})`);
         this.updateViewBox();
     }
 
