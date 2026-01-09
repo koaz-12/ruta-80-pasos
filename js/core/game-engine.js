@@ -153,6 +153,21 @@ export class GameEngine {
 
         let roll;
 
+        // IMPORTANT: Check if player is STARTING their turn on a branch tile
+        // This happens when they landed on a branch in the previous turn
+        if (remainingFromBranch === 0) {
+            const currentNode = this.boardGraph[player.pos];
+            if (currentNode && Array.isArray(currentNode.next)) {
+                // Player is ON a branch - ask them to choose BEFORE rolling
+                this.pendingMove = { playerIndex: pIndex, startingOnBranch: true };
+                bus.emit('SHOW_DECISION', {
+                    options: currentNode.branchInfo,
+                    player: player
+                });
+                return; // Stop here, wait for resumeTurnAfterDecision
+            }
+        }
+
         // If we have remaining steps from a branch decision, use those
         if (remainingFromBranch > 0) {
             roll = remainingFromBranch;
@@ -244,7 +259,6 @@ export class GameEngine {
         if (!pending) return;
 
         const pIndex = pending.playerIndex;
-        const remainingSteps = pending.remainingSteps;
         const players = [...store.state.players];
         const player = players[pIndex];
 
@@ -256,12 +270,20 @@ export class GameEngine {
         // Clear pending move
         this.pendingMove = null;
 
-        // Continue moving with remaining steps (minus 1 for entering the branch)
-        const stepsLeft = remainingSteps - 1;
-        if (stepsLeft > 0) {
-            this.executeTurn(pIndex, stepsLeft);
+        // Two scenarios:
+        // 1. Player STARTED on branch: now roll dice normally
+        // 2. Player HIT branch mid-move: continue with remaining steps
+        if (pending.startingOnBranch) {
+            // Player chose path at start of turn - now execute normal turn
+            this.executeTurn(pIndex);
         } else {
-            this.endTurn();
+            // Player hit branch mid-move - continue with remaining steps (minus 1 for entering branch)
+            const stepsLeft = (pending.remainingSteps || 0) - 1;
+            if (stepsLeft > 0) {
+                this.executeTurn(pIndex, stepsLeft);
+            } else {
+                this.endTurn();
+            }
         }
     }
 
