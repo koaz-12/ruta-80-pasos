@@ -1550,10 +1550,32 @@ export class SVGBoardRenderer {
         hop();
     }
 
-    // v7.3: Tile Inspector - Shows tile data in console on click
+    // v7.3: Tile Inspector - Shows tile data ON SCREEN
     enableTileInspector() {
         console.log('%c🔍 Tile Inspector Enabled', 'color: #4facfe; font-weight: bold');
-        console.log('Click cualquier casilla para ver su información');
+        console.log('Click cualquier casilla para ver su información EN PANTALLA');
+
+        // Create tooltip div
+        const tooltip = document.createElement('div');
+        tooltip.id = 'tile-inspector-tooltip';
+        tooltip.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            z-index: 100000;
+            display: none;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            border: 2px solid #4facfe;
+        `;
+        document.body.appendChild(tooltip);
 
         this.svg.addEventListener('click', (evt) => {
             // Find tile element (look for tile-group class)
@@ -1574,27 +1596,46 @@ export class SVGBoardRenderer {
             const node = this.boardGraph?.[tileId];
             const seqPos = this.getSequentialPosition(tileId);
 
-            // Log to console
-            console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: yellow');
-            console.log(`%cCASILLA: ${tileId}`, 'color: cyan; font-size: 14px; font-weight: bold');
-            console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: yellow');
-            console.log('ID:', tileId);
-            console.log('Display:', tileData?.display || tileId);
-            console.log('Posición Secuencial:', seqPos);
-            console.log('Coordenadas:', tileData ? `x: ${tileData.x}, y: ${tileData.y}` : 'NO ENCONTRADO');
-            console.log('Siguiente:', node?.next || 'NINGUNO');
+            // Build HTML
+            let html = `
+                <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #4facfe; padding-bottom: 10px;">
+                    <h2 style="margin: 0; color: #4facfe;">CASILLA ${tileId}</h2>
+                </div>
+                <div style="line-height: 1.8;">
+                    <div><strong style="color: #fda085;">ID:</strong> ${tileId}</div>
+                    <div><strong style="color: #fda085;">Display:</strong> ${tileData?.display || tileId}</div>
+                    <div><strong style="color: #fda085;">Posición:</strong> ${seqPos}</div>
+                    <div><strong style="color: #fda085;">Coordenadas:</strong> x: ${tileData?.x || '?'}, y: ${tileData?.y || '?'}</div>
+                    <div><strong style="color: #fda085;">Siguiente:</strong> ${Array.isArray(node?.next) ? node.next.join(', ') : (node?.next || 'NINGUNO')}</div>
+            `;
 
             if (node && Array.isArray(node.next)) {
-                console.log('%c🔀 BIFURCACIÓN', 'color: orange; font-weight: bold');
-                console.log('Opciones:', node.next);
-                console.log('Etiquetas:', node.branchInfo?.map(b => b.label).join(', ') || 'N/A');
+                html += `
+                    <div style="margin-top: 10px; padding: 10px; background: rgba(253, 160, 133, 0.2); border-radius: 6px;">
+                        <div style="color: #fda085; font-weight: bold;">🔀 BIFURCACIÓN</div>
+                        <div>Opciones: ${node.next.join(', ')}</div>
+                        <div>Etiquetas: ${node.branchInfo?.map(b => b.label).join(', ') || 'N/A'}</div>
+                    </div>
+                `;
             }
 
-            console.log('%cDatos Completos Tile:', 'color: #888');
-            console.log(tileData);
-            console.log('%cDatos Completos Nodo:', 'color: #888');
-            console.log(node);
-            console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: yellow');
+            html += `
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button onclick="this.parentElement.parentElement.style.display='none'" 
+                            style="background: #4facfe; color: white; border: none; padding: 10px 20px; 
+                                   border-radius: 6px; cursor: pointer; font-weight: bold;">
+                        CERRAR
+                    </button>
+                </div>
+            `;
+
+            tooltip.innerHTML = html;
+            tooltip.style.display = 'block';
+
+            // Also log to console
+            console.log('%c━━━━━ CASILLA ━━━━━', 'color: yellow');
+            console.log('ID:', tileId, '| Coords:', tileData);
         });
     }
 }
