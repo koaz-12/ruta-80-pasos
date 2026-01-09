@@ -20,21 +20,22 @@
     transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
 
     /* --- HARDCODED VERTICAL LAYOUT (Nuclear Option) --- */
-    /* Rotate -90deg (Counter-Clockwise) so Left (Start) is Bottom */
-    transform: rotate(-90deg);
+    /* Center first, then Rotate */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    /* 1. Move center to origin (-50%, -50%) */
+    /* 2. Rotate -90deg around that center */
+    transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center center;
 
     /* Force size to match viewport inverted axes */
     width: 100vh !important;
     height: 100vw !important;
 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -50vh;
-    /* Half of new width */
-    margin-top: -50vw;
-    /* Half of new height */
+    margin: 0;
+    /* No manual margins needed */
     z-index: 10;
 }
 
