@@ -11,13 +11,21 @@
 
     background-color: #f7f5e6;
 
-    /* Immersive Border (Wood/Table Effect) */
-    border: 15px solid #4a3b2a;
+    /* Premium Wood Frame Effect */
+    border: 12px solid #5D4037;
+    /* Dark Wood Base */
     box-shadow:
-        inset 0 0 60px rgba(0, 0, 0, 0.6),
-        /* Inner depth */
-        0 0 0 2px #2a2118;
-    /* Outer outline */
+        /* Inner Bevel (Depth) */
+        inset 0 0 20px rgba(0, 0, 0, 0.8),
+        inset 0 0 0 2px #3E2723,
+        /* Outer Highlight */
+        0 0 0 2px #8D6E63,
+        0 0 0 4px #3E2723,
+        /* Drop Shadow */
+        0 10px 30px rgba(0, 0, 0, 0.5);
+
+    border-radius: 4px;
+    /* Slight softening */
 
     margin: 0;
     padding: 0;

@@ -172,8 +172,8 @@ export class SVGBoardRenderer {
 
     zoomCamera(factor) {
         const newZoom = this.camera.zoom * factor;
-        // Limit Zoom
-        if (newZoom < 0.5 || newZoom > 4.0) return;
+        // Limit Zoom (Widen range for "Full Map" vs "Macro Detail")
+        if (newZoom < 0.3 || newZoom > 5.0) return;
         this.camera.zoom = newZoom;
         this.updateViewBox();
     }
@@ -844,7 +844,7 @@ export class SVGBoardRenderer {
         // Labels
         this.label(450, 800, 'Zona Inferior');
         this.label(680, 670, 'A/B/C', '#666', 12);
-        this.label(1320, 500, 'Z. Derecha', '#666', 12, -90);
+        this.label(1320, 500, 'Z. Derecha', '#666', 12, 90);
         this.label(280, 95, 'Segura', '#2E7D32', 14);
         this.label(280, 165, 'Mortal', '#C62828', 14);
     }
@@ -892,13 +892,22 @@ export class SVGBoardRenderer {
         // Number Badge
         const t = document.createElementNS(this.ns, 'text');
         t.setAttribute('class', 'badge-txt');
-        t.setAttribute('x', '6');
-        t.setAttribute('y', '14'); // Top Left Corner
-        t.setAttribute('text-anchor', 'start');
-        t.setAttribute('font-size', '12');
+        // Center text in tile for rotation
+        const cx = x + this.ts / 2;
+        const cy = y + this.ts / 2;
+
+        t.setAttribute('x', cx);
+        t.setAttribute('y', cy);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle'); // Vertical centering
+        t.setAttribute('font-size', '14'); // Slightly larger
         t.setAttribute('font-weight', 'bold');
         t.setAttribute('font-family', '"Segoe UI", sans-serif');
-        t.setAttribute('fill', '#777'); // Subtle number
+        t.setAttribute('fill', '#555');
+
+        // Rotate 90deg around center to be upright in vertical mode
+        t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
+
         t.textContent = n;
         g.appendChild(t);
 
@@ -930,6 +939,10 @@ export class SVGBoardRenderer {
         t.setAttribute('font-family', '"Patrick Hand", sans-serif');
         t.setAttribute('font-weight', 'bold');
         t.setAttribute('fill', txtCol);
+        // Rotate 90deg around center of text (w/2, h/2+8 approx?)
+        // Actually center of box is w/2, h/2. Text is at y = h/2 + 8.
+        // Let's rotate around w/2, h/2.
+        t.setAttribute('transform', `rotate(90, ${w / 2}, ${h / 2})`);
         t.textContent = txt;
         g.appendChild(t);
 
@@ -968,11 +981,12 @@ export class SVGBoardRenderer {
             g.appendChild(c);
         });
 
-        const t = document.createElementNS(this.ns, 'text');
         t.setAttribute('x', cx + 7);
         t.setAttribute('y', cy + 30);
         t.setAttribute('text-anchor', 'middle');
         t.setAttribute('font-size', '11');
+        // Rotate Dice 90
+        t.setAttribute('transform', `rotate(90, ${cx + 7}, ${cy + 30})`);
         t.textContent = '🎲';
         g.appendChild(t);
 
@@ -1009,13 +1023,14 @@ export class SVGBoardRenderer {
         this.svg.appendChild(g);
     }
 
-    label(x, y, txt, col = '#666', sz = 14, rot = 0) {
+    label(x, y, txt, col = '#666', sz = 14, rot = 90) {
         const t = document.createElementNS(this.ns, 'text');
         t.setAttribute('x', x);
         t.setAttribute('y', y);
         t.setAttribute('font-size', sz);
         t.setAttribute('fill', col);
-        if (rot) t.setAttribute('transform', `rotate(${rot},${x},${y})`);
+        // Default rot is now 90
+        t.setAttribute('transform', `rotate(${rot},${x},${y})`);
         t.textContent = txt;
         this.svg.appendChild(t);
     }
@@ -1248,6 +1263,7 @@ export class SVGBoardRenderer {
                 text.setAttribute('fill', '#fff');
                 text.setAttribute('font-size', '13px');
                 text.setAttribute('font-weight', 'bold');
+                text.setAttribute('transform', 'rotate(90)'); // Rotate upright for vertical board
 
                 tokenGroup.appendChild(circle);
                 tokenGroup.appendChild(text);
