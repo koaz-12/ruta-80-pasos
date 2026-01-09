@@ -2,7 +2,7 @@
  * SVG Board Renderer - Exact Sequential Layout
  * Tiles organized 1-80 following the sketch flow
  */
-import { SAVED_LAYOUT } from './data/map-data.js';
+import { SAVED_LAYOUT, buildGraph } from './data/map-data.js';
 
 export class SVGBoardRenderer {
     constructor(container) {
@@ -78,10 +78,89 @@ export class SVGBoardRenderer {
         // Camera init not needed for simple mode
         // this.initCamera();
 
+        // Initialize position map (v6.0)
+        this.positionMap = this.buildPositionMap();
+
         // No orientation check needed - CSS is simple now
         window.addEventListener('resize', () => {
             // Just trigger re-render if needed
         });
+    }
+
+    // v6.0: Build position map from graph traversal
+    buildPositionMap() {
+        const graph = buildGraph();
+        const startId = '0';
+
+        const positionMap = {};
+        const visited = new Set();
+        const queue = [{ id: startId, pos: 0 }];
+
+        while (queue.length > 0) {
+            const { id, pos } = queue.shift();
+
+            if (visited.has(id)) continue;
+            visited.add(id);
+
+            positionMap[id] = pos;
+
+            const node = graph[id];
+            if (!node) continue;
+
+            // Handle next tiles
+            if (Array.isArray(node.next)) {
+                // Junction: all branches get pos + 1
+                node.next.forEach(nextId => {
+                    if (!visited.has(nextId)) {
+                        queue.push({ id: nextId, pos: pos + 1 });
+                    }
+                });
+            } else if (node.next) {
+                // Single path
+                if (!visited.has(node.next)) {
+                    queue.push({ id: node.next, pos: pos + 1 });
+                }
+            }
+        }
+
+        console.log('[Position Map] Built:', positionMap);
+        return positionMap;
+    }
+
+    // v6.0: Get sequential position for a tile ID
+    getSequentialPosition(tileId) {
+        return this.positionMap && this.positionMap[tileId] !== undefined
+            ? this.positionMap[tileId]
+            : '?';
+    }
+
+    // v6.0: Check if tile is a junction
+    isJunction(tileId) {
+        const graph = buildGraph();
+        const node = graph[tileId];
+        return node && Array.isArray(node.next) && node.next.length > 1;
+    }
+
+    // v6.0: Get junction type
+    getJunctionType(tileId) {
+        const graph = buildGraph();
+        const node = graph[tileId];
+
+        if (!node || !Array.isArray(node.next)) return 'none';
+
+        const count = node.next.length;
+
+        // Detect loops (connection goes to lower position)
+        const currentPos = this.getSequentialPosition(tileId);
+        const hasLoop = node.next.some(nextId => {
+            const nextPos = this.getSequentialPosition(nextId);
+            return nextPos < currentPos;
+        });
+
+        if (count === 2 && hasLoop) return 'loop';
+        if (count === 2) return 'fork2';
+        if (count === 3) return 'fork3';
+        return 'multi';
     }
 
     checkMobileOrientation() {

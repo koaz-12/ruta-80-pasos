@@ -248,19 +248,29 @@ export class UIRenderer {
             `;
         }
 
-        // Update Tile Counter (v4.9)
-        if (targetForStats) {
+        // Update Tile Counter (v6.0)
+        if (targetForStats && this.boardRenderer) {
             const tileDisplay = document.getElementById('current-tile');
             const statusDisplay = document.getElementById('tile-status');
 
             if (tileDisplay) {
-                tileDisplay.textContent = targetForStats.pos || '0';
+                // Use sequential position instead of raw ID
+                const position = this.boardRenderer.getSequentialPosition(targetForStats.pos);
+                tileDisplay.textContent = position;
             }
 
-            // Show junction status if on a junction tile (v5.0)
+            // Show junction status dynamically (v6.0)
             if (statusDisplay) {
-                const junctionTiles = ['10', '25', '50', '79'];
-                if (junctionTiles.includes(String(targetForStats.pos))) {
+                const isJunction = this.boardRenderer.isJunction(targetForStats.pos);
+                if (isJunction) {
+                    const junctionType = this.boardRenderer.getJunctionType(targetForStats.pos);
+                    const labels = {
+                        'fork3': '3 caminos',
+                        'fork2': '2 caminos',
+                        'loop': 'Loop / Final',
+                        'multi': 'Múltiples caminos'
+                    };
+                    statusDisplay.textContent = `🔀 ${labels[junctionType] || 'Bifurcación'}`;
                     statusDisplay.style.display = 'block';
                 } else {
                     statusDisplay.style.display = 'none';
@@ -290,10 +300,11 @@ export class UIRenderer {
         const modal = document.getElementById('decision-modal');
         const container = document.getElementById('decision-options');
 
-        // Update modal title to show current position
+        // Update modal title to show current position (v6.0)
         const titleEl = modal.querySelector('h2');
-        if (titleEl) {
-            titleEl.innerHTML = `🔀 Bifurcación en Casilla ${player.pos}<br><span style="font-size:0.8em; font-weight:400; color:rgba(255,255,255,0.7);">Elige tu camino</span>`;
+        if (titleEl && this.boardRenderer) {
+            const position = this.boardRenderer.getSequentialPosition(player.pos);
+            titleEl.innerHTML = `🔀 Bifurcación en Posición ${position}<br><span style="font-size:0.8em; font-weight:400; color:rgba(255,255,255,0.7);">Elige tu camino</span>`;
         }
 
         container.innerHTML = '';
