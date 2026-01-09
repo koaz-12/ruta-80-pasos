@@ -9,24 +9,26 @@ const store = window.gameStore = new GameEngine();
 const ui = new UIRenderer(store);
 
 // RENDER BOARD USING SVG
-const boardContainer = document.querySelector('.board-container');
-const boardRenderer = new SVGBoardRenderer(boardContainer);
-ui.boardRenderer = boardRenderer; // Link UI to Board logic
+const boardWrapper = document.getElementById('board-rotator');
+const boardRenderer = new SVGBoardRenderer(boardWrapper);
+ui.boardRenderer = boardRenderer;
 
-// Render board when game starts (or on demand)
+// Render board when game starts (Monitor the PARENT container for visibility)
 document.addEventListener('DOMContentLoaded', () => {
-    // Board is hidden initially, render when shown
+    const mainContainer = document.querySelector('.board-container');
+
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.target.classList && !mutation.target.classList.contains('hidden')) {
+                console.log("Board became visible. Rendering...");
                 boardRenderer.render();
-                observer.disconnect(); // Only render once
+                observer.disconnect();
             }
         });
     });
 
-    if (boardContainer) {
-        observer.observe(boardContainer, { attributes: true, attributeFilter: ['class'] });
+    if (mainContainer) {
+        observer.observe(mainContainer, { attributes: true, attributeFilter: ['class'] });
     }
 
     // Bind Lobby Editor Button

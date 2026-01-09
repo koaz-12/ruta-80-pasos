@@ -19,24 +19,51 @@
     overflow: hidden;
     transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
 
-    /* --- HARDCODED VERTICAL LAYOUT (Nuclear Option) --- */
-    /* Center first, then Rotate */
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    /* --- LAYOUT CONTAINER (Static Window) --- */
+    /* Restore Flex Item behavior to fill space */
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    /* Important for scrolling contexts */
 
-    /* 1. Move center to origin (-50%, -50%) */
-    /* 2. Rotate -90deg around that center */
-    transform: translate(-50%, -50%) rotate(-90deg);
-    transform-origin: center center;
+    /* Content Centering */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-    /* Force size to match viewport inverted axes */
-    width: 100vh !important;
-    height: 100vw !important;
+    /* Clean Production Style */
 
+    border-radius: 4px;
     margin: 0;
-    /* No manual margins needed */
+    padding: 0;
+    overflow: hidden;
+    /* Clips the rotated wrapper */
+    position: relative;
+    /* No transforms here! */
     z-index: 10;
+}
+
+/* --- ROTATION WRAPPER (The Inner Doll) --- */
+#board-rotator {
+    /* 1. Size Logic: Fill ACTUAL visible screen (Dynamic Viewport) */
+    width: 100dvh;
+    /* Visual Height */
+    height: 100dvw;
+    /* Visual Width */
+
+    /* 2. Rotation Logic */
+    transform: rotate(-90deg);
+    /* No translate needed if Flexbox centers it? */
+    /* Flexbox centers the BOX. But the box is rotated. */
+    /* If 100vh x 100vw box is centered in 100vw x 100vh container... */
+    /* It might need flex:none to prevent squishing */
+    flex: none;
+
+    /* Ensure it acts as the new relative parent for SVG */
+    position: relative;
+
+    /* Debug helper (temporary) */
+    /* outline: 2px solid red; */
 }
 
 /* Removed separate .global-rotated rule as it is now default */
