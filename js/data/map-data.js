@@ -1,83 +1,110 @@
-// Generación del Grafo del Mapa (80 Pasos)
-// v6.3: FIXED - Usando IDs REALES de SAVED_LAYOUT
+// v7.0: CLEAN Sequential Graph 1-80
+// Junction at position 10, 25, 50, 79
 
 export function buildGraph() {
     const graph = {};
 
-    // ZONA 0: El Icono de Inicio → Entrada
-    graph['0'] = { next: '5062' };
-    graph['5062'] = { next: '6057' };
-    graph['6057'] = { next: '6055' };
-    graph['6055'] = { next: '6056' };
-    graph['6056'] = { next: '6053' };
-    graph['6053'] = { next: '6054' };
-    graph['6054'] = { next: '1' };
+    // Start
+    graph['0'] = { next: '1' };
 
-    // ZONA 1: El Inicio (1-10)
-    graph['1'] = { next: '2' };
-    graph['2'] = { next: '3' };
-    graph['3'] = { next: '4' };
-    graph['4'] = { next: '5' };
-    graph['5'] = { next: '6' };
-    graph['6'] = { next: '7' };
-    graph['7'] = { next: '8' };
-    graph['8'] = { next: '9' };
-    graph['9'] = { next: '10' };
+    // Main path 1-9
+    for (let i = 1; i < 10; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
 
-    // ✅ BIFURCACIÓN 1: ID "10" → 3 caminos (IDs REALES)
+    // ✅ JUNCTION 1: Position 10 (3 paths)
     graph['10'] = {
-        next: ['1012', '2012', '3012'],
+        next: ['11', '10a', '10b'],
         branchInfo: [
-            { id: '1012', label: 'Alto', hazard: 'Normal' },
-            { id: '2012', label: 'Medio', hazard: 'Eventos' },
-            { id: '3012', label: 'Bajo', hazard: 'Rápido' }
+            { id: '11', label: 'Alto', hazard: 'Normal' },
+            { id: '10a', label: 'Medio', hazard: 'Eventos' },
+            { id: '10b', label: 'Bajo', hazard: 'Rápido' }
         ]
     };
 
-    // Camino Alto: 1012 → 1013 → 1014 → 2014 → 4 (ya existe) → continúa
-    graph['1012'] = { next: '1013' };
-    graph['1013'] = { next: '1014' };
-    graph['1014'] = { next: '2014' };
-    graph['2014'] = { next: '4' }; // Converge a ID "4" (ya en ruta principal)
+    // Alto path: 11-17 (continues on main)
+    for (let i = 11; i < 18; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
 
-    // Camino Medio: 2012 → 2013 → 2014 → ...
-    graph['2012'] = { next: '2013' };
-    graph['2013'] = { next: '2014' };
-    // 2014 → 4 (ya definido arriba)
+    // Medio path: 10a-16a → converge at 18
+    graph['10a'] = { next: '11a' };
+    for (let i = 11; i < 17; i++) {
+        graph[`${i}a`] = { next: `${i + 1}a` };
+    }
+    graph['17a'] = { next: '18' };
 
-    // Camino Bajo: 3012 →  3013 → 3014 → 18
-    graph['3012'] = { next: '3013' };
-    graph['3013'] = { next: '3014' };
-    graph['3014'] = { next: '18' };
+    // Bajo path: 10b-14b → converge at 18 
+    graph['10b'] = { next: '11b' };
+    for (let i = 11; i < 15; i++) {
+        graph[`${i}b`] = { next: i < 14 ? `${i + 1}b` : '18' };
+    }
 
-    // ZONA 2: Convergencia y continuación (18-25)
-    graph['18'] = { next: '19' };
-    graph['19'] = { next: '20' };
-    graph['20'] = { next: '22' };
-    graph['22'] = { next: '21' };
-    graph['21'] = { next: '23' };
-    graph['23'] = { next: '31' };
-    graph['31'] = { next: '30' };
-    graph['30'] = { next: '29' };
-    graph['29'] = { next: '24' };
-    graph['24'] = { next: '28' };
-    graph['28'] = { next: '27' };
-    graph['27'] = { next: '32' };
-    graph['32'] = { next: '26' };
-    graph['26'] = { next: '25' };
+    // Main continues: 18-24
+    for (let i = 18; i < 25; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
 
-    // ✅ BIFURCACIÓN 2: ID "25" → 2 caminos
-    // TODO: Identificar IDs reales para bifurcación 25
+    // ✅ JUNCTION 2: Position 25 (2 paths)
     graph['25'] = {
-        next: ['26', '26'], // TEMPORAL - necesitamos IDs reales
+        next: ['26', '25a'],
         branchInfo: [
             { id: '26', label: 'Cuesta Arriba', hazard: 'Difícil' },
-            { id: '26', label: 'Túnel', hazard: 'Seguro?' }
+            { id: '25a', label: 'Túnel', hazard: 'Seguro' }
         ]
     };
 
-    // Continuar ruta principal hacia ID 50...
-    // TODO: Completar resto del mapa con IDs reales
+    // Main path: 26-33
+    for (let i = 26; i < 34; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
+
+    // Tunnel path: 25a-33a → converge at 34
+    graph['25a'] = { next: '26a' };
+    for (let i = 26; i < 34; i++) {
+        graph[`${i}a`] = { next: i < 33 ? `${i + 1}a` : '34' };
+    }
+
+    // Main continues: 34-49
+    for (let i = 34; i < 50; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
+
+    // ✅ JUNCTION 3: Position 50 (2 paths)
+    graph['50'] = {
+        next: ['51', '50a'],
+        branchInfo: [
+            { id: '51', label: 'Ruta Segura', hazard: 'Largo' },
+            { id: '50a', label: 'Atajo Mortal', hazard: 'Combate' }
+        ]
+    };
+
+    // Safe path: 51-64
+    for (let i = 51; i < 65; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
+
+    // Shortcut path: 50a-60a → converge at 65
+    graph['50a'] = { next: '51a' };
+    for (let i = 51; i < 61; i++) {
+        graph[`${i}a`] = { next: i < 60 ? `${i + 1}a` : '65' };
+    }
+
+    // Main continues: 65-78
+    for (let i = 65; i < 79; i++) {
+        graph[String(i)] = { next: String(i + 1) };
+    }
+
+    // ✅ JUNCTION 4: Position 79 (loop or end)
+    graph['79'] = {
+        next: ['80', '10'],
+        branchInfo: [
+            { id: '80', label: 'Llegar al Final', hazard: 'Victoria' },
+            { id: '10', label: 'Dar la Vuelta', hazard: 'Repetir' }
+        ]
+    };
+
+    graph['80'] = { next: null };
 
     return graph;
 }
