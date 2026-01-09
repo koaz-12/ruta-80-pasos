@@ -46,7 +46,15 @@ export function buildGraph() {
     linkSequence(51, 65);
     for (let i = 51; i < 60; i++) graph[`${i}b`] = { next: `${i + 1}b` };
     graph['60b'] = { next: '65' };
-    linkSequence(65, 80);
+    linkSequence(65, 79);
+    // Penultimate Branch: Loop Back or Finish
+    graph['79'] = {
+        next: ['80', '10'],
+        branchInfo: [
+            { id: '80', label: 'Llegar al Final', hazard: 'Victoria' },
+            { id: '10', label: 'Dar la Vuelta', hazard: 'Repetir Camino' }
+        ]
+    };
     graph['80'] = { next: null };
 
     return graph;
