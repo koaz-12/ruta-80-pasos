@@ -51,7 +51,8 @@ export class SVGBoardRenderer {
         this.svg.setAttribute('viewBox', `0 0 ${this.width} ${this.height}`);
         // REMOVED preserveAspectRatio to allow manual aspect control
 
-        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6;touch-action:none;cursor:grab';
+        // Dark Tabletop Background
+        this.svg.style.cssText = 'width:100%;height:100%;background:#1a1a1a;touch-action:none;cursor:grab';
         this.svg.id = 'game-board-svg';
 
         this.container.innerHTML = '';
@@ -59,10 +60,14 @@ export class SVGBoardRenderer {
 
         this.drawBoard();
         this.addInteractivity();
-        this.initCamera(); // New Camera Logic
+        this.initCamera();
 
-        this.checkMobileOrientation(); // Initial check
-        window.addEventListener('resize', () => this.checkMobileOrientation());
+        this.checkMobileOrientation();
+        // Re-calculate layout and zoom on resize
+        window.addEventListener('resize', () => {
+            this.checkMobileOrientation();
+            setTimeout(() => this.centerCamera(), 100);
+        });
     }
 
     checkMobileOrientation() {
@@ -199,45 +204,31 @@ export class SVGBoardRenderer {
         const svgW = this.svg.clientWidth || window.innerHeight; // 800 (Visual Height)
         const svgH = this.svg.clientHeight || window.innerWidth; // 360 (Visual Width)
 
-        // We want to fit Board Y (850) into Screen Width (Visual Width, svgH)
-        const zoomFitWidth = svgH / this.height; // e.g. 390 / 850 = 0.45
+        // STRATEGY: FULL COVER (Immersive)
+        // calculated purely to fill the screen such that no background is visible.
+        // Users can drag/pan to see the rest.
 
-        // We want to fit Board X (1400) into Screen Height (Visual Height, svgW)
-        const zoomFitHeight = svgW / this.width; // e.g. 844 / 1400 = 0.60
+        // FitWidth: Zoom needed to fit 850px width into Screen Width (e.g. 390). -> 0.45
+        // FitHeight: Zoom needed to fit 1400px height into Screen Height (e.g. 844). -> 0.60
 
-        // "Better lengthwise" implies prioritizing the Long Axis (Height).
-        // If we strictly FitHeight (0.60), we crop width (lose ~200px).
-        // If we strictly FitWidth (0.45), we letterbox height (lose ~250px).
+        // To remove ALL empty space, we must use the LARGER zoom (0.60).
+        // This effectively "Crops" the width (showing only 650px of the 850px board width).
+        // But it guarantees the board goes top-to-bottom and side-to-side (filling the long axis).
 
-        // HYBRID APPROACH:
-        // Try to fill more of the height, accepting slight width cropping (users can pan).
-        // Let's blend: 70% lean towards FitHeight (bigger), 30% FitWidth (safety).
-        // Actually, let's just zoom in a bit more than FitWidth.
+        const zoomFitWidth = svgH / this.height;
+        const zoomFitHeight = svgW / this.width;
+        let idealZoom = Math.max(zoomFitWidth, zoomFitHeight);
 
-        // Calculate a zoom such that we only crop non-essential margins.
-        // Let's try to match zoomFitHeight but capped to not lose too much width.
-        // Allow losing up to 10% of width on each side?
+        // Apply a tiny safety buffer (0.95) just so usage isn't maximal?
+        // No, user said "Solo el tablero". No space.
+        // idealZoom = idealZoom; 
 
-        // Let's try a weighted average closer to FitHeight to make it pop.
-        let idealZoom = (zoomFitWidth * 0.4) + (zoomFitHeight * 0.6);
+        // Safety: If this zoom is insane (desktop?), clamp it.
+        // But for mobile "strip", it's fine.
 
-        // Safety: Don't zoom OUT more than FitWidth (avoid black borders on sides)
-        // idealZoom = Math.max(idealZoom, zoomFitWidth);
-
-        // Simplify: User wants it to look good on mobile. Bigger is usually better.
-        // Let's use zoomFitHeight but clamp it if it cuts off too much width.
-        // safeZoom = svgH / (this.height * 0.8) (Shows 80% of board width)
-        const maxSupportedZoom = svgH / (this.height * 0.85); // Allow cropping 15% width
-        idealZoom = Math.min(zoomFitHeight, maxSupportedZoom);
-
-        // Ensure we at least cover width (no black side bars)
-        idealZoom = Math.max(idealZoom, zoomFitWidth);
-
-        // Update Camera
         this.camera.zoom = idealZoom;
 
         // Center:
-        // Board Center: 700, 425.
         const cx = this.width / 2;
         const cy = this.height / 2;
 
