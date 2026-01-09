@@ -162,8 +162,9 @@ export class SVGBoardRenderer {
         window.addEventListener('touchmove', moveDrag, { passive: false });
         window.addEventListener('touchend', endDrag);
 
-        // Initial Center
-        this.centerCamera();
+        // Initial Center (Delayed to allow CSS 100vh/vw layout to apply)
+        setTimeout(() => this.centerCamera(), 100);
+        setTimeout(() => this.centerCamera(), 500); // Verify again
     }
 
     getEventPoint(e) {
