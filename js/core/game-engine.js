@@ -147,50 +147,62 @@ export class GameEngine {
         this.executeTurn(state.turnIndex);
     }
 
-    async executeTurn(pIndex) {
+    async executeTurn(pIndex, remainingFromBranch = 0) {
         const players = [...store.state.players];
         const player = players[pIndex];
 
-        // 0. CHECK IF PLAYER IS ON A BRANCH TILE (Decision required FIRST)
-        const currentNode = this.boardGraph[player.pos];
-        if (currentNode && Array.isArray(currentNode.next)) {
-            // Player is on a branch - ask before rolling
-            this.pendingMove = { playerIndex: pIndex, awaitingBranchChoice: true };
-            bus.emit('SHOW_DECISION', {
-                options: currentNode.branchInfo,
-                player: player
-            });
-            return; // Wait for resumeTurnAfterDecision
+        let roll;
+
+        // If we have remaining steps from a branch decision, use those
+        if (remainingFromBranch > 0) {
+            roll = remainingFromBranch;
+            // No dice animation needed - already rolled
+        } else {
+            // 1. Roll & Animation Signal
+            roll = Math.floor(Math.random() * 6) + 1;
+
+            bus.emit('DICE_ROLLED', roll);
+            network.send({ type: 'DICE_ROLLED', value: roll });
+
+            // Wait for animation (3.5s)
+            await new Promise(r => setTimeout(r, 3500));
         }
 
-        // 1. Food Check (DISABLED FOR TESTING)
-        // if (player.stats.food > 0) player.stats.food--;
-        // else { ... }
-
-        // 2. Roll & Animation Signal
-        const roll = Math.floor(Math.random() * 6) + 1;
-
-        // Broadcast roll animation
-        bus.emit('DICE_ROLLED', roll);
-        network.send({ type: 'DICE_ROLLED', value: roll });
-
-        // Wait for animation (3.5s)
-        await new Promise(r => setTimeout(r, 3500));
-
-        // 3. Calculate Path (Simple linear traversal)
+        // 2. Calculate Path step by step
         let remaining = roll;
         let currentPos = player.pos;
         const path = [currentPos];
+        let branchHit = false;
 
         while (remaining > 0) {
             const node = this.boardGraph[currentPos];
             if (!node || !node.next) break; // End of map
 
-            // If we hit a branch, STOP HERE (player will decide next turn)
+            // BRANCH CHECK: If we encounter a branch, stop and ask
             if (Array.isArray(node.next)) {
-                break;
+                branchHit = true;
+                // Save remaining steps for after decision
+                this.pendingMove = {
+                    playerIndex: pIndex,
+                    remainingSteps: remaining,
+                    pathSoFar: path
+                };
+
+                // First, animate movement UP TO this branch point
+                if (path.length > 1) {
+                    console.log("Moving to branch point:", path);
+                    await this.animateMovement(player, path, players);
+                }
+
+                // Show decision UI
+                bus.emit('SHOW_DECISION', {
+                    options: node.branchInfo,
+                    player: player
+                });
+                return; // Stop here, wait for decision
             }
 
+            // Normal move
             const nextPos = node.next;
             currentPos = nextPos;
             path.push(currentPos);
@@ -199,45 +211,40 @@ export class GameEngine {
             if (currentPos === '80') break;
         }
 
-        // 4. Emit Movement Animation (if we moved)
-        if (path.length > 1) {
-            // Update Logic Position Immediately (or after? Let's update after for safety, or optimistically?)
-            // For animation consistency, update Logic at end. 
-            // BUT UI needs to animate. UI uses 'PLAYER_MOVING'.
-
+        // 3. Animate full movement (if not interrupted by branch)
+        if (!branchHit && path.length > 1) {
             console.log("Moving Player along path:", path);
-
-            // Promise wrapper to wait for animation
-            await new Promise(resolve => {
-                const onComplete = () => {
-                    bus.off('ANIMATION_COMPLETE', onComplete);
-                    resolve();
-                };
-                bus.on('ANIMATION_COMPLETE', onComplete);
-
-                // Trigger UI Animation
-                bus.emit('PLAYER_MOVING', { playerId: player.id, path: path });
-
-                // Fallback timeout in case UI fails
-                setTimeout(onComplete, 5000 + (path.length * 500));
-            });
-
-            // Update Final Position in State
-            player.pos = currentPos;
-            store.setPlayers(players);
-            this.syncState();
+            await this.animateMovement(player, path, players);
         }
 
-        // 5. Post-Move Logic (if not branching)
-        if (!branchHit) {
-            // DISABLED FOR TESTING: Tile effects off
-            // this.checkTileEvent(player);
-            this.endTurn();
-        }
+        // 4. End turn
+        this.endTurn();
+    }
+
+    // Helper for animation
+    async animateMovement(player, path, players) {
+        await new Promise(resolve => {
+            const onComplete = () => {
+                bus.off('ANIMATION_COMPLETE', onComplete);
+                resolve();
+            };
+            bus.on('ANIMATION_COMPLETE', onComplete);
+            bus.emit('PLAYER_MOVING', { playerId: player.id, path: path });
+            setTimeout(onComplete, 5000 + (path.length * 500));
+        });
+
+        // Update position
+        player.pos = path[path.length - 1];
+        store.setPlayers(players);
+        this.syncState();
     }
 
     resumeTurnAfterDecision(choiceId) {
-        const pIndex = store.state.turnIndex;
+        const pending = this.pendingMove;
+        if (!pending) return;
+
+        const pIndex = pending.playerIndex;
+        const remainingSteps = pending.remainingSteps;
         const players = [...store.state.players];
         const player = players[pIndex];
 
@@ -246,11 +253,16 @@ export class GameEngine {
         store.setPlayers(players);
         this.syncState();
 
-        // Clear pending move flag
+        // Clear pending move
         this.pendingMove = null;
 
-        // Now execute the turn (roll dice and move from new position)
-        this.executeTurn(pIndex);
+        // Continue moving with remaining steps (minus 1 for entering the branch)
+        const stepsLeft = remainingSteps - 1;
+        if (stepsLeft > 0) {
+            this.executeTurn(pIndex, stepsLeft);
+        } else {
+            this.endTurn();
+        }
     }
 
     checkTileEvent(player) {
