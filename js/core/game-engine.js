@@ -151,16 +151,21 @@ export class GameEngine {
         const players = [...store.state.players];
         const player = players[pIndex];
 
-        // 1. Food Check
-        if (player.stats.food > 0) player.stats.food--;
-        else {
-            player.stats.life = Math.max(0, player.stats.life - 1);
-            if (player.stats.life === 0) {
-                alert('Muerte súbita (Respawn)'); // Simplificado
-                player.stats.life = 2;
-                player.stats.food = 2;
-            }
+        // 0. CHECK IF PLAYER IS ON A BRANCH TILE (Decision required FIRST)
+        const currentNode = this.boardGraph[player.pos];
+        if (currentNode && Array.isArray(currentNode.next)) {
+            // Player is on a branch - ask before rolling
+            this.pendingMove = { playerIndex: pIndex, awaitingBranchChoice: true };
+            bus.emit('SHOW_DECISION', {
+                options: currentNode.branchInfo,
+                player: player
+            });
+            return; // Wait for resumeTurnAfterDecision
         }
+
+        // 1. Food Check (DISABLED FOR TESTING)
+        // if (player.stats.food > 0) player.stats.food--;
+        // else { ... }
 
         // 2. Roll & Animation Signal
         const roll = Math.floor(Math.random() * 6) + 1;
@@ -172,36 +177,21 @@ export class GameEngine {
         // Wait for animation (3.5s)
         await new Promise(r => setTimeout(r, 3500));
 
-        // 3. Calculate Path
+        // 3. Calculate Path (Simple linear traversal)
         let remaining = roll;
         let currentPos = player.pos;
         const path = [currentPos];
-        let branchHit = false;
 
         while (remaining > 0) {
             const node = this.boardGraph[currentPos];
+            if (!node || !node.next) break; // End of map
 
-            // Branch Check
+            // If we hit a branch, STOP HERE (player will decide next turn)
             if (Array.isArray(node.next)) {
-                branchHit = true;
-                this.pendingMove = { playerIndex: pIndex, remainingSteps: remaining };
-
-                // If client playing remotely, stop logic here (wait for UI)
-                if (store.state.role === 'CLIENT' && store.state.myId !== player.id) {
-                    return;
-                }
-
-                // Trigger Decision UI
-                bus.emit('SHOW_DECISION', {
-                    options: node.branchInfo,
-                    player: player
-                });
-                break; // Stop path building here
+                break;
             }
 
             const nextPos = node.next;
-            if (!nextPos) break; // End of map
-
             currentPos = nextPos;
             path.push(currentPos);
             remaining--;
@@ -251,17 +241,16 @@ export class GameEngine {
         const players = [...store.state.players];
         const player = players[pIndex];
 
-        // Move to chosen node
+        // Move to chosen branch tile
         player.pos = choiceId;
         store.setPlayers(players);
         this.syncState();
 
-        // Continue moving? Or stop? 
-        // Design: Decision usually takes functionality. Let's stop and trigger tile event of new node?
-        // Or continue remaining steps?
-        // For simplicity & RPG feel: Decision consumes movement momentum. Stop here.
+        // Clear pending move flag
+        this.pendingMove = null;
 
-        this.checkTileEvent(player);
+        // Now execute the turn (roll dice and move from new position)
+        this.executeTurn(pIndex);
     }
 
     checkTileEvent(player) {
