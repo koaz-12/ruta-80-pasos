@@ -1556,17 +1556,17 @@ export class SVGBoardRenderer {
         console.log('Click cualquier casilla para ver su información');
 
         this.svg.addEventListener('click', (evt) => {
-            // Find tile element
+            // Find tile element (look for tile-group class)
             let target = evt.target;
-            while (target && !target.classList.contains('tile')) {
+            while (target && !target.classList.contains('tile-group')) {
                 target = target.parentElement;
                 if (target === this.svg) return;
             }
 
             if (!target) return;
 
-            // Get tile ID
-            const tileId = target.getAttribute('data-tile-id');
+            // Get tile ID (uses data-id, not data-tile-id)
+            const tileId = target.getAttribute('data-id');
             if (!tileId) return;
 
             // Find tile data
