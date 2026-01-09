@@ -22,11 +22,7 @@
 
 body {
     font-family: 'Outfit', sans-serif;
-
-    /* DIAGNOSTIC MODE: HOT PINK */
-    /* If you don't see PINK, you are CACHED */
-    background-color: #FF69B4 !important;
-    /* Hot Pink */
+    background-color: var(--bg-color);
 
     color: var(--text-primary);
     height: 100vh;

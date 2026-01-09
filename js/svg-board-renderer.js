@@ -254,6 +254,19 @@ export class SVGBoardRenderer {
         // Clamping? Optional.
 
         this.svg.setAttribute('viewBox', `${this.camera.x} ${this.camera.y} ${w} ${h}`);
+
+        // DEBUG HUD UPDATE
+        const hud = document.getElementById('debug-hud');
+        if (hud) {
+            const svgW = this.svg.clientWidth || window.innerHeight;
+            const svgH = this.svg.clientHeight || window.innerWidth;
+            hud.innerHTML = `
+                ZOOM: ${this.camera.zoom.toFixed(3)}<br>
+                X: ${Math.round(this.camera.x)} | Y: ${Math.round(this.camera.y)}<br>
+                SCR: ${svgW}x${svgH} (Rotated)<br>
+                WIN: ${window.innerWidth}x${window.innerHeight}
+            `;
+        }
     }
 
     focusOn(targetX, targetY) {
