@@ -85,7 +85,7 @@ export class SVGBoardRenderer {
             // Ignore if touching a UI element (like token, maybe?)
             // Actually, we want to drag ANYWHERE unless it's a critical interaction.
             // Tokens don't have click actions yet except inspector.
-            if (this.isEditorMode) return; // Editor handles its own drag? No, editor might want camera too.
+            // if (this.isEditorMode) return; // REMOVED: Allow camera move in Editor
 
             this.camera.isDragging = true;
             const pt = this.getEventPoint(e);
