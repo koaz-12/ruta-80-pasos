@@ -1,69 +1,24 @@
-/* --- BOARD CONTAINER (SVG Canvas) --- */
+/* --- BOARD CONTAINER (Simple Fullscreen) --- */
 .board-container {
     position: relative;
-    /* Hybrid Layout: Flex Item */
-    flex: 1;
-    /* Fill remaining vertical space */
     width: 100%;
-    min-height: 0;
-    /* Crucial for flex scrolling */
-    z-index: 0;
-
-    /* Border removed (Moved to SVG for dynamic camera handling) */
-    /* background-color: #f7f5e6; */
-    /* Handled by SVG */
-
-    border-radius: 4px;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
-
-    /* --- LAYOUT CONTAINER (Static Window) --- */
-    /* Restore Flex Item behavior to fill space */
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-    /* Important for scrolling contexts */
-
-    /* Content Centering */
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-
-    /* Clean Production Style */
-
-    border-radius: 4px;
+    overflow: hidden;
+    background: #1a1a1a;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    /* Clips the rotated wrapper */
-    position: relative;
-    /* No transforms here! */
-    z-index: 10;
 }
 
-/* --- ROTATION WRAPPER (The Inner Doll) --- */
+/* --- BOARD WRAPPER (No Rotation - SVG handles it) --- */
 #board-rotator {
-    /* 1. Size Logic: Fill ACTUAL visible screen (Dynamic Viewport) */
-    width: 100dvh;
-    /* Visual Height */
-    height: 100dvw;
-    /* Visual Width */
-
-    /* 2. Rotation Logic */
-    transform: rotate(-90deg);
-    /* No translate needed if Flexbox centers it? */
-    /* Flexbox centers the BOX. But the box is rotated. */
-    /* If 100vh x 100vw box is centered in 100vw x 100vh container... */
-    /* It might need flex:none to prevent squishing */
-    flex: none;
-
-    /* Ensure it acts as the new relative parent for SVG */
-    position: relative;
-
-    /* Debug helper (temporary) */
-    /* outline: 2px solid red; */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Removed separate .global-rotated rule as it is now default */

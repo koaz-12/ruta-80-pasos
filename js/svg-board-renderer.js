@@ -45,28 +45,42 @@ export class SVGBoardRenderer {
             initialDist: 0
         };
 
-        // SVG Init
+        // SVG Init - ROTATED APPROACH
+        // Original board: 1400x850 (landscape)
+        // After -90deg rotation: 850x1400 (portrait)
         this.svg = document.createElementNS(this.ns, 'svg');
-        // Initial setup - will be overwritten by updateViewBox
-        this.svg.setAttribute('viewBox', `0 0 ${this.width} ${this.height}`);
-        // REMOVED preserveAspectRatio to allow manual aspect control
 
-        // Dark Tabletop Background
-        this.svg.style.cssText = 'width:100%;height:100%;background:#1a1a1a;touch-action:none;cursor:grab';
+        // ViewBox: After rotation, width=850, height=1400
+        this.svg.setAttribute('viewBox', `0 0 ${this.height} ${this.width}`);
+
+        // Let browser handle aspect ratio perfectly
+        this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+        // Clean styling
+        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6;touch-action:none;cursor:grab';
         this.svg.id = 'game-board-svg';
 
         this.container.innerHTML = '';
         this.container.appendChild(this.svg);
 
+        // Create root group with rotation transform
+        // Rotate -90deg around the center of the ORIGINAL board (700, 425)
+        // Then translate to fit in new viewBox
+        this.rootGroup = document.createElementNS(this.ns, 'g');
+        // Rotation: -90deg, then translate to position correctly in 850x1400 space
+        // After -90deg rotation around origin, point (x,y) becomes (y, -x)
+        // We need to shift by +1400 in Y to bring it back into positive space
+        this.rootGroup.setAttribute('transform', `rotate(-90, 0, 0) translate(-${this.width}, 0)`);
+        this.svg.appendChild(this.rootGroup);
+
         this.drawBoard();
         this.addInteractivity();
-        this.initCamera();
+        // Camera init not needed for simple mode
+        // this.initCamera();
 
-        this.checkMobileOrientation();
-        // Re-calculate layout and zoom on resize
+        // No orientation check needed - CSS is simple now
         window.addEventListener('resize', () => {
-            this.checkMobileOrientation();
-            setTimeout(() => this.centerCamera(), 100);
+            // Just trigger re-render if needed
         });
     }
 
@@ -741,7 +755,7 @@ export class SVGBoardRenderer {
         const bg = document.createElementNS(this.ns, 'rect');
         bg.setAttribute('width', '100%'); bg.setAttribute('height', '100%');
         bg.setAttribute('fill', '#f0f2f5');
-        this.svg.appendChild(bg);
+        this.rootGroup.appendChild(bg);
 
         // CHECK FOR FULL SNAPSHOT
         if (this.layoutData && !Array.isArray(this.layoutData) && this.layoutData.tiles) {
@@ -945,8 +959,8 @@ export class SVGBoardRenderer {
         // Insert at beginning to be behind everything? No, border should be visually on top?
         // If on top, it borders everything. If behind, tiles might overlap.
         // Usually frames are on top.
-        this.svg.appendChild(frame);
-        this.svg.appendChild(bevel);
+        this.rootGroup.appendChild(frame);
+        this.rootGroup.appendChild(bevel);
     }
 
     drawDecoration() {
@@ -1025,7 +1039,7 @@ export class SVGBoardRenderer {
         t.textContent = n;
         g.appendChild(t);
 
-        this.svg.appendChild(g);
+        this.rootGroup.appendChild(g);
     }
 
     box(x, y, w, h, txt, fill, txtCol = '#333') {
@@ -1060,7 +1074,7 @@ export class SVGBoardRenderer {
         t.textContent = txt;
         g.appendChild(t);
 
-        this.svg.appendChild(g);
+        this.rootGroup.appendChild(g);
     }
 
     drawCenter() {
@@ -1104,7 +1118,7 @@ export class SVGBoardRenderer {
         t.textContent = '🎲';
         g.appendChild(t);
 
-        this.svg.appendChild(g);
+        this.rootGroup.appendChild(g);
     }
 
     deck(x, y, col, lbl) {
@@ -1134,7 +1148,7 @@ export class SVGBoardRenderer {
         t.textContent = lbl;
         g.appendChild(t);
 
-        this.svg.appendChild(g);
+        this.rootGroup.appendChild(g);
     }
 
     label(x, y, txt, col = '#666', sz = 14, rot = 90) {
@@ -1146,7 +1160,7 @@ export class SVGBoardRenderer {
         // Default rot is now 90
         t.setAttribute('transform', `rotate(${rot},${x},${y})`);
         t.textContent = txt;
-        this.svg.appendChild(t);
+        this.rootGroup.appendChild(t);
     }
 
     // Capture standard graph connections
@@ -1169,7 +1183,7 @@ export class SVGBoardRenderer {
         if (bg && bg.nextSibling) {
             this.svg.insertBefore(grp, bg.nextSibling);
         } else {
-            this.svg.appendChild(grp);
+            this.rootGroup.appendChild(grp);
         }
 
         this.edges.forEach(([id1, id2]) => {
@@ -1229,7 +1243,7 @@ export class SVGBoardRenderer {
                 offset.y = pt.y - ty;
 
                 // Bring to front
-                this.svg.appendChild(group);
+                this.rootGroup.appendChild(group);
             }
         };
 
@@ -1381,7 +1395,7 @@ export class SVGBoardRenderer {
 
                 tokenGroup.appendChild(circle);
                 tokenGroup.appendChild(text);
-                this.svg.appendChild(tokenGroup);
+                this.rootGroup.appendChild(tokenGroup);
             }
         });
     }
