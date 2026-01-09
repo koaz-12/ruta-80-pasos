@@ -1434,7 +1434,10 @@ export class SVGBoardRenderer {
             // Lookup Data
             const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
 
+            console.log(`[MOVE] Looking for tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
+
             if (!nextTileData) {
+                console.warn(`[MOVE] Tile "${nextId}" NOT in layout!`);
                 hop(); return;
             }
 
