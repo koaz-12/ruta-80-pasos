@@ -1445,21 +1445,14 @@ export class SVGBoardRenderer {
             const tx = nextTileData.x + (this.ts / 2);
             const ty = nextTileData.y + (this.ts / 2);
 
-            // Animate using Web Animations API (simple & smooth)
-            const anim = token.animate([
-                { transform: token.getAttribute('transform') || `translate(${nextTileData.x}px, ${nextTileData.y}px)` }, // robust start
-                { transform: `translate(${tx}px, ${ty}px)` }    // end
-            ], {
-                duration: speed,
-                easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Bounce
-                fill: 'forwards'
-            });
+            // Simple direct transform (no CSS animation - SVG transforms don't use px)
+            token.style.transition = `transform ${speed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+            token.setAttribute('transform', `translate(${tx}, ${ty})`);
 
-            anim.onfinish = () => {
-                token.setAttribute('transform', `translate(${tx}, ${ty})`); // commit
-                // Sound effect here?
+            // Wait for transition to complete
+            setTimeout(() => {
                 hop();
-            };
+            }, speed);
         };
 
         hop();
