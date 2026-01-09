@@ -619,21 +619,50 @@ export class SVGBoardRenderer {
                     </div>
                      <div style="${rowStyle}">
                         <label style="${labelStyle}">ID</label>
-                        <input type="text" value="${id}" disabled style="${inputStyle} opacity:0.6; cursor:not-allowed;">
+        <input type="text" value="${id}" disabled style="${inputStyle} opacity:0.6; cursor:not-allowed;">
                     </div>
                 </div>
 
                 <!-- Connections -->
-                <div style="${sectionStyle} border-left-color: #4ec9b0;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span style="color:#aaa; font-weight:bold;">CONNECTIONS</span>
-                        <div style="display:flex; gap:4px;">
-                             <input type="number" id="insp-new-c" placeholder="Ref ID" style="width:50px; background:#333; border:none; color:white; padding:2px;">
-                             <button id="insp-add-c" style="background:#444; color:white; border:none; cursor:pointer; font-weight:bold; padding:0 6px;">+</button>
-                        </div>
+            <div style="${sectionStyle} border-left-color: #4ec9b0;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#aaa; font-weight:bold;">CONNECTIONS</span>
+                    <div style="display:flex; gap:4px;">
+                         <input type="number" id="insp-new-c" placeholder="Ref ID" style="width:50px; background:#333; border:none; color:white; padding:2px;">
+                         <button id="insp-add-c" style="background:#444; color:white; border:none; cursor:pointer; padding:2px; border-radius:2px;">+</button>
                     </div>
-                    <div id="insp-conns" style="display:flex; flex-wrap:wrap; gap:4px; padding:4px 0;"></div>
                 </div>
+                <div id="insp-conn-list" style="max-height:120px; overflow-y:auto;"></div>
+            </div>
+
+            <!-- GRAPH INFO SECTION - NEW -->
+            <div style="${sectionStyle} border-left-color: #fda085;">
+                <div style="color:#aaa; margin-bottom:8px; font-weight:bold;">GRAPH INFO</div>
+                <div style="margin-bottom:6px;">
+                    <div style="color:#9cdcfe; font-size:11px; margin-bottom:2px;">Sequential Position:</div>
+                    <div style="background:#3c3c3c; padding:4px; border-radius:2px; color:#4facfe; font-weight:bold;">
+                        ${this.getSequentialPosition ? this.getSequentialPosition(id) : '?'}
+                    </div>
+                </div>
+                <div style="margin-bottom:6px;">
+                    <div style="color:#9cdcfe; font-size:11px; margin-bottom:2px;">Next (from buildGraph):</div>
+                    <div style="background:#3c3c3c; padding:4px; border-radius:2px; color:#84fab0; word-break:break-all;">
+                        ${this.boardGraph && this.boardGraph[id] ?
+                (Array.isArray(this.boardGraph[id].next) ?
+                    this.boardGraph[id].next.join(', ') :
+                    this.boardGraph[id].next) :
+                'NONE'}
+                    </div>
+                </div>
+                ${this.boardGraph && this.boardGraph[id] && Array.isArray(this.boardGraph[id].next) ?
+                `<div style="margin-top:8px; padding:6px; background:rgba(253,160,133,0.1); border-radius:4px;">
+                    <div style="color:#fda085; font-weight:bold; font-size:11px; margin-bottom:4px;">🔀 JUNCTION</div>
+                    <div style="font-size:10px; color:#ccc;">
+                      ${this.boardGraph[id].branchInfo?.map(b => `${b.id}: ${b.label}`).join('<br>') || ''}
+                    </div>
+                  </div>` :
+                ''}
+            </div>
 
                 <!-- Actions -->
                 <div style="padding:10px;">
