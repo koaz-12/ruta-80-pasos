@@ -325,10 +325,11 @@ export class SVGBoardRenderer {
         if (lobby) lobby.style.display = 'none';
 
         // 2. Show Board Container
-        const boardContainer = this.container; // Should be .board-container
+        // 2. Show Board Container (Main Parent)
+        const boardContainer = document.querySelector('.board-container');
         if (boardContainer) {
             boardContainer.classList.remove('hidden');
-            boardContainer.style.display = 'block';
+            boardContainer.style.display = 'flex';
         }
 
         // 3. Render if needed
