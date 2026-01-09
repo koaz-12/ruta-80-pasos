@@ -86,11 +86,8 @@ body {
     }
 }
 
-@media screen and (orientation: portrait) {
-    #landscape-warning {
-        display: flex;
-    }
-}
+/* Landscape Warning REMOVED for Vertical Layout */
+/* DO NOT BLOCK PORTRAIT MODE */
 
 .hidden {
     display: none !important;
