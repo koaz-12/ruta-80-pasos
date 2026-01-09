@@ -251,8 +251,20 @@ export class UIRenderer {
         // Update Tile Counter (v4.9)
         if (targetForStats) {
             const tileDisplay = document.getElementById('current-tile');
+            const statusDisplay = document.getElementById('tile-status');
+
             if (tileDisplay) {
                 tileDisplay.textContent = targetForStats.pos || '0';
+            }
+
+            // Show junction status if on a junction tile (v5.0)
+            if (statusDisplay) {
+                const junctionTiles = ['10', '25', '50', '79'];
+                if (junctionTiles.includes(String(targetForStats.pos))) {
+                    statusDisplay.style.display = 'block';
+                } else {
+                    statusDisplay.style.display = 'none';
+                }
             }
         }
     }
@@ -277,12 +289,26 @@ export class UIRenderer {
     showDecisionModal({ options, player }) {
         const modal = document.getElementById('decision-modal');
         const container = document.getElementById('decision-options');
+
+        // Update modal title to show current position
+        const titleEl = modal.querySelector('h2');
+        if (titleEl) {
+            titleEl.innerHTML = `🔀 Bifurcación en Casilla ${player.pos}<br><span style="font-size:0.8em; font-weight:400; color:rgba(255,255,255,0.7);">Elige tu camino</span>`;
+        }
+
         container.innerHTML = '';
 
         options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'btn-option';
-            btn.innerHTML = `<strong>${opt.label}</strong> <span>${opt.hazard === 'Combate' ? '⚔️' : '🛡️'}</span>`;
+            btn.innerHTML = `
+                <div style="text-align:left;">
+                    <strong style="font-size:1.1em;">${opt.label}</strong>
+                    <br>
+                    <span style="font-size:0.85em; opacity:0.8;">${opt.hazard}</span>
+                </div>
+                <span style="font-size:1.5em;">${opt.hazard.includes('Combate') || opt.hazard.includes('Mortal') ? '⚔️' : opt.hazard.includes('Seguro') || opt.hazard.includes('Largo') ? '🛡️' : '🎲'}</span>
+            `;
             btn.onclick = () => {
                 modal.classList.add('hidden');
                 bus.emit('UI_DECISION_MADE', opt.id);
