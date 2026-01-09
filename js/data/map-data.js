@@ -22,25 +22,25 @@ export function buildGraph() {
         ]
     };
 
-    // Alto path: 11-17 (main path continues)
-    for (let i = 11; i < 18; i++) {
+    // Alto path: 11-16 (main path, longest - 5 steps)
+    for (let i = 11; i < 17; i++) {
         graph[String(i)] = { next: String(i + 1) };
     }
 
-    // Medio path: 10a → 11a → 12a → converge at 17
+    // Medio path: 10a → 11a → 12a → converge at 16
     // Solo existen 10a, 11a, 12a en el tablero
     graph['10a'] = { next: '11a' };
     graph['11a'] = { next: '12a' };
-    graph['12a'] = { next: '17' }; // Converge a 17 (no 18)
+    graph['12a'] = { next: '16' }; // Converge a 16
 
-    // Bajo path: 10b → 11b → 12b → converge at 17
+    // Bajo path: 10b → 11b → 12b → converge at 16
     // Solo existen 10b, 11b, 12b en el tablero
     graph['10b'] = { next: '11b' };
     graph['11b'] = { next: '12b' };
-    graph['12b'] = { next: '17' }; // Converge a 17 (no 18)
+    graph['12b'] = { next: '16' }; // Converge a 16
 
-    // Main continues: 17-24 (convergence point is 17)
-    for (let i = 17; i < 25; i++) {
+    // Main continues from convergence: 16-24
+    for (let i = 16; i < 25; i++) {
         graph[String(i)] = { next: String(i + 1) };
     }
 
