@@ -1582,32 +1582,10 @@ export class SVGBoardRenderer {
         hop();
     }
 
-    // v7.3: Tile Inspector - Shows tile data ON SCREEN
+    // v7.6: Tile Inspector - Now uses simple method
     enableTileInspector() {
-        console.log('%c🔍 Tile Inspector Enabled', 'color: #4facfe; font-weight: bold');
-        console.log('Click cualquier casilla para ver su información EN PANTALLA');
-
-        // Create tooltip div
-        const tooltip = document.createElement('div');
-        tooltip.id = 'tile-inspector-tooltip';
-        tooltip.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            z-index: 100000;
-            display: none;
-            max-width: 500px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-            border: 2px solid #4facfe;
-        `;
-        document.body.appendChild(tooltip);
+        console.log('%c🔍 Simple Tile Inspector Enabled', 'color: cyan; font-weight: bold');
+        console.log('Click cualquier casilla para ver su información');
 
         this.svg.addEventListener('click', (evt) => {
             // Find tile element (look for tile-group class)
@@ -1619,55 +1597,85 @@ export class SVGBoardRenderer {
 
             if (!target) return;
 
-            // Get tile ID (uses data-id, not data-tile-id)
-            const tileId = target.getAttribute('data-id');
-            if (!tileId) return;
+            // Show simple info overlay
+            this.showSimpleTileInfo(target);
+        });
+    }
 
-            // Find tile data
-            const tileData = this.layoutData?.tiles?.find(t => String(t.id) === String(tileId));
-            const node = this.boardGraph?.[tileId];
-            const seqPos = this.getSequentialPosition(tileId);
+    // v7.6: SIMPLE Tile Info Display - Works everywhere
+    showSimpleTileInfo(tileGroup) {
+        const id = tileGroup.getAttribute('data-id');
+        const display = tileGroup.getAttribute('data-display');
+        const x = tileGroup.dataset.x || 0;
+        const y = tileGroup.dataset.y || 0;
 
-            // Build HTML
-            let html = `
-                <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #4facfe; padding-bottom: 10px;">
-                    <h2 style="margin: 0; color: #4facfe;">CASILLA ${tileId}</h2>
+        // Crear overlay si no existe
+        let overlay = document.getElementById('simple-tile-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'simple-tile-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        // Obtener posición secuencial y conexión
+        const seqPos = this.getSequentialPosition ? this.getSequentialPosition(id) : '?';
+        const node = this.boardGraph?.[id];
+        const nextTile = node?.next;
+        const isJunction = Array.isArray(nextTile);
+
+        // HTML simple y claro
+        overlay.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: black;
+                color: white;
+                padding: 40px;
+                border: 4px solid cyan;
+                border-radius: 15px;
+                font-family: monospace;
+                font-size: 18px;
+                z-index: 999999;
+                min-width: 400px;
+                box-shadow: 0 0 50px rgba(0,255,255,0.5);
+            ">
+                <h1 style="text-align:center; color:cyan; margin:0 0 30px 0; font-size:32px;">
+                    CASILLA ${id}
+                </h1>
+                
+                <div style="line-height:2.5;">
+                    <div><strong style="color:yellow;">Display:</strong> ${display || id}</div>
+                    <div><strong style="color:yellow;">Posición Secuencial:</strong> ${seqPos}</div>
+                    <div><strong style="color:yellow;">Coordenadas:</strong> x: ${x}, y: ${y}</div>
+                    <div><strong style="color:yellow;">Siguiente:</strong> ${isJunction ? nextTile.join(', ') : (nextTile || 'NINGUNO')}</div>
+                    ${isJunction ? `
+                        <div style="margin-top:20px; padding:15px; background:rgba(255,165,0,0.2); border:2px solid orange; border-radius:8px;">
+                            <div style="color:orange; font-weight:bold; font-size:20px; margin-bottom:10px;">🔀 BIFURCACIÓN</div>
+                            ${node.branchInfo?.map(b => `<div>${b.id}: ${b.label}</div>`).join('') || ''}
+                        </div>
+                    ` : ''}
                 </div>
-                <div style="line-height: 1.8;">
-                    <div><strong style="color: #fda085;">ID:</strong> ${tileId}</div>
-                    <div><strong style="color: #fda085;">Display:</strong> ${tileData?.display || tileId}</div>
-                    <div><strong style="color: #fda085;">Posición:</strong> ${seqPos}</div>
-                    <div><strong style="color: #fda085;">Coordenadas:</strong> x: ${tileData?.x || '?'}, y: ${tileData?.y || '?'}</div>
-                    <div><strong style="color: #fda085;">Siguiente:</strong> ${Array.isArray(node?.next) ? node.next.join(', ') : (node?.next || 'NINGUNO')}</div>
-            `;
-
-            if (node && Array.isArray(node.next)) {
-                html += `
-                    <div style="margin-top: 10px; padding: 10px; background: rgba(253, 160, 133, 0.2); border-radius: 6px;">
-                        <div style="color: #fda085; font-weight: bold;">🔀 BIFURCACIÓN</div>
-                        <div>Opciones: ${node.next.join(', ')}</div>
-                        <div>Etiquetas: ${node.branchInfo?.map(b => b.label).join(', ') || 'N/A'}</div>
-                    </div>
-                `;
-            }
-
-            html += `
-                </div>
-                <div style="text-align: center; margin-top: 15px;">
-                    <button onclick="this.parentElement.parentElement.style.display='none'" 
-                            style="background: #4facfe; color: white; border: none; padding: 10px 20px; 
-                                   border-radius: 6px; cursor: pointer; font-weight: bold;">
+                
+                <div style="text-align:center; margin-top:30px;">
+                    <button onclick="document.getElementById('simple-tile-overlay').remove()"
+                            style="
+                                background: cyan;
+                                color: black;
+                                border: none;
+                                padding: 15px 40px;
+                                font-size: 20px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                border-radius: 8px;
+                            ">
                         CERRAR
                     </button>
                 </div>
-            `;
+            </div>
+        `;
 
-            tooltip.innerHTML = html;
-            tooltip.style.display = 'block';
-
-            // Also log to console
-            console.log('%c━━━━━ CASILLA ━━━━━', 'color: yellow');
-            console.log('ID:', tileId, '| Coords:', tileData);
-        });
+        console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
     }
 }
