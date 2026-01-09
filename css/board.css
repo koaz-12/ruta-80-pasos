@@ -9,16 +9,9 @@
     /* Crucial for flex scrolling */
     z-index: 0;
 
-    background-color: #f7f5e6;
-
-    /* Premium Wood Frame Effect */
-    border: 12px solid #5D4037;
-    box-shadow:
-        inset 0 0 20px rgba(0, 0, 0, 0.8),
-        inset 0 0 0 2px #3E2723,
-        0 0 0 2px #8D6E63,
-        0 0 0 4px #3E2723,
-        0 10px 30px rgba(0, 0, 0, 0.5);
+    /* Border removed (Moved to SVG for dynamic camera handling) */
+    /* background-color: #f7f5e6; */
+    /* Handled by SVG */
 
     border-radius: 4px;
     margin: 0;

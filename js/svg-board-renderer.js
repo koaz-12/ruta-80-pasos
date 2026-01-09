@@ -161,6 +161,9 @@ export class SVGBoardRenderer {
         this.svg.addEventListener('touchstart', startDrag, { passive: false });
         window.addEventListener('touchmove', moveDrag, { passive: false });
         window.addEventListener('touchend', endDrag);
+
+        // Initial Center
+        this.centerCamera();
     }
 
     getEventPoint(e) {
@@ -175,6 +178,61 @@ export class SVGBoardRenderer {
         // Limit Zoom (Widen range for "Full Map" vs "Macro Detail")
         if (newZoom < 0.3 || newZoom > 5.0) return;
         this.camera.zoom = newZoom;
+        this.updateViewBox();
+    }
+
+    centerCamera() {
+        // Goal: Center the 1400x850 board in the viewport
+        const boardW = this.width;
+        const boardH = this.height;
+        const screenW = this.svg.clientWidth || window.innerWidth;
+        const screenH = this.svg.clientHeight || window.innerHeight;
+
+        // Determine "Best Fit" zoom
+        // In vertical mode, Screen W corresponds to Board H (inverted) but ViewBox doesn't care about rotation visual.
+        // ViewBox is strictly SVG local coords (0..1400).
+        // If the CONTAINER is rotated -90deg, 
+        // Visual Width of SVG on Screen = CSS Height of Container = 100vw
+        // Visual Height of SVG on Screen = CSS Width of Container = 100vh
+
+        // Wait, if rotated:
+        // SVG X-axis (0..1400) runs Bottom-to-Top on screen.
+        // SVG Y-axis (0..850) runs Left-to-Right on screen.
+
+        // So Board Width (1400, X) needs to fit in Screen Height.
+        // Board Height (850, Y) needs to fit in Screen Width.
+
+        // Zoom factors:
+        // zoomX = ScreenHeight / BoardWidth (1400)
+        // zoomY = ScreenWidth / BoardHeight (850)
+        // fitZoom = min(zoomX, zoomY) ... but since we control zoom inside SVG.
+
+        // Simplified: Start with a zoom that shows most of the board.
+        // 0.5 is usually good for mobile to see context.
+        // Let's rely on updateViewBox to handle the clipping.
+        // Just set Center X/Y to Center of Board.
+
+        const cx = boardW / 2; // 700
+        const cy = boardH / 2; // 425
+
+        // Camera X/Y in my system tends to be Top-Left of ViewBox?
+        // updateViewBox: viewBox = `${this.camera.x} ...`
+        // Yes, x/y is Top-Left.
+
+        // So we want Center(700,425) to be at Center of ViewPort.
+        // ViewPort Width (in SVG units) = boardW / zoom
+        // ViewPort Height (in SVG units) = boardH / zoom
+
+        // Let's pick a default zoom.
+        this.camera.zoom = 0.6; // Slightly zoomed out to see context
+        if (window.innerWidth < 768) this.camera.zoom = 0.45; // More zoom out on mobile
+
+        const viewW = this.width / this.camera.zoom;
+        const viewH = this.height / this.camera.zoom;
+
+        this.camera.x = cx - (viewW / 2);
+        this.camera.y = cy - (viewH / 2);
+
         this.updateViewBox();
     }
 
@@ -668,6 +726,8 @@ export class SVGBoardRenderer {
         // CHECK FOR FULL SNAPSHOT
         if (this.layoutData && !Array.isArray(this.layoutData) && this.layoutData.tiles) {
             console.log("Loading Full Snapshot Mode...");
+            // Render Border
+            this.drawWorldBorder();
             // Render Decoration
             this.drawDecoration();
 
@@ -687,6 +747,9 @@ export class SVGBoardRenderer {
         }
 
         const s = this.ts + this.gap;
+
+        // Render Border
+        this.drawWorldBorder();
 
         // Decoration (Moved to helper to allow reuse)
         this.drawDecoration();
@@ -833,6 +896,37 @@ export class SVGBoardRenderer {
 
         this.drawEdges(); // Initial edge draw
         this.drawCenter();
+    }
+
+    drawWorldBorder() {
+        // Dynamic Wood Frame inside SVG
+        const frame = document.createElementNS(this.ns, 'rect');
+        frame.setAttribute('x', 0);
+        frame.setAttribute('y', 0);
+        frame.setAttribute('width', this.width);
+        frame.setAttribute('height', this.height);
+        frame.setAttribute('fill', 'none');
+        frame.setAttribute('stroke', '#5D4037'); // Wood Dark
+        frame.setAttribute('stroke-width', '24'); // Thick Border
+        frame.setAttribute('rx', '12'); // Rounded corners inside
+
+        // Inner Bevel (simulated with another rect)
+        const bevel = document.createElementNS(this.ns, 'rect');
+        bevel.setAttribute('x', 12);
+        bevel.setAttribute('y', 12);
+        bevel.setAttribute('width', this.width - 24);
+        bevel.setAttribute('height', this.height - 24);
+        bevel.setAttribute('fill', 'none');
+        bevel.setAttribute('stroke', '#3E2723'); // Darker Inner
+        bevel.setAttribute('stroke-width', '4');
+        bevel.setAttribute('rx', '8');
+
+        // Append to SVG (Background Layer)
+        // Insert at beginning to be behind everything? No, border should be visually on top?
+        // If on top, it borders everything. If behind, tiles might overlap.
+        // Usually frames are on top.
+        this.svg.appendChild(frame);
+        this.svg.appendChild(bevel);
     }
 
     drawDecoration() {
