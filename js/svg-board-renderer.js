@@ -129,9 +129,19 @@ export class SVGBoardRenderer {
 
     // v6.0: Get sequential position for a tile ID
     getSequentialPosition(tileId) {
-        return this.positionMap && this.positionMap[tileId] !== undefined
-            ? this.positionMap[tileId]
-            : '?';
+        // Try positionMap first
+        if (this.positionMap && this.positionMap[tileId] !== undefined) {
+            return this.positionMap[tileId];
+        }
+
+        // Fallback 1: Check layout for display field
+        const tile = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
+        if (tile && tile.display) {
+            return tile.display;
+        }
+
+        // Fallback 2: Return ID itself (better than '?')
+        return tileId;
     }
 
     // v6.0: Check if tile is a junction
