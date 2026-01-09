@@ -25,8 +25,8 @@
     transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
 }
 
-/* Vertical Mobile Mode */
-.board-container.mobile-rotated {
+/* Global Vertical Mode (Rotates board to be Vertical Up-Scroll) */
+.board-container.global-rotated {
     /* Rotate -90deg (Counter-Clockwise) so Left (Start) is Bottom */
     transform: rotate(-90deg);
     /* Swap dimensions logic: Height becomes Width logic */

@@ -34,11 +34,24 @@ export class SVGBoardRenderer {
     }
 
     render() {
+        // Camera State
+        this.camera = {
+            x: 0,
+            y: 0,
+            zoom: 1,
+            isDragging: false,
+            lastX: 0,
+            lastY: 0,
+            initialDist: 0
+        };
+
         // SVG Init
         this.svg = document.createElementNS(this.ns, 'svg');
+        // Initial setup - will be overwritten by updateViewBox
         this.svg.setAttribute('viewBox', `0 0 ${this.width} ${this.height}`);
-        this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6';
+        // REMOVED preserveAspectRatio to allow manual aspect control
+
+        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6;touch-action:none;cursor:grab';
         this.svg.id = 'game-board-svg';
 
         this.container.innerHTML = '';
@@ -46,13 +59,148 @@ export class SVGBoardRenderer {
 
         this.drawBoard();
         this.addInteractivity();
+        this.initCamera(); // New Camera Logic
 
-        // --- DEV / EDITOR MODE ---
-        // Clean Start: Init editor if on localhost or file protocol
-        const isDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-        if (isDev) {
-            this.initEditor();
+        this.checkMobileOrientation(); // Initial check
+        window.addEventListener('resize', () => this.checkMobileOrientation());
+    }
+
+    checkMobileOrientation() {
+        // Enforce Vertical Layout Globally (as requested)
+        // "global-rotated" mimics the previous "mobile-rotated" but for all
+        this.container.classList.add('global-rotated');
+
+        // Force update viewbox after a small delay to handle layout shift
+        setTimeout(() => this.updateViewBox(), 100);
+    }
+
+    initCamera() {
+        // 1. Mouse/Touch Pan
+        const startDrag = (e) => {
+            // Ignore if touching a UI element (like token, maybe?)
+            // Actually, we want to drag ANYWHERE unless it's a critical interaction.
+            // Tokens don't have click actions yet except inspector.
+            if (this.isEditorMode) return; // Editor handles its own drag? No, editor might want camera too.
+
+            this.camera.isDragging = true;
+            const pt = this.getEventPoint(e);
+            this.camera.lastX = pt.x;
+            this.camera.lastY = pt.y;
+            this.svg.style.cursor = 'grabbing';
+            this.camera.initialDist = 0; // Reset pinch
+        };
+
+        const moveDrag = (e) => {
+            if (!this.camera.isDragging) return;
+            e.preventDefault();
+
+            // Pinch Zoom Check
+            if (e.touches && e.touches.length === 2) {
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+
+                if (this.camera.initialDist === 0) {
+                    this.camera.initialDist = dist;
+                    return;
+                }
+
+                const delta = dist - this.camera.initialDist;
+                const zoomFactor = delta > 0 ? 0.98 : 1.02; // Inverted logic for "Push apart = Zoom In (smaller ViewBox)"
+                // Wait... Bigger Distance = Zoom In?
+                // ViewBox Width: Smaller = Zoom In.
+                // Pull Apart (Positive Delta) -> Zoom In -> Multiply ViewBox Size by < 1.
+                this.zoomCamera(delta > 0 ? 1.02 : 0.98); // Helper handles zoom Level (scale)
+
+                this.camera.initialDist = dist;
+                return;
+            }
+
+            const pt = this.getEventPoint(e);
+            const dx = (pt.x - this.camera.lastX) / (this.camera.zoom * (window.innerWidth / this.svg.clientWidth || 1));
+            // Mapping screen pixels to SVG units requires knowing current scale ratio? 
+            // Simplified: Delta Screen * (ViewBoxWidth / ScreenWidth)
+
+            // Allow simpler Panning:
+            // Just move viewBox X/Y by -delta using a sensitivity factor
+
+            // Robust calculation:
+            // SVG Unit per Pixel = CurrentViewBoxWidth / ClientWidth
+            const vbw = this.width / this.camera.zoom;
+            const ratio = vbw / (this.svg.clientWidth || window.innerWidth);
+
+            const svgDx = (pt.x - this.camera.lastX) * ratio;
+            const svgDy = (pt.y - this.camera.lastY) * ratio;
+
+            this.camera.x -= svgDx; // Drag Left moves Camera Right (ViewBox X increases)
+            this.camera.y -= svgDy;
+
+            this.camera.lastX = pt.x;
+            this.camera.lastY = pt.y;
+            this.updateViewBox();
+        };
+
+        const endDrag = () => {
+            this.camera.isDragging = false;
+            this.svg.style.cursor = 'grab';
+            this.camera.initialDist = 0;
+        };
+
+        // Scroll Zoom
+        this.svg.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            this.zoomCamera(factor);
+        }, { passive: false });
+
+        this.svg.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('mouseup', endDrag);
+
+        this.svg.addEventListener('touchstart', startDrag, { passive: false });
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+        window.addEventListener('touchend', endDrag);
+    }
+
+    getEventPoint(e) {
+        if (e.touches && e.touches.length > 0) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    zoomCamera(factor) {
+        const newZoom = this.camera.zoom * factor;
+        // Limit Zoom
+        if (newZoom < 0.5 || newZoom > 4.0) return;
+        this.camera.zoom = newZoom;
+        this.updateViewBox();
+    }
+
+    updateViewBox() {
+        // Calculate Visible Area
+        const w = this.width / this.camera.zoom;
+        const h = this.height / this.camera.zoom;
+        // Center camera X/Y is center point?
+        // Let's assume camera.x/y is Top-Left for simple 'viewBox' mapping first
+        // But for Zoom-to-Center, it's better if x/y is CENTER.
+        // Current logic: camera.x is viewBox min-x.
+
+        // Clamping? Optional.
+
+        this.svg.setAttribute('viewBox', `${this.camera.x} ${this.camera.y} ${w} ${h}`);
+    }
+
+    focusOn(targetX, targetY) {
+        // Smoothly pan camera to center on target
+        // Not implemented full lerp yet, visual snap
+        const w = this.width / this.camera.zoom;
+        const h = this.height / this.camera.zoom;
+
+        this.camera.x = targetX - (w / 2);
+        this.camera.y = targetY - (h / 2);
+        this.updateViewBox();
     }
 
     initEditor() {
