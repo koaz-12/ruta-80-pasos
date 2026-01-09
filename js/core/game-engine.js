@@ -240,7 +240,9 @@ export class GameEngine {
 
         // 5. Post-Move Logic (if not branching)
         if (!branchHit) {
-            this.checkTileEvent(player);
+            // DISABLED FOR TESTING: Tile effects off
+            // this.checkTileEvent(player);
+            this.endTurn();
         }
     }
 
