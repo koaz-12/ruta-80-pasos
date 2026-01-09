@@ -1,10 +1,14 @@
 /* Header */
-/* Header (Block Mode) */
+/* Header (Floating Overlay) */
 .game-header {
-    position: relative;
-    /* Back to Flow */
-    flex: 0 0 auto;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
+
+    /* Removed Flow Properties */
+    /* flex: 0 0 auto; */
+
     z-index: 6000;
 
     display: flex;
