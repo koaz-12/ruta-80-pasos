@@ -892,9 +892,9 @@ export class SVGBoardRenderer {
         // Number Badge
         const t = document.createElementNS(this.ns, 'text');
         t.setAttribute('class', 'badge-txt');
-        // Center text in tile for rotation
-        const cx = x + this.ts / 2;
-        const cy = y + this.ts / 2;
+        // Center text in tile for rotation (LOCAL COORDINATES, since Group is translated)
+        const cx = this.ts / 2;
+        const cy = this.ts / 2;
 
         t.setAttribute('x', cx);
         t.setAttribute('y', cy);
@@ -905,7 +905,7 @@ export class SVGBoardRenderer {
         t.setAttribute('font-family', '"Segoe UI", sans-serif');
         t.setAttribute('fill', '#555');
 
-        // Rotate 90deg around center to be upright in vertical mode
+        // Rotate 90deg around center (Local)
         t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
 
         t.textContent = n;
