@@ -13,46 +13,28 @@
 
     /* Premium Wood Frame Effect */
     border: 12px solid #5D4037;
-    /* Dark Wood Base */
     box-shadow:
-        /* Inner Bevel (Depth) */
         inset 0 0 20px rgba(0, 0, 0, 0.8),
         inset 0 0 0 2px #3E2723,
-        /* Outer Highlight */
         0 0 0 2px #8D6E63,
         0 0 0 4px #3E2723,
-        /* Drop Shadow */
         0 10px 30px rgba(0, 0, 0, 0.5);
 
     border-radius: 4px;
-    /* Slight softening */
-
     margin: 0;
     padding: 0;
     overflow: hidden;
     transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
-}
 
-/* Global Vertical Mode (Rotates board to be Vertical Up-Scroll) */
-.board-container.global-rotated {
+    /* --- HARDCODED VERTICAL LAYOUT (Nuclear Option) --- */
     /* Rotate -90deg (Counter-Clockwise) so Left (Start) is Bottom */
     transform: rotate(-90deg);
-    /* Swap dimensions logic: Height becomes Width logic */
-    /* We want the rotated board to FILL the screen.
-       Screen: 400w x 800h.
-       Board:  800w x 400h (after rotation).
-    */
-    /* Fix alignment after rotation. Origin Center? */
     transform-origin: center center;
 
-    /* Force size to match viewport inverted? 
-       Actually, if flex item, it has size.
-       Just rotating it might clip it.
-    */
+    /* Force size to match viewport inverted axes */
     width: 100vh !important;
     height: 100vw !important;
 
-    /* Centering adjustment might be needed due to dimension swap */
     position: absolute;
     top: 50%;
     left: 50%;
@@ -60,10 +42,10 @@
     /* Half of new width */
     margin-top: -50vw;
     /* Half of new height */
-
     z-index: 10;
-    /* Ensure on top of other non-UI */
 }
+
+/* Removed separate .global-rotated rule as it is now default */
 
 /* SVG takes full space */
 #game-board-svg {
