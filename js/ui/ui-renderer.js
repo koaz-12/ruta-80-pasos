@@ -247,6 +247,14 @@ export class UIRenderer {
                 <span>⚔️ ${1 + targetForStats.stats.weapons}d6</span>
             `;
         }
+
+        // Update Tile Counter (v4.9)
+        if (targetForStats) {
+            const tileDisplay = document.getElementById('current-tile');
+            if (tileDisplay) {
+                tileDisplay.textContent = targetForStats.pos || '0';
+            }
+        }
     }
 
     updateControls({ turnIndex, isMyTurn }) {
