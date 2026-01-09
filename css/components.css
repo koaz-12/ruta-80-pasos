@@ -1,43 +1,33 @@
 /* Header */
-/* Header (Floating Overlay) */
+/* Header (Compact - In Flow) */
 .game-header {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-
-    /* Removed Flow Properties */
-    /* flex: 0 0 auto; */
+    flex: 0 0 auto;
 
     z-index: 6000;
 
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 25px;
+    padding: 6px 15px;
 
-    /* Immersive Header (Glass) */
-    background: rgba(13, 17, 23, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
+    /* Compact Dark Header */
+    background: rgba(13, 17, 23, 0.95);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 
     pointer-events: auto;
 }
 
 .game-header>* {
     pointer-events: auto;
-    /* Buttons are clickable */
 }
 
 .game-header h1 {
-    font-size: 1.5rem;
-    /* Smaller for header */
+    font-size: 1rem;
     margin: 0;
-    font-weight: 800;
-    letter-spacing: -1px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
     text-transform: uppercase;
 }
 
