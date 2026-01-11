@@ -173,19 +173,22 @@ export class GameEngine {
 
         // IMPORTANT: Check if player is STARTING their turn on a branch tile
         // This happens when they landed on a branch in the previous turn
-        if (remainingFromBranch === 0) {
+        if (remainingFromBranch === 0 && !this.pendingDirection) {
             const currentNode = this.boardGraph[player.pos];
             console.log(`[TURN START] Player ${pIndex} at pos ${player.pos}, node:`, currentNode);
             if (currentNode && Array.isArray(currentNode.next)) {
                 console.log(`[JUNCTION START] Player ON junction ${player.pos}, options:`, currentNode.next);
                 // Player is ON a branch - ask them to choose BEFORE rolling
-                this.pendingMove = { playerIndex: pIndex, startingOnBranch: true };
-                bus.emit('SHOW_DECISION', {
-                    options: currentNode.branchInfo,
-                    player: player
-                });
-                console.log('[JUNCTION START] Emitted SHOW_DECISION, waiting for choice');
-                return; // Stop here, wait for resumeTurnAfterDecision
+                // But only if we haven't already asked (no pendingMove)
+                if (!this.pendingMove) {
+                    this.pendingMove = { playerIndex: pIndex, startingOnBranch: true };
+                    bus.emit('SHOW_DECISION', {
+                        options: currentNode.branchInfo,
+                        player: player
+                    });
+                    console.log('[JUNCTION START] Emitted SHOW_DECISION, waiting for choice');
+                    return; // Stop here, wait for resumeTurnAfterDecision
+                }
             }
         }
 
