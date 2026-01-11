@@ -45,31 +45,30 @@ export function buildGraph() {
         graph[String(i)] = { next: String(i + 1) };
     }
 
-    // TODO: JUNCTION 2 should be at position where next bifurcation occurs
-    // For now, continuing straight from 26
-    graph['25'] = {
-        next: ['26', '25a'],
+    // ✅ JUNCTION 2: Position 26 (2 paths)
+    // Difícil=izquierda (5 casillas), Fácil=derecha (4 casillas)
+    graph['26'] = {
+        next: ['27d', '27f'],
         branchInfo: [
-            { id: '26', label: 'Cuesta Arriba', hazard: 'Difícil' },
-            { id: '25a', label: 'Túnel', hazard: 'Seguro' }
+            { id: '27d', label: 'Difícil', hazard: '5 casillas' },
+            { id: '27f', label: 'Fácil', hazard: '4 casillas' }
         ]
     };
 
-    // Main path: 26-33
-    for (let i = 26; i < 34; i++) {
-        graph[String(i)] = { next: String(i + 1) };
-    }
+    // Difícil path: 27d→28d→29d→30d→31d→32 (5 casillas)
+    graph['27d'] = { next: '28d' };
+    graph['28d'] = { next: '29d' };
+    graph['29d'] = { next: '30d' };
+    graph['30d'] = { next: '31d' };
+    graph['31d'] = { next: '32' };
 
-    // Tunnel path: 25a-33a → converge at 34
-    graph['25a'] = { next: '26a' };
-    for (let i = 26; i < 34; i++) {
-        graph[`${i}a`] = { next: i < 33 ? `${i + 1}a` : '34' };
-    }
+    // Fácil path: 27f→28f→29f→30f→32 (4 casillas)
+    graph['27f'] = { next: '28f' };
+    graph['28f'] = { next: '29f' };
+    graph['29f'] = { next: '30f' };
+    graph['30f'] = { next: '32' };
 
-    // Main continues: 34-49
-    for (let i = 34; i < 50; i++) {
-        graph[String(i)] = { next: String(i + 1) };
-    }
+    // Main continues from convergence 32...
 
     // ✅ JUNCTION 3: Position 50 (2 paths)
     graph['50'] = {
@@ -167,16 +166,16 @@ export const SAVED_LAYOUT = {
         { "id": "33", "display": "33", "x": 1069, "y": 55 },
         { "id": "37", "display": "37", "x": 1229, "y": 6 },
         { "id": "32", "display": "32", "x": 1179, "y": 58 },
-        { "id": "27", "display": "27", "x": 1272, "y": 67 },
-        { "id": "28", "display": "28", "x": 1264, "y": 125 },
-        { "id": "29", "display": "29", "x": 1260, "y": 185 },
-        { "id": "30", "display": "30", "x": 1259, "y": 247 },
-        { "id": "26", "display": "26", "x": 1301, "y": 4 },
-        { "id": "25", "display": "25", "x": 1341, "y": 85 },
-        { "id": "31", "display": "31", "x": 1258, "y": 314 },
-        { "id": "24", "display": "24", "x": 1342, "y": 159 },
-        { "id": "23", "display": "23", "x": 1339, "y": 230 },
-        { "id": "22", "display": "22", "x": 1340, "y": 306 },
+        { "id": "31d", "display": "31d", "x": 1272, "y": 67 },
+        { "id": "30d", "display": "30d", "x": 1264, "y": 125 },
+        { "id": "29d", "display": "29d", "x": 1260, "y": 185 },
+        { "id": "28d", "display": "28d", "x": 1259, "y": 247 },
+        { "id": "32", "display": "32", "x": 1301, "y": 4 },
+        { "id": "30f", "display": "30f", "x": 1341, "y": 85 },
+        { "id": "27d", "display": "27d", "x": 1258, "y": 314 },
+        { "id": "29f", "display": "29f", "x": 1342, "y": 159 },
+        { "id": "28f", "display": "28f", "x": 1339, "y": 230 },
+        { "id": "27f", "display": "27f", "x": 1340, "y": 306 },
         { "id": "26", "display": "26", "x": 1314, "y": 387 },
         { "id": "25", "display": "25", "x": 1311, "y": 445 },
         { "id": "24", "display": "24", "x": 1309, "y": 500 },
