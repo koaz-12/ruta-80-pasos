@@ -11,21 +11,57 @@ export class DebugManager {
     }
 
     initUI() {
-        const btnDebug = document.getElementById('btn-debug-mode');
+        // Buttons to open debug panel
+        const btnDebugLobby = document.getElementById('btn-debug-mode'); // From lobby
+        const btnDebugSettings = document.getElementById('btn-open-debug-panel'); // From settings
         const panel = document.getElementById('debug-panel');
         const btnClose = document.getElementById('btn-close-debug');
 
-        if (!btnDebug || !panel) {
-            console.warn('[DEBUG MANAGER] UI elements not found');
+        // Settings modal
+        const btnMenu = document.getElementById('btn-menu');
+        const settingsModal = document.getElementById('settings-modal');
+        const btnCloseSettings = document.getElementById('btn-close-settings');
+        const btnReturnLobby = document.getElementById('btn-return-lobby');
+
+        if (!panel) {
+            console.warn('[DEBUG MANAGER] Debug panel element not found');
             return;
         }
 
-        btnDebug.addEventListener('click', () => {
-            panel.classList.remove('hidden');
-            this.updateGameState();
-            console.log('🔧 [DEBUG] Panel opened');
+        // Open settings modal from header menu button
+        btnMenu?.addEventListener('click', () => {
+            settingsModal?.classList.remove('hidden');
+            console.log('⚙️ [SETTINGS] Modal opened');
         });
 
+        // Close settings modal
+        btnCloseSettings?.addEventListener('click', () => {
+            settingsModal?.classList.add('hidden');
+        });
+
+        // Return to lobby
+        btnReturnLobby?.addEventListener('click', () => {
+            if (confirm('¿Volver al lobby? Se perderá el progreso de la partida.')) {
+                window.location.reload();
+            }
+        });
+
+        // Open debug panel from lobby
+        btnDebugLobby?.addEventListener('click', () => {
+            panel.classList.remove('hidden');
+            this.updateGameState();
+            console.log('🔧 [DEBUG] Panel opened from lobby');
+        });
+
+        // Open debug panel from settings
+        btnDebugSettings?.addEventListener('click', () => {
+            settingsModal?.classList.add('hidden'); // Close settings first
+            panel.classList.remove('hidden');
+            this.updateGameState();
+            console.log('🔧 [DEBUG] Panel opened from settings');
+        });
+
+        // Close debug panel
         btnClose?.addEventListener('click', () => {
             panel.classList.add('hidden');
         });
