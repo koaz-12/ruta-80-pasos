@@ -1,79 +1,96 @@
-// Editor Mode Toggle and Export
+// Editor Mode Toggle and Export - Accessible from Lobby
 (function () {
     let editorMode = false;
-    let selectedTile = null;
 
     const toggleBtn = document.getElementById('toggle-editor');
     const exportBtn = document.getElementById('export-coords');
     const controlsDiv = document.getElementById('editor-controls');
+    const lobbyEditorBtn = document.getElementById('btn-editor-mode');
 
-    // Check URL params for ?editor=true
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('editor') === 'true') {
-        controlsDiv.style.display = 'flex';
+    // Enter Editor from Lobby button
+    if (lobbyEditorBtn) {
+        lobbyEditorBtn.addEventListener('click', () => {
+            // Hide lobby
+            const lobby = document.getElementById('lobby-screen');
+            if (lobby) lobby.classList.add('hidden');
+
+            // Show board container
+            const boardContainer = document.querySelector('.board-container');
+            if (boardContainer) boardContainer.classList.remove('hidden');
+
+            // Show editor controls
+            if (controlsDiv) controlsDiv.style.display = 'flex';
+
+            // Activate editor mode immediately
+            editorMode = true;
+            if (window.boardRenderer) {
+                window.boardRenderer.isEditorMode = true;
+                window.boardRenderer.render();
+            }
+            if (toggleBtn) {
+                toggleBtn.textContent = '🔧 Modo Editor: ON';
+                toggleBtn.style.background = '#FF5722';
+            }
+            if (exportBtn) exportBtn.style.display = 'block';
+        });
     }
 
     // Toggle editor mode
-    toggleBtn.addEventListener('click', () => {
-        editorMode = !editorMode;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            editorMode = !editorMode;
 
-        if (window.boardRenderer) {
-            window.boardRenderer.isEditorMode = editorMode;
-        }
-
-        if (editorMode) {
-            toggleBtn.textContent = '🔧 Modo Editor: ON';
-            toggleBtn.style.background = '#FF5722';
-            exportBtn.style.display = 'block';
-        } else {
-            toggleBtn.textContent = '🔧 Modo Editor: OFF';
-            toggleBtn.style.background = '#4CAF50';
-            exportBtn.style.display = 'none';
-            // Clear selection
-            if (selectedTile) {
-                selectedTile.style.outline = '';
-                selectedTile = null;
+            if (window.boardRenderer) {
+                window.boardRenderer.isEditorMode = editorMode;
             }
-        }
-    });
+
+            if (editorMode) {
+                toggleBtn.textContent = '🔧 Modo Editor: ON';
+                toggleBtn.style.background = '#FF5722';
+                if (exportBtn) exportBtn.style.display = 'block';
+            } else {
+                toggleBtn.textContent = '🔧 Modo Editor: OFF';
+                toggleBtn.style.background = '#4CAF50';
+                if (exportBtn) exportBtn.style.display = 'none';
+            }
+        });
+    }
 
     // Export coordinates
-    exportBtn.addEventListener('click', () => {
-        if (!window.boardRenderer) return;
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            if (!window.boardRenderer) {
+                alert('Tablero no cargado');
+                return;
+            }
 
-        const tiles = window.boardRenderer.svg.querySelectorAll('.tile-group');
-        const coords = [];
+            const tiles = window.boardRenderer.svg.querySelectorAll('.tile-group');
+            const coords = [];
 
-        tiles.forEach(tile => {
-            const id = tile.getAttribute('data-id');
-            const display = tile.getAttribute('data-display');
-            const x = parseInt(tile.dataset.x) || 0;
-            const y = parseInt(tile.dataset.y) || 0;
+            tiles.forEach(tile => {
+                const id = tile.getAttribute('data-id');
+                const display = tile.getAttribute('data-display');
+                const x = parseInt(tile.dataset.x) || 0;
+                const y = parseInt(tile.dataset.y) || 0;
+                coords.push({ id, display, x, y });
+            });
 
-            coords.push({ id, display, x, y });
+            // Sort by ID
+            coords.sort((a, b) => {
+                const aNum = parseInt(a.id);
+                const bNum = parseInt(b.id);
+                if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+                return a.id.localeCompare(b.id);
+            });
+
+            const output = JSON.stringify(coords, null, 4);
+
+            navigator.clipboard.writeText(output).then(() => {
+                alert('✅ Coordenadas copiadas!');
+            }).catch(() => {
+                console.log('COORDENADAS:', output);
+                alert('Ver Consola (F12)');
+            });
         });
-
-        // Sort by ID
-        coords.sort((a, b) => {
-            const aNum = parseInt(a.id);
-            const bNum = parseInt(b.id);
-            if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
-            return a.id.localeCompare(b.id);
-        });
-
-        // Format as JSON
-        const output = JSON.stringify(coords, null, 4);
-
-        // Copy to clipboard
-        navigator.clipboard.writeText(output).then(() => {
-            alert('✅ Coordenadas copiadas al portapapeles!\\n\\nPega el resultado en map-data.js');
-        }).catch(err => {
-            // Fallback: show in console
-            console.log('COORDENADAS:', output);
-            alert('⚠️ No se pudo copiar automáticamente.\\nMira la consola (F12) para ver las coordenadas.');
-        });
-    });
-
-    // Visual selection is handled by SVG Board Renderer now to avoid conflicts
-    // document.addEventListener('click', ...) removed
+    }
 })();
