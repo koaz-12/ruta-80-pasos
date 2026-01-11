@@ -10,6 +10,8 @@
     background: #1a1a1a;
     margin: 0;
     padding: 0;
+    padding-bottom: 80px;
+    /* Space for fixed footer */
 }
 
 /* --- BOARD WRAPPER (No Rotation - SVG handles it) --- */
