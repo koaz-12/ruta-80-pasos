@@ -891,10 +891,7 @@ export class SVGBoardRenderer {
 
             // Render Tiles from Snapshot
             this.layoutData.tiles.forEach(t => {
-                // Skip rendering visual for Tile 0 (Start Position)
-                if (String(t.id) === '0') return;
-
-                // Draw normal tile
+                // Draw all tiles including START (0) and FINAL (80)
                 this.tile(t.x, t.y, t.id, t.display || t.id);
             });
             // Load Edges
