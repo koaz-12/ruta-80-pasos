@@ -248,13 +248,26 @@ export class UIRenderer {
             const isMe = (targetForStats.id === state.myId) || state.role === 'OFFLINE';
             // Get current position
             const position = this.boardRenderer ? this.boardRenderer.getSequentialPosition(targetForStats.pos) : targetForStats.pos;
-            this.elements.stats.innerHTML = `
-                <span style="color:${isMe ? '#fff' : '#888'}">${targetForStats.name}</span>
-                <span style="color:#4facfe; font-weight:bold;">📍${position}</span>
-                <span>❤️ ${targetForStats.stats.life}</span>
-                <span>🍗 ${targetForStats.stats.food}</span>
-                <span>⚔️ ${1 + targetForStats.stats.weapons}d6</span>
-            `;
+
+            // Update new header elements
+            const headerPlayerName = document.getElementById('header-player-name');
+            const headerPosition = document.getElementById('header-position');
+            const headerAvatar = document.getElementById('header-avatar');
+
+            if (headerPlayerName) headerPlayerName.textContent = targetForStats.name || 'Jugador';
+            if (headerPosition) headerPosition.textContent = position;
+            if (headerAvatar && targetForStats.stats.class) {
+                headerAvatar.textContent = targetForStats.stats.class.icon || '👤';
+            }
+
+            // Update bottom bar stats
+            const statLife = document.getElementById('stat-life');
+            const statFood = document.getElementById('stat-food');
+            const statShield = document.getElementById('stat-shield');
+
+            if (statLife) statLife.textContent = targetForStats.stats.life;
+            if (statFood) statFood.textContent = targetForStats.stats.food;
+            if (statShield) statShield.textContent = targetForStats.stats.weapons || 0;
         }
 
         // Update Tile Counter (v6.0)
