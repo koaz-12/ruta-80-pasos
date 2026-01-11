@@ -1155,9 +1155,9 @@ export class SVGBoardRenderer {
         // No filter for clean floor look
         g.appendChild(r);
 
-        // Number Badge
+        // Number Badge (hidden in game mode, visible in editor)
         const t = document.createElementNS(this.ns, 'text');
-        t.setAttribute('class', 'badge-txt');
+        t.setAttribute('class', 'badge-txt tile-number');
         // Center text in tile for rotation (LOCAL COORDINATES, since Group is translated)
         const cx = tileSize / 2;
         const cy = tileSize / 2;

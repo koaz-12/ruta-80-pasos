@@ -69,6 +69,15 @@
     background: #1a1a1a;
 }
 
+/* Tile Numbers - Hidden by default, visible in editor */
+.tile-number {
+    display: none;
+}
+
+.editor-active .tile-number {
+    display: block;
+}
+
 /* Hide other zones for now */
 .zone-right,
 .zone-top,
