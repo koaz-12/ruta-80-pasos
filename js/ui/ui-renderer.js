@@ -125,6 +125,12 @@ export class UIRenderer {
         setTimeout(() => {
             overlay.classList.add('hidden');
             visual.innerHTML = ''; // Clean up
+
+            // Update bottom bar dice display with the result
+            const diceLastRoll = document.getElementById('dice-last-roll');
+            if (diceLastRoll) {
+                diceLastRoll.textContent = val;
+            }
         }, 3000);
     }
 

@@ -146,11 +146,38 @@
     </div>
     </main>
 
-    <footer class="game-controls hidden">
-        <button id="btn-action-roll" class="btn-primary">Tirar Dados 🎲</button>
-        <div class="stats">
-            <span>❤️ Vida: 3</span>
-            <span>🍗 Comida: 2</span>
+    <footer class="game-controls hidden" id="game-footer">
+        <div class="bottom-bar">
+            <!-- Player Info Section -->
+            <div class="player-info">
+                <div class="player-avatar" id="player-avatar">👤</div>
+                <div class="player-details">
+                    <span class="player-name" id="player-name">Jugador</span>
+                    <span class="player-position">📍 <span id="player-position">0</span></span>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="player-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">❤️</span>
+                    <span class="stat-value" id="stat-life">3</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🍗</span>
+                    <span class="stat-value" id="stat-food">2</span>
+                </div>
+            </div>
+
+            <!-- Dice Section -->
+            <div class="dice-section">
+                <div class="dice-display" id="dice-display">
+                    <span class="dice-value" id="dice-last-roll">?</span>
+                </div>
+                <button id="btn-action-roll" class="btn-roll" title="Tirar Dados">
+                    🎲
+                </button>
+            </div>
         </div>
     </footer>
     </div>
