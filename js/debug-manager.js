@@ -6,8 +6,37 @@ export class DebugManager {
         this.gameEngine = gameEngine;
         this.forceDice = false;
         this.diceValue = 6;
+        this.logBuffer = []; // Store recent logs
+        this.maxLogs = 100; // Keep last 100 logs
+
+        // Intercept console.log to capture logs
+        this.setupLogCapture();
+
         this.initUI();
         console.log('🔧 [DEBUG MANAGER] Initialized');
+    }
+
+    setupLogCapture() {
+        const originalLog = console.log;
+        const self = this;
+
+        console.log = function (...args) {
+            // Call original console.log
+            originalLog.apply(console, args);
+
+            // Store in buffer
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg =>
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+
+            self.logBuffer.push(`[${timestamp}] ${message}`);
+
+            // Keep only last maxLogs entries
+            if (self.logBuffer.length > self.maxLogs) {
+                self.logBuffer.shift();
+            }
+        };
     }
 
     initUI() {
@@ -64,6 +93,12 @@ export class DebugManager {
         // Close debug panel
         btnClose?.addEventListener('click', () => {
             panel.classList.add('hidden');
+        });
+
+        // Copy logs button
+        const btnCopyLogs = document.getElementById('btn-copy-logs');
+        btnCopyLogs?.addEventListener('click', () => {
+            this.copyLogsToClipboard();
         });
 
         // Dice control
@@ -184,5 +219,50 @@ export class DebugManager {
 
         document.getElementById('debug-panel').classList.add('hidden');
         console.log('🎮 Scenario ready - press dice button to test');
+    }
+
+    async copyLogsToClipboard() {
+        const btnCopyLogs = document.getElementById('btn-copy-logs');
+        const originalText = btnCopyLogs?.textContent;
+
+        try {
+            // Prepare log text
+            const logText = `=== GAME LOGS ===
+Fecha: ${new Date().toLocaleString()}
+Total de logs: ${this.logBuffer.length}
+
+${this.logBuffer.join('\n')}
+
+=== FIN DE LOGS ===`;
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(logText);
+
+            // Visual feedback
+            if (btnCopyLogs) {
+                btnCopyLogs.textContent = '✅ ¡Copiado!';
+                btnCopyLogs.style.background = '#10b981';
+
+                setTimeout(() => {
+                    btnCopyLogs.textContent = originalText;
+                    btnCopyLogs.style.background = '';
+                }, 2000);
+            }
+
+            console.log(`📋 ${this.logBuffer.length} logs copiados al portapapeles`);
+        } catch (err) {
+            console.error('❌ Error al copiar logs:', err);
+
+            // Fallback feedback
+            if (btnCopyLogs) {
+                btnCopyLogs.textContent = '❌ Error';
+                setTimeout(() => {
+                    btnCopyLogs.textContent = originalText;
+                }, 2000);
+            }
+
+            // Fallback: show logs in alert (for older browsers)
+            alert('Error al copiar. Logs:\n\n' + this.logBuffer.slice(-20).join('\n'));
+        }
     }
 }
