@@ -368,6 +368,9 @@ export class GameEngine {
     }
 
     endTurn() {
+        // Reset guard flag
+        this.isExecutingTurn = false;
+
         const players = [...store.state.players];
         const nextTurn = (store.state.turnIndex + 1) % players.length;
         store.updateTurn(nextTurn);
