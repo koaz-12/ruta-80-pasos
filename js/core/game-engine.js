@@ -108,6 +108,9 @@ export class GameEngine {
                 className: cls.name
             });
             document.getElementById('character-modal').classList.add('hidden');
+            // Enable dice button after all players selected
+            const diceBtn = document.getElementById('btn-action-roll');
+            if (diceBtn) diceBtn.disabled = false;
         } else {
             // HOST u OFFLINE
             const players = [...store.state.players];
@@ -125,10 +128,16 @@ export class GameEngine {
                     } else {
                         // All ready
                         document.getElementById('character-modal').classList.add('hidden');
+                        // Enable dice button after all players selected
+                        const diceBtn = document.getElementById('btn-action-roll');
+                        if (diceBtn) diceBtn.disabled = false;
                         store.updateTurn(0);
                     }
                 } else {
                     document.getElementById('character-modal').classList.add('hidden');
+                    // Enable dice button
+                    const diceBtn = document.getElementById('btn-action-roll');
+                    if (diceBtn) diceBtn.disabled = false;
                     this.syncState();
                 }
             }
