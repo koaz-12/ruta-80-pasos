@@ -900,7 +900,7 @@ export class SVGBoardRenderer {
             // Load Edges
             this.edges = this.layoutData.edges || [];
             this.drawEdges();
-            this.drawCenter();
+            // this.drawCenter(); // Disabled - decorative center lines removed
             return; // SKIP STANDARD GENERATION
         }
 
@@ -1053,7 +1053,7 @@ export class SVGBoardRenderer {
         this.addEdge(80, 8081); // Legacy
 
         this.drawEdges(); // Initial edge draw
-        this.drawCenter();
+        // this.drawCenter(); // Disabled - decorative center lines removed
     }
 
     drawWorldBorder() {
