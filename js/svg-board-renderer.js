@@ -1674,6 +1674,9 @@ export class SVGBoardRenderer {
         console.log('Click cualquier casilla para ver su información');
 
         this.svg.addEventListener('click', (evt) => {
+            // Only show inspector in editor mode
+            if (!this.isEditorMode) return;
+
             // Find tile element (look for tile-group class)
             let target = evt.target;
             while (target && !target.classList.contains('tile-group')) {
