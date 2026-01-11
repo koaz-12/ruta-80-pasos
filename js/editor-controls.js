@@ -21,17 +21,29 @@
             // Show editor controls
             if (controlsDiv) controlsDiv.style.display = 'flex';
 
-            // Activate editor mode immediately
-            editorMode = true;
-            if (window.boardRenderer) {
-                window.boardRenderer.isEditorMode = true;
-                window.boardRenderer.render();
-            }
-            if (toggleBtn) {
-                toggleBtn.textContent = '🔧 Modo Editor: ON';
-                toggleBtn.style.background = '#FF5722';
-            }
-            if (exportBtn) exportBtn.style.display = 'block';
+            // Wait for board to be visible and rendered, then activate editor
+            setTimeout(() => {
+                if (window.boardRenderer) {
+                    // Force render if not already rendered
+                    if (!window.boardRenderer.svg) {
+                        window.boardRenderer.render();
+                    }
+
+                    // Activate editor mode
+                    window.boardRenderer.isEditorMode = true;
+                    editorMode = true;
+
+                    if (toggleBtn) {
+                        toggleBtn.textContent = '🔧 Modo Editor: ON';
+                        toggleBtn.style.background = '#FF5722';
+                    }
+                    if (exportBtn) exportBtn.style.display = 'block';
+
+                    console.log('[EDITOR] Mode activated. You can now drag tiles.');
+                } else {
+                    console.error('[EDITOR] Board renderer not available');
+                }
+            }, 500); // Wait 500ms for render to complete
         });
     }
 
