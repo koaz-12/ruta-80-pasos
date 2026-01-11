@@ -1126,29 +1126,32 @@ export class SVGBoardRenderer {
         let fill = '#fcfcfc';
         let stroke = '#adb5bd';
         let textColor = '#555';
+        let tileSize = this.ts; // Default tile size
 
-        // Special tiles: START and FINAL
+        // Special tiles: START and FINAL - Make them larger
         if (String(uid) === '0') {
-            // Punto de Partida - Green
+            // Punto de Partida - Green and larger
             fill = '#4CAF50';
             stroke = '#2E7D32';
             textColor = '#FFF';
+            tileSize = this.ts * 1.5; // 50% larger
         } else if (String(uid) === '80') {
-            // FINAL - Gold/Red
+            // FINAL - Gold/Red and larger
             fill = '#FFD700';
             stroke = '#FF6B00';
             textColor = '#8B4513';
+            tileSize = this.ts * 1.5; // 50% larger
         }
 
         // Group gets attributes
         const r = document.createElementNS(this.ns, 'rect');
         r.setAttribute('class', 'tile-base'); // Mark for updates
-        r.setAttribute('width', this.ts);
-        r.setAttribute('height', this.ts);
+        r.setAttribute('width', tileSize);
+        r.setAttribute('height', tileSize);
         r.setAttribute('rx', 4); // Slight round
         r.setAttribute('fill', fill);
-        r.setAttribute('stroke', stroke); // Gray Border
-        r.setAttribute('stroke-width', '2');
+        r.setAttribute('stroke', stroke); // Border
+        r.setAttribute('stroke-width', '3'); // Thicker border for special tiles
         // No filter for clean floor look
         g.appendChild(r);
 
@@ -1156,8 +1159,8 @@ export class SVGBoardRenderer {
         const t = document.createElementNS(this.ns, 'text');
         t.setAttribute('class', 'badge-txt');
         // Center text in tile for rotation (LOCAL COORDINATES, since Group is translated)
-        const cx = this.ts / 2;
-        const cy = this.ts / 2;
+        const cx = tileSize / 2;
+        const cy = tileSize / 2;
 
         t.setAttribute('x', cx);
         t.setAttribute('y', cy);
