@@ -1394,9 +1394,11 @@ export class SVGBoardRenderer {
         let isDragging = false;
 
         const startDrag = (evt) => {
+            console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
             if (!this.isEditorMode) return; // EDITOR GUARD
 
             const group = evt.target.closest('.draggable');
+            console.log('[DRAG] draggable group:', group);
             if (group) {
                 isDragging = false;
                 draggedElement = group;
@@ -1416,6 +1418,7 @@ export class SVGBoardRenderer {
 
                 // Bring to front
                 this.rootGroup.appendChild(group);
+                console.log('[DRAG] Drag started for element:', group.getAttribute('data-id'));
             }
         };
 
