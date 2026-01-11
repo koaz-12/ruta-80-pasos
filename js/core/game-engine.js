@@ -224,7 +224,19 @@ export class GameEngine {
             // No dice animation needed - already rolled
         } else {
             // 1. Roll & Animation Signal
-            roll = Math.floor(Math.random() * 6) + 1;
+            // Check if debug manager wants to force dice
+            if (window.debugManager) {
+                const forcedRoll = window.debugManager.getDiceRoll();
+                if (forcedRoll !== null) {
+                    roll = forcedRoll;
+                    console.log(`🔧 [DEBUG] Using forced dice: ${roll}`);
+                } else {
+                    roll = Math.floor(Math.random() * 6) + 1;
+                }
+            } else {
+                roll = Math.floor(Math.random() * 6) + 1;
+            }
+
             console.log(`🎲 [ROLL] Dice result: ${roll}`);
             console.log(`  Current position BEFORE move: ${player.pos}`);
             console.log(`  Target position: ${player.pos} + ${roll} steps`);
