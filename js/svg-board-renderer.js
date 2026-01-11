@@ -1300,14 +1300,18 @@ export class SVGBoardRenderer {
         const grp = document.createElementNS(this.ns, 'g');
         grp.id = 'connections-layer';
 
-        // Insert before tiles so lines are behind
-        // We know tiles are in tile-group, maybe insert as first child of SVG?
-        // But background is first. Insert after background.
-        const bg = this.svg.querySelector('rect') || this.svg.firstChild;
-        if (bg && bg.nextSibling) {
-            this.svg.insertBefore(grp, bg.nextSibling);
-        } else {
-            this.rootGroup.appendChild(grp);
+        // Try to insert after background, but use appendChild as fallback
+        try {
+            const bg = this.svg.querySelector('rect');
+            if (bg && bg.nextSibling && bg.parentNode === this.svg) {
+                this.svg.insertBefore(grp, bg.nextSibling);
+            } else {
+                // Fallback: just append to root
+                this.svg.appendChild(grp);
+            }
+        } catch (e) {
+            console.warn('[drawEdges] insertBefore failed, using appendChild:', e);
+            this.svg.appendChild(grp);
         }
 
         this.edges.forEach(([id1, id2]) => {
