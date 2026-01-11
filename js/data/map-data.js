@@ -68,46 +68,41 @@ export function buildGraph() {
     graph['29f'] = { next: '30f' };
     graph['30f'] = { next: '32' };
 
-    // Main continues from convergence 32→48
+    // Main continues from convergence 32→47
     for (let i = 32; i < 48; i++) {
         graph[String(i)] = { next: String(i + 1) };
     }
 
-    // TODO: Continue mapping after casilla 48
-    graph['50'] = {
-        next: ['51', '50a'],
+    // ✅ JUNCTION 3: Position 48 (2 paths)
+    // Camino Largo vs Atajo
+    graph['48'] = {
+        next: ['49', '49a'],
         branchInfo: [
-            { id: '51', label: 'Ruta Segura', hazard: 'Largo' },
-            { id: '50a', label: 'Atajo Mortal', hazard: 'Combate' }
+            { id: '49', label: 'Camino Largo', hazard: 'Normal' },
+            { id: '49a', label: 'Atajo', hazard: 'Rápido' }
         ]
     };
 
-    // Safe path: 51-64
-    for (let i = 51; i < 65; i++) {
+    // Camino Largo: 49→50→51→52→53→54→55→56→57→58→59→60→61→62→63→64→65
+    for (let i = 49; i < 65; i++) {
         graph[String(i)] = { next: String(i + 1) };
     }
 
-    // Shortcut path: 50a-60a → converge at 65
-    graph['50a'] = { next: '51a' };
-    for (let i = 51; i < 61; i++) {
-        graph[`${i}a`] = { next: i < 60 ? `${i + 1}a` : '65' };
-    }
+    // Atajo: 49a → 55 (converge)
+    graph['49a'] = { next: '55' };
 
-    // Main continues: 65-78
-    for (let i = 65; i < 79; i++) {
-        graph[String(i)] = { next: String(i + 1) };
-    }
-
-    // ✅ JUNCTION 4: Position 79 (loop or end)
-    graph['79'] = {
-        next: ['80', '10'],
+    // ✅ JUNCTION 4: Position 65 (loop or finish)
+    graph['65'] = {
+        next: ['66', '1'],
         branchInfo: [
-            { id: '80', label: 'Llegar al Final', hazard: 'Victoria' },
-            { id: '10', label: 'Dar la Vuelta', hazard: 'Repetir' }
+            { id: '66', label: 'Continuar al Final', hazard: 'Jefe' },
+            { id: '1', label: 'Otra Vuelta', hazard: 'Loop' }
         ]
     };
 
-    graph['80'] = { next: null };
+    // Final: 66 → 80 (Boss)
+    graph['66'] = { next: '80' };
+    graph['80'] = { next: null }; // Final - Boss fight
 
     return graph;
 }
@@ -123,22 +118,22 @@ export const SAVED_LAYOUT = {
         { "id": "12f", "display": "12f", "x": 953, "y": 711 },
         { "id": "17", "display": "17", "x": 1125, "y": 716 },
         { "id": "47", "display": "47", "x": 506, "y": 13 },
-        { "id": "48", "display": "48", "x": 445, "y": 71 },
+        { "id": "49", "display": "49", "x": 445, "y": 71 },
         { "id": "50", "display": "50", "x": 444, "y": 127 },
-        { "id": "51a", "display": "51a", "x": 443, "y": 183 },
-        { "id": "52a", "display": "52a", "x": 386, "y": 181 },
-        { "id": "53a", "display": "53a", "x": 330, "y": 180 },
-        { "id": "55a", "display": "55a", "x": 213, "y": 182 },
-        { "id": "56a", "display": "56a", "x": 155, "y": 205 },
-        { "id": "57a", "display": "57a", "x": 120, "y": 261 },
-        { "id": "58a", "display": "58a", "x": 89, "y": 317 },
-        { "id": "59a", "display": "59a", "x": 120, "y": 373 },
-        { "id": "60a", "display": "60a", "x": 162, "y": 426 },
-        { "id": "61a", "display": "61a", "x": 221, "y": 451 },
+        { "id": "51", "display": "51", "x": 443, "y": 183 },
+        { "id": "52", "display": "52", "x": 386, "y": 181 },
+        { "id": "53", "display": "53", "x": 330, "y": 180 },
+        { "id": "55", "display": "55", "x": 213, "y": 182 },
+        { "id": "56", "display": "56", "x": 155, "y": 205 },
+        { "id": "57", "display": "57", "x": 120, "y": 261 },
+        { "id": "58", "display": "58", "x": 89, "y": 317 },
+        { "id": "59", "display": "59", "x": 120, "y": 373 },
+        { "id": "60", "display": "60", "x": 162, "y": 426 },
+        { "id": "61", "display": "61", "x": 221, "y": 451 },
         { "id": "64", "display": "64", "x": 215, "y": 622 },
-        { "id": "54a", "display": "54a", "x": 270, "y": 180 },
-        { "id": "47", "display": "47", "x": 446, "y": 15 },
-        { "id": "50a", "display": "50a", "x": 271, "y": 48 },
+        { "id": "54", "display": "54", "x": 270, "y": 180 },
+        { "id": "48", "display": "48", "x": 446, "y": 15 },
+        { "id": "49a", "display": "49a", "x": 271, "y": 48 },
         { "id": "10m", "display": "10m", "x": 738, "y": 777 },
         { "id": "2", "display": "2", "x": 186, "y": 710 },
         { "id": "3", "display": "3", "x": 246, "y": 711 },
@@ -150,7 +145,7 @@ export const SAVED_LAYOUT = {
         { "id": "10", "display": "10", "x": 663, "y": 710 },
         { "id": "10f", "display": "10f", "x": 771, "y": 711 },
         { "id": "11f", "display": "11f", "x": 868, "y": 711 },
-        { "id": "62a", "display": "62a", "x": 263, "y": 505 },
+        { "id": "62", "display": "62", "x": 263, "y": 505 },
         { "id": "63", "display": "63", "x": 247, "y": 562 },
         { "id": "15", "display": "15", "x": 1000, "y": 645 },
         { "id": "11m", "display": "11m", "x": 828, "y": 779 },
@@ -190,9 +185,9 @@ export const SAVED_LAYOUT = {
         { "id": "18", "display": "18", "x": 1184, "y": 716 },
         { "id": "39", "display": "39", "x": 916, "y": 106 },
         { "id": "35", "display": "35", "x": 1123, "y": 104 },
-        { "id": "66", "display": "66", "x": 154, "y": 644 },
+        { "id": "65", "display": "65", "x": 154, "y": 644 },
         { "id": "1", "display": "1", "x": 124, "y": 711 },
-        { "id": "65", "display": "65", "x": 85, "y": 617 }
+        { "id": "66", "display": "66", "x": 85, "y": 617 }
     ],
     "edges": [
         ["0", "1"], ["1", "2"], ["2", "3"], ["3", "4"], ["4", "5"], ["5", "6"], ["6", "7"], ["7", "8"], ["8", "9"], ["9", "10"],
@@ -203,10 +198,9 @@ export const SAVED_LAYOUT = {
         ["26", "27d"], ["27d", "28d"], ["28d", "29d"], ["29d", "30d"], ["30d", "31d"], ["31d", "32"],
         ["26", "27f"], ["27f", "28f"], ["28f", "29f"], ["29f", "30f"], ["30f", "32"],
         ["32", "33"], ["33", "34"], ["34", "35"], ["35", "36"], ["36", "37"], ["37", "38"], ["38", "39"], ["39", "40"], ["40", "41"], ["41", "42"], ["42", "43"], ["43", "44"], ["44", "45"], ["45", "46"], ["46", "47"], ["47", "48"],
-        ["46", "47"], ["47", "48"], ["48", "50"], ["51a", "52a"], ["52a", "53a"], ["53a", "54a"], ["54a", "55a"], ["55a", "56a"],
-        ["56a", "57a"], ["57a", "58a"], ["58a", "59a"], ["59a", "60a"], ["61a", "62a"], ["63", "64"], ["65", "66"],
-        ["50a", "54a"], ["50a", "47"], ["45", "46"], ["43", "45"], ["43", "44"], ["35", "44"], ["34", "36"], ["40", "36"], ["42", "40"],
-        ["41", "39"], ["33", "39"], ["38", "33"], ["32", "38"], ["37", "32"], ["1", "66"]
+        ["48", "49"], ["48", "49a"], ["49a", "55"],
+        ["49", "50"], ["50", "51"], ["51", "52"], ["52", "53"], ["53", "54"], ["54", "55"], ["55", "56"], ["56", "57"], ["57", "58"], ["58", "59"], ["59", "60"], ["60", "61"], ["61", "62"], ["62", "63"], ["63", "64"], ["64", "65"],
+        ["65", "66"], ["65", "1"], ["66", "80"]
     ]
 };
 
