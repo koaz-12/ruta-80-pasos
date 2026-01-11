@@ -12,6 +12,7 @@ const ui = new UIRenderer(store);
 const boardWrapper = document.getElementById('board-rotator');
 const boardRenderer = new SVGBoardRenderer(boardWrapper);
 ui.boardRenderer = boardRenderer;
+window.boardRenderer = boardRenderer; // Make it globally accessible for editor
 
 // Render board when game starts (Monitor the PARENT container for visibility)
 document.addEventListener('DOMContentLoaded', () => {
