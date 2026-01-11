@@ -143,11 +143,20 @@ export class GameEngine {
             return;
         }
 
+        // Prevent double execution
+        if (this.isExecutingTurn) {
+            console.log('[GUARD] Turn already executing, ignoring duplicate roll');
+            return;
+        }
+
         // Si soy HOST u OFFLINE, ejecuto la lógica
         this.executeTurn(state.turnIndex);
     }
 
     async executeTurn(pIndex, remainingFromBranch = 0) {
+        // Set guard flag
+        this.isExecutingTurn = true;
+
         const players = [...store.state.players];
         const player = players[pIndex];
 
