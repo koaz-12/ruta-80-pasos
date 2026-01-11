@@ -309,7 +309,10 @@ export class UIRenderer {
         const activePlayer = store.getActivePlayer();
         if (!activePlayer) return;
 
-        this.elements.headerTitle.textContent = `Turno de: ${activePlayer.name}`;
+        // Update header title if element exists
+        if (this.elements.headerTitle) {
+            this.elements.headerTitle.textContent = `Turno de: ${activePlayer.name}`;
+        }
 
         // Update stats highlight if in hotseat (re-trigger render or handle here? updateBoard handles it)
 

@@ -7,6 +7,12 @@ import { CLASSES, LUCK_CARDS, EVENT_CARDS } from '../data/rpg-data.js';
 export class GameEngine {
     constructor() {
         this.boardGraph = buildGraph();
+
+        // DEBUG: Verify junctions are loaded
+        console.log('🗺️ [BOARD GRAPH] Junctions loaded:');
+        console.log('  Junction 10:', this.boardGraph['10']);
+        console.log('  Junction 26:', this.boardGraph['26']);
+        console.log('  Junction 50:', this.boardGraph['50']);
         this.initListeners();
     }
 
