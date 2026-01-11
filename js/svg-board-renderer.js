@@ -1163,7 +1163,16 @@ export class SVGBoardRenderer {
         t.setAttribute('y', cy);
         t.setAttribute('text-anchor', 'middle');
         t.setAttribute('dominant-baseline', 'middle'); // Vertical centering
-        t.setAttribute('font-size', '14'); // Slightly larger
+
+        // Dynamic font size for long text
+        let fontSize = 14;
+        if (String(n).length > 8) {
+            fontSize = 9; // Smaller for long text like "Punto de Partida"
+        } else if (String(n).length > 5) {
+            fontSize = 11;
+        }
+
+        t.setAttribute('font-size', fontSize);
         t.setAttribute('font-weight', 'bold');
         t.setAttribute('font-family', '"Segoe UI", sans-serif');
         t.setAttribute('fill', textColor);
