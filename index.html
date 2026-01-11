@@ -110,6 +110,18 @@
 
     <!-- TILE COUNTER ahora está integrado en la barra de stats -->
 
+    <!-- EDITOR CONTROLS -->
+    <div id="editor-controls" style="position:fixed; top:10px; right:10px; z-index:10000; display:flex; gap:10px;">
+        <button id="toggle-editor"
+            style="padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">
+            🔧 Modo Editor: OFF
+        </button>
+        <button id="export-coords"
+            style="padding:8px 16px; background:#2196F3; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">
+            📋 Exportar Coordenadas
+        </button>
+    </div>
+
     <!-- EDITOR ASSETS (Visual Props) -->
     <div id="editor-props" style="display:none;"> <!-- Hidden by default, Editor picks them up -->
         <div class="tile decoration" data-index="d1"></div>
@@ -230,6 +242,7 @@
 
     <!-- Main Module Entry Point -->
     <script type="module" src="js/main.js?v=4.0"></script>
+    <script src="./js/editor-controls.js"></script>
 </body>
 
 </html>
