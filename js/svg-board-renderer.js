@@ -1162,13 +1162,15 @@ export class SVGBoardRenderer {
         t.setAttribute('x', cx);
         t.setAttribute('y', cy);
         t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('dominant-baseline', 'middle'); // Vertical centering
+        t.setAttribute('dominant-baseline', 'middle');
 
         // Dynamic font size for long text
         let fontSize = 14;
-        if (String(n).length > 8) {
-            fontSize = 9; // Smaller for long text like "Punto de Partida"
-        } else if (String(n).length > 5) {
+        const textStr = String(n);
+
+        if (textStr.length > 8) {
+            fontSize = 10; // Smaller for long text
+        } else if (textStr.length > 5) {
             fontSize = 11;
         }
 
@@ -1180,7 +1182,26 @@ export class SVGBoardRenderer {
         // Rotate 90deg around center (Local)
         t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
 
-        t.textContent = n;
+        // Multi-line support for long text with spaces
+        if (textStr.includes(' ') && textStr.length > 8) {
+            // Split into words
+            const words = textStr.split(' ');
+            const lineHeight = fontSize + 2;
+            const totalLines = words.length;
+            const startY = -(totalLines - 1) * lineHeight / 2;
+
+            words.forEach((word, i) => {
+                const tspan = document.createElementNS(this.ns, 'tspan');
+                tspan.setAttribute('x', cx);
+                tspan.setAttribute('dy', i === 0 ? startY : lineHeight);
+                tspan.textContent = word;
+                t.appendChild(tspan);
+            });
+        } else {
+            // Single line
+            t.textContent = textStr;
+        }
+
         g.appendChild(t);
 
         this.rootGroup.appendChild(g);
