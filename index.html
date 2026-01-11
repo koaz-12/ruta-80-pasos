@@ -278,6 +278,34 @@
         </div>
     </div>
 
+    <!-- Settings/Menu Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>⚙️ Ajustes</h2>
+
+            <div class="settings-section">
+                <h3>🔧 Herramientas de Desarrollo</h3>
+                <button id="btn-open-debug-panel" class="btn-primary" style="width: 100%; margin: 10px 0;">
+                    🔬 Abrir Panel de Testing
+                </button>
+                <p style="font-size: 0.85rem; color: #999; margin: 5px 0;">
+                    Control de dados, teleport, y escenarios de prueba
+                </p>
+            </div>
+
+            <div class="settings-section" style="margin-top: 20px;">
+                <h3>🎮 Juego</h3>
+                <button id="btn-return-lobby" class="btn-secondary" style="width: 100%; margin: 10px 0;">
+                    🏠 Volver al Lobby
+                </button>
+            </div>
+
+            <button id="btn-close-settings" class="btn-secondary" style="width: 100%; margin-top: 20px;">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
     <!-- Debug/Testing Panel -->
     <div id="debug-panel" class="debug-overlay hidden">
         <div class="debug-container">

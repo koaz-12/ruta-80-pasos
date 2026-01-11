@@ -893,6 +893,20 @@
     min-height: 1.5em;
 }
 
+/* ===== SETTINGS MODAL ===== */
+.settings-section {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.settings-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
 /* ===== DEBUG PANEL ===== */
 .debug-overlay {
     position: fixed;
