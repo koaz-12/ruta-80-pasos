@@ -887,7 +887,7 @@ export class SVGBoardRenderer {
             // Render Border
             this.drawWorldBorder();
             // Render Decoration
-            this.drawDecoration();
+            // this.drawDecoration(); // Disabled - decorative lines removed
 
             // Render Tiles from Snapshot
             this.layoutData.tiles.forEach(t => {
@@ -910,7 +910,7 @@ export class SVGBoardRenderer {
         this.drawWorldBorder();
 
         // Decoration (Moved to helper to allow reuse)
-        this.drawDecoration();
+        // this.drawDecoration(); // Disabled - decorative lines removed
         // === INICIO ===
 
 
