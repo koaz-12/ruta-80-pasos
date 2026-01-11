@@ -1387,6 +1387,7 @@ export class SVGBoardRenderer {
     }
 
     addInteractivity() {
+        console.log('[INTERACTIVITY] addInteractivity() called, this.svg:', this.svg);
         // DRAG AND DROP LOGIC
         let draggedElement = null;
         let offset = { x: 0, y: 0 };
@@ -1464,10 +1465,12 @@ export class SVGBoardRenderer {
             }
         };
 
+        console.log('[INTERACTIVITY] Attaching event listeners to SVG:', this.svg);
         this.svg.addEventListener('mousedown', startDrag);
         this.svg.addEventListener('mousemove', drag);
-        this.svg.addEventListener('mouseup', endDrag);
+        this.svg.addEventListener('mouseup', endDr ag);
         this.svg.addEventListener('mouseleave', endDrag);
+        console.log('[INTERACTIVITY] Event listeners attached successfully');
     }
 
     getSVGPoint(evt) {
