@@ -214,13 +214,16 @@ export class GameEngine {
                 this.pendingDirection = null; // Clear after using
             } else if (Array.isArray(node.next)) {
                 // BRANCH CHECK: If we encounter a NEW branch, ask for choice then continue
-                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, remaining: ${remaining}`);
+                // Calculate actual remaining steps: total roll - steps taken to get here
+                const stepsTaken = path.length - 1; // -1 because path includes starting position
+                const stepsRemaining = roll - stepsTaken;
+                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, took ${stepsTaken} steps, ${stepsRemaining} remaining from roll of ${roll}`);
                 branchHit = true;
 
                 // Save remaining steps for after decision
                 this.pendingMove = {
                     playerIndex: pIndex,
-                    remainingSteps: remaining,
+                    remainingSteps: stepsRemaining,
                     pathSoFar: path
                 };
 

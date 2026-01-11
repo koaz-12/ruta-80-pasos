@@ -218,10 +218,19 @@ export class UIRenderer {
             const card = document.createElement('div');
             card.className = 'char-card';
             card.innerHTML = `<h3>${cls.name}</h3><div class="char-stats">❤️ ${cls.life} | 🍗 ${cls.food}</div>`;
-            card.onclick = () => bus.emit('UI_CLASS_SELECTED', cls);
+            card.onclick = () => {
+                bus.emit('UI_CLASS_SELECTED', cls);
+                // Enable dice button after class selection
+                const diceBtn = document.getElementById('btn-action-roll');
+                if (diceBtn) diceBtn.disabled = false;
+            };
             this.elements.charGrid.appendChild(card);
         });
         this.elements.charModal.classList.remove('hidden');
+
+        // Disable dice button while selecting character
+        const diceBtn = document.getElementById('btn-action-roll');
+        if (diceBtn) diceBtn.disabled = true;
     }
 
     updateBoard(state) {
