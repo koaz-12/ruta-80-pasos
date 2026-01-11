@@ -1615,17 +1615,33 @@ export class SVGBoardRenderer {
             this.currentTimeout = null;
         }
 
+        // ✨ ADAPTIVE SPEED: Faster for longer paths
+        const pathLength = path.length - 1;
+        let baseSpeed = 400;
+
+        if (pathLength >= 6) {
+            baseSpeed = 250; // Fast for long distances
+        } else if (pathLength >= 3) {
+            baseSpeed = 350; // Medium
+        }
+
+        console.log(`🎬 [ANIMATION] ${pathLength} steps, speed: ${baseSpeed}ms/step`);
+
+        // ✨ PATH PREVIEW
+        this.highlightPath && this.highlightPath(path);
+        this.highlightDestination && this.highlightDestination(path[path.length - 1]);
+
         token.classList.add('animating');
 
         let pathIdx = 0;
-        const speed = 400; // ms per hop (increased for better visibility)
-        const animationId = Date.now(); // Unique ID for this animation
+        const animationId = Date.now();
         this.currentAnimationId = animationId;
 
         const hop = () => {
-            // Check if this animation was cancelled
             if (this.currentAnimationId !== animationId) {
                 console.log('[MOVE] Animation cancelled');
+                this.clearPathHighlight && this.clearPathHighlight();
+                this.clearDestinationHighlight && this.clearDestinationHighlight();
                 return;
             }
 
@@ -1655,17 +1671,17 @@ export class SVGBoardRenderer {
             const tx = nextTileData.x + (this.ts / 2);
             const ty = nextTileData.y + (this.ts / 2);
 
-            // Simple direct transform
-            token.style.transition = `transform ${speed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+            // ✨ SMOOTH EASING
+            token.style.transition = `transform ${baseSpeed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
             token.setAttribute('transform', `translate(${tx}, ${ty})`);
 
-            // Wait for transition to complete before next hop
             this.currentTimeout = setTimeout(() => {
                 hop();
-            }, speed + 50); // Add small buffer
+            }, baseSpeed + 50);
         };
 
-        hop();
+        // Start after brief delay to show preview
+        setTimeout(() => hop(), 300);
     }
 
     // v7.6: Tile Inspector - Now uses simple method
