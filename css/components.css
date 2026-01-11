@@ -1,59 +1,148 @@
-/* Header */
-/* Header (Compact - In Flow) */
+/* ===== HEADER (New Design) ===== */
 .game-header {
-    position: relative;
-    width: 100%;
-    flex: 0 0 auto;
-
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 6000;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 15px;
-
-    /* Compact Dark Header */
-    background: rgba(13, 17, 23, 0.95);
+    padding: 8px 12px;
+    background: linear-gradient(180deg, rgba(20, 20, 30, 0.98) 0%, rgba(30, 30, 40, 0.95) 100%);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-    pointer-events: auto;
 }
 
-.game-header>* {
-    pointer-events: auto;
-}
-
-.game-header h1 {
-    font-size: 1rem;
-    margin: 0;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    font-family: 'Roboto Mono', monospace;
-    font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-.game-header .subtitle {
-    display: none;
-    /* Hide subtitle to save space */
-}
-
-/* New Stats Location in Header */
-.header-stats {
+/* Header Left */
+.header-left {
     display: flex;
-    gap: 15px;
-    font-family: 'Roboto Mono', monospace;
-    font-size: 1rem;
+    align-items: center;
+    gap: 10px;
+}
+
+.current-player {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.player-avatar-small {
+    font-size: 20px;
+}
+
+.player-name-small {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Header Center */
+.header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.turn-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.turn-number {
+    font-size: 18px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Header Right */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.position-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+.room-code {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(102, 126, 234, 0.2);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+.room-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.room-value {
+    color: #667eea;
     font-weight: 700;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 8px 15px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* Icon Buttons */
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Responsive Header */
+@media (max-width: 480px) {
+    .game-header {
+        padding: 6px 10px;
+    }
+
+    .player-name-small {
+        display: none;
+    }
+
+    .turn-label {
+        font-size: 8px;
+    }
+
+    .turn-number {
+        font-size: 16px;
+    }
+
+    .position-badge {
+        padding: 3px 8px;
+        font-size: 12px;
+    }
+
+    .room-code {
+        display: none;
+    }
 }
 
 /* ===== BOTTOM BAR (New Design) ===== */

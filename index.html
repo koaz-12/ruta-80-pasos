@@ -79,15 +79,32 @@
         </div>
 
         <header class="game-header hidden" id="game-header">
-            <button id="btn-back-lobby" class="btn-icon" title="Volver al Lobby">🏠</button>
-            <div>
-                <h1>La Ruta <span class="highlight">80</span></h1>
-                <div id="online-info" class="online-badge hidden">...</div>
+            <!-- Left: Back Button + Player Info -->
+            <div class="header-left">
+                <button id="btn-back-lobby" class="btn-icon" title="Volver al Lobby">🏠</button>
+                <div class="current-player">
+                    <span class="player-avatar-small" id="header-avatar">👤</span>
+                    <span class="player-name-small" id="header-player-name">Jugador 1</span>
+                </div>
             </div>
 
-            <div class="header-stats" id="header-stats">
-                <!-- Stats injected here -->
-                <span>Esperando...</span>
+            <!-- Center: Turn Info -->
+            <div class="header-center">
+                <span class="turn-label">Turno</span>
+                <span class="turn-number" id="header-turn">1</span>
+            </div>
+
+            <!-- Right: Position + Room Code + Menu -->
+            <div class="header-right">
+                <div class="position-badge">
+                    <span>📍</span>
+                    <span id="header-position">0</span>
+                </div>
+                <div class="room-code hidden" id="header-room-code">
+                    <span class="room-label">Sala:</span>
+                    <span class="room-value" id="room-code-value">----</span>
+                </div>
+                <button id="btn-menu" class="btn-icon" title="Menú">⚙️</button>
             </div>
         </header>
 
