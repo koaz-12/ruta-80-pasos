@@ -1538,30 +1538,44 @@ export class SVGBoardRenderer {
             return;
         }
 
+        // Cancel any ongoing animation for this token
+        if (this.currentAnimationId) {
+            clearTimeout(this.currentAnimationId);
+            this.currentAnimationId = null;
+        }
+
         token.classList.add('animating');
 
         let pathIdx = 0;
-        const speed = 300; // ms per hop
+        const speed = 400; // ms per hop (increased for better visibility)
+        const animationId = Date.now(); // Unique ID for this animation
+        this.currentAnimationId = animationId;
 
         const hop = () => {
+            // Check if this animation was cancelled
+            if (this.currentAnimationId !== animationId) {
+                console.log('[MOVE] Animation cancelled');
+                return;
+            }
+
             if (pathIdx >= path.length - 1) {
                 // Finished
                 token.classList.remove('animating');
+                this.currentAnimationId = null;
                 if (callback) callback();
                 return;
             }
 
-            // const currentId = path[pathIdx];
             const nextId = String(path[pathIdx + 1]);
             pathIdx++;
 
             // Lookup Data
             const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
 
-            console.log(`[MOVE] Looking for tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
+            console.log(`[MOVE] Step ${pathIdx}/${path.length - 1}: Tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
 
             if (!nextTileData) {
-                console.warn(`[MOVE] Tile "${nextId}" NOT in layout!`);
+                console.warn(`[MOVE] Tile "${nextId}" NOT in layout! Skipping...`);
                 hop(); return;
             }
 
@@ -1569,14 +1583,17 @@ export class SVGBoardRenderer {
             const tx = nextTileData.x + (this.ts / 2);
             const ty = nextTileData.y + (this.ts / 2);
 
-            // Simple direct transform (no CSS animation - SVG transforms don't use px)
+            // Simple direct transform
             token.style.transition = `transform ${speed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
             token.setAttribute('transform', `translate(${tx}, ${ty})`);
 
-            // Wait for transition to complete
-            setTimeout(() => {
+            // Wait for transition to complete before next hop
+            const timeoutId = setTimeout(() => {
                 hop();
-            }, speed);
+            }, speed + 50); // Add small buffer
+
+            // Store timeout ID for potential cancellation
+            this.currentAnimationId = timeoutId;
         };
 
         hop();
