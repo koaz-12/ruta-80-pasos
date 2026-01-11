@@ -109,7 +109,7 @@ export function buildGraph() {
 
 export const SAVED_LAYOUT = {
     "tiles": [
-        { "id": "0", "display": "INICIO", "x": 44, "y": 684 },
+        { "id": "0", "display": "Punto de Partida", "x": 44, "y": 684 },
         { "id": "8", "display": "8", "x": 549, "y": 710 },
         { "id": "11", "display": "11", "x": 739, "y": 643 },
         { "id": "12", "display": "12", "x": 803, "y": 641 },

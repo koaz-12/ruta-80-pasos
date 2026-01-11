@@ -1125,6 +1125,20 @@ export class SVGBoardRenderer {
         // Default 'Floor' Style (Not Button)
         let fill = '#fcfcfc';
         let stroke = '#adb5bd';
+        let textColor = '#555';
+
+        // Special tiles: START and FINAL
+        if (String(uid) === '0') {
+            // Punto de Partida - Green
+            fill = '#4CAF50';
+            stroke = '#2E7D32';
+            textColor = '#FFF';
+        } else if (String(uid) === '80') {
+            // FINAL - Gold/Red
+            fill = '#FFD700';
+            stroke = '#FF6B00';
+            textColor = '#8B4513';
+        }
 
         // Group gets attributes
         const r = document.createElementNS(this.ns, 'rect');
@@ -1134,7 +1148,7 @@ export class SVGBoardRenderer {
         r.setAttribute('rx', 4); // Slight round
         r.setAttribute('fill', fill);
         r.setAttribute('stroke', stroke); // Gray Border
-        r.setAttribute('stroke-width', '1');
+        r.setAttribute('stroke-width', '2');
         // No filter for clean floor look
         g.appendChild(r);
 
@@ -1152,7 +1166,7 @@ export class SVGBoardRenderer {
         t.setAttribute('font-size', '14'); // Slightly larger
         t.setAttribute('font-weight', 'bold');
         t.setAttribute('font-family', '"Segoe UI", sans-serif');
-        t.setAttribute('fill', '#555');
+        t.setAttribute('fill', textColor);
 
         // Rotate 90deg around center (Local)
         t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
