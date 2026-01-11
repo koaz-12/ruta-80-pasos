@@ -240,8 +240,11 @@ export class UIRenderer {
 
         if (targetForStats && targetForStats.stats) {
             const isMe = (targetForStats.id === state.myId) || state.role === 'OFFLINE';
+            // Get current position
+            const position = this.boardRenderer ? this.boardRenderer.getSequentialPosition(targetForStats.pos) : targetForStats.pos;
             this.elements.stats.innerHTML = `
                 <span style="color:${isMe ? '#fff' : '#888'}">${targetForStats.name}</span>
+                <span style="color:#4facfe; font-weight:bold;">📍${position}</span>
                 <span>❤️ ${targetForStats.stats.life}</span>
                 <span>🍗 ${targetForStats.stats.food}</span>
                 <span>⚔️ ${1 + targetForStats.stats.weapons}d6</span>
