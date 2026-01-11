@@ -213,9 +213,16 @@ export class GameEngine {
                 nextPos = this.pendingDirection;
                 this.pendingDirection = null; // Clear after using
             } else if (Array.isArray(node.next)) {
-                // BRANCH CHECK: If we encounter a NEW branch, STOP HERE and end turn
-                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, ending turn here`);
+                // BRANCH CHECK: If we encounter a NEW branch, ask for choice then continue
+                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, remaining: ${remaining}`);
                 branchHit = true;
+
+                // Save remaining steps for after decision
+                this.pendingMove = {
+                    playerIndex: pIndex,
+                    remainingSteps: remaining,
+                    pathSoFar: path
+                };
 
                 // Animate movement UP TO this branch point
                 if (path.length > 1) {
@@ -223,10 +230,13 @@ export class GameEngine {
                     await this.animateMovement(player, path, players);
                 }
 
-                // End turn here - next turn will detect junction and ask for choice
-                console.log('[JUNCTION MID-MOVE] Turn ends at junction');
-                this.endTurn();
-                return;
+                // Show decision UI
+                console.log('[JUNCTION MID-MOVE] Showing decision');
+                bus.emit('SHOW_DECISION', {
+                    options: this.boardGraph[currentPos].branchInfo,
+                    player: player
+                });
+                return; // Wait for decision
             } else {
                 // Normal single path
                 nextPos = node.next;
@@ -276,7 +286,8 @@ export class GameEngine {
         }
 
         const pIndex = pending.playerIndex;
-        console.log(`[RESUME] Player ${pIndex} chose to go towards ${choiceId}`);
+        const players = [...store.state.players];
+        const player = players[pIndex];
 
         // Clear pending move
         this.pendingMove = null;
@@ -284,10 +295,53 @@ export class GameEngine {
         // Reset execution guard
         this.isExecutingTurn = false;
 
-        // Player was on a branch at start of turn - store chosen direction and execute turn
-        // The turn will roll dice and move towards the chosen direction
-        this.pendingDirection = choiceId;
-        this.executeTurn(pIndex);
+        // Two scenarios:
+        // 1. Player STARTED on branch: store direction and roll dice
+        // 2. Player HIT branch mid-move: continue with remaining steps in chosen direction
+
+        if (pending.startingOnBranch) {
+            console.log('[RESUME] Started on branch - will roll and move in chosen direction');
+            this.pendingDirection = choiceId;
+            this.executeTurn(pIndex);
+        } else {
+            // Mid-move branch - continue with remaining steps
+            const stepsLeft = pending.remainingSteps || 0;
+            console.log(`[RESUME] Mid-move branch - continuing with ${stepsLeft} steps towards ${choiceId}`);
+
+            if (stepsLeft > 0) {
+                // Build path starting from chosen branch
+                const path = [player.pos, choiceId];
+                let currentPos = choiceId;
+                let remaining = stepsLeft - 1; // -1 because first step goes to choiceId
+
+                while (remaining > 0) {
+                    const node = this.boardGraph[currentPos];
+                    if (!node || !node.next) break;
+
+                    // If we hit another branch, stop here
+                    if (Array.isArray(node.next)) {
+                        console.log(`[RESUME] Hit another junction at ${currentPos}`);
+                        break;
+                    }
+
+                    currentPos = node.next;
+                    path.push(currentPos);
+                    remaining--;
+
+                    if (currentPos === '80') break;
+                }
+
+                console.log('[RESUME] Continuing path:', path);
+
+                // Animate and complete
+                this.animateMovement(player, path, players).then(() => {
+                    this.endTurn();
+                });
+            } else {
+                // No steps left after choosing
+                this.endTurn();
+            }
+        }
     }
 
     checkTileEvent(player) {
