@@ -1413,9 +1413,15 @@ export class SVGBoardRenderer {
                     ty = transforms.getItem(0).matrix.f;
                 }
 
-                const pt = this.getSVGPoint(evt);
-                offset.x = pt.x - tx;
-                offset.y = pt.y - ty;
+                // Get click position in rootGroup coordinate space
+                const pt = this.svg.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+                const ctm = this.rootGroup.getScreenCTM().inverse();
+                const svgPt = pt.matrixTransform(ctm);
+
+                offset.x = svgPt.x - tx;
+                offset.y = svgPt.y - ty;
 
                 // Bring to front
                 this.rootGroup.appendChild(group);
@@ -1424,22 +1430,28 @@ export class SVGBoardRenderer {
         };
 
         const drag = (evt) => {
-            console.log('[DRAG] mousemove fired, isEditorMode:', this.isEditorMode, 'draggedElement:', draggedElement);
             if (!this.isEditorMode) return; // EDITOR GUARD
 
             if (draggedElement) {
                 // THRESHOLD CHECK
                 const dx = Math.abs(evt.clientX - startPos.x);
                 const dy = Math.abs(evt.clientY - startPos.y);
-                console.log('[DRAG] mousemove - dx:', dx, 'dy:', dy, 'threshold:', (dx < 3 && dy < 3));
                 if (dx < 3 && dy < 3) return; // Ignore jitter
 
                 isDragging = true;
                 evt.preventDefault();
-                const pt = this.getSVGPoint(evt);
-                const newX = Math.round(pt.x - offset.x);
-                const newY = Math.round(pt.y - offset.y);
-                console.log('[DRAG] Moving to:', newX, newY);
+
+                // Get point in SVG coordinate space
+                const pt = this.svg.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+
+                // Transform to rootGroup coordinate space (accounting for rotation)
+                const ctm = this.rootGroup.getScreenCTM().inverse();
+                const svgPt = pt.matrixTransform(ctm);
+
+                const newX = Math.round(svgPt.x - offset.x);
+                const newY = Math.round(svgPt.y - offset.y);
 
                 draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
                 draggedElement.dataset.x = newX;
