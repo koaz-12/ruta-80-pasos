@@ -205,35 +205,33 @@ export class GameEngine {
             const node = this.boardGraph[currentPos];
             if (!node || !node.next) break; // End of map
 
-            // BRANCH CHECK: If we encounter a branch, stop and ask
-            if (Array.isArray(node.next)) {
-                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, remaining steps: ${remaining}`);
-                branchHit = true;
-                // Save remaining steps for after decision
-                this.pendingMove = {
-                    playerIndex: pIndex,
-                    remainingSteps: remaining,
-                    pathSoFar: path
-                };
+            let nextPos;
 
-                // First, animate movement UP TO this branch point
+            // Check if player has a pending direction (from branch choice)
+            if (this.pendingDirection && Array.isArray(node.next)) {
+                console.log(`[BRANCH MOVE] Using chosen direction: ${this.pendingDirection}`);
+                nextPos = this.pendingDirection;
+                this.pendingDirection = null; // Clear after using
+            } else if (Array.isArray(node.next)) {
+                // BRANCH CHECK: If we encounter a NEW branch, STOP HERE and end turn
+                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, ending turn here`);
+                branchHit = true;
+
+                // Animate movement UP TO this branch point
                 if (path.length > 1) {
                     console.log("[ANIMATION] Moving to branch point:", path);
                     await this.animateMovement(player, path, players);
                 }
 
-                // Show decision UI
-                console.log('[JUNCTION MID-MOVE] Showing decision, options:', node.branchInfo);
-                bus.emit('SHOW_DECISION', {
-                    options: node.branchInfo,
-                    player: player
-                });
-                console.log('[JUNCTION MID-MOVE] Waiting for player choice');
-                return; // Stop here, wait for decision
+                // End turn here - next turn will detect junction and ask for choice
+                console.log('[JUNCTION MID-MOVE] Turn ends at junction');
+                this.endTurn();
+                return;
+            } else {
+                // Normal single path
+                nextPos = node.next;
             }
 
-            // Normal move
-            const nextPos = node.next;
             currentPos = nextPos;
             path.push(currentPos);
             remaining--;
@@ -270,7 +268,7 @@ export class GameEngine {
     }
 
     resumeTurnAfterDecision(choiceId) {
-        console.log(`[RESUME] Player chose: ${choiceId}`);
+        console.log(`[RESUME] Player chose direction: ${choiceId}`);
         const pending = this.pendingMove;
         if (!pending) {
             console.error('[RESUME] No pending move!');
@@ -278,67 +276,18 @@ export class GameEngine {
         }
 
         const pIndex = pending.playerIndex;
-        const players = [...store.state.players];
-        const player = players[pIndex];
-        console.log(`[RESUME] Player ${pIndex} is at ${player.pos}, chose path starting with ${choiceId}`);
+        console.log(`[RESUME] Player ${pIndex} chose to go towards ${choiceId}`);
 
-        // Clear pending move first
+        // Clear pending move
         this.pendingMove = null;
 
         // Reset execution guard
         this.isExecutingTurn = false;
 
-        // Two scenarios:
-        // 1. Player STARTED on branch: player is already on the junction, now roll dice and move in chosen direction
-        // 2. Player HIT branch mid-move: continue with remaining steps starting from chosen direction
-
-        if (pending.startingOnBranch) {
-            console.log('[RESUME] Was starting on branch - set first step direction then roll');
-            // Store the chosen direction, then execute turn normally
-            this.pendingDirection = choiceId;
-            this.executeTurn(pIndex);
-        } else {
-            // Player hit branch mid-move - first step goes to chosen branch
-            const stepsLeft = pending.remainingSteps || 0;
-            console.log(`[RESUME] Was mid-move with ${stepsLeft} steps. Moving to ${choiceId} first.`);
-
-            if (stepsLeft > 0) {
-                // Move to chosen branch tile (this uses 1 step)
-                const path = [player.pos, choiceId];
-
-                // Calculate remaining path from chosen tile
-                let currentPos = choiceId;
-                let remaining = stepsLeft - 1; // -1 because first step is to choiceId
-
-                while (remaining > 0) {
-                    const node = this.boardGraph[currentPos];
-                    if (!node || !node.next) break;
-
-                    // If another branch, stop here
-                    if (Array.isArray(node.next)) {
-                        console.log(`[RESUME] Hit another junction at ${currentPos}`);
-                        break;
-                    }
-
-                    currentPos = node.next;
-                    path.push(currentPos);
-                    remaining--;
-                }
-
-                console.log('[RESUME] Full path:', path);
-
-                // Animate and complete
-                this.animateMovement(player, path, players).then(() => {
-                    this.endTurn();
-                });
-            } else {
-                // No steps left, just move to the chosen tile
-                player.pos = choiceId;
-                store.setPlayers(players);
-                this.syncState();
-                this.endTurn();
-            }
-        }
+        // Player was on a branch at start of turn - store chosen direction and execute turn
+        // The turn will roll dice and move towards the chosen direction
+        this.pendingDirection = choiceId;
+        this.executeTurn(pIndex);
     }
 
     checkTileEvent(player) {
