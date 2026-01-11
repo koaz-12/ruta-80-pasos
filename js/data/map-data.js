@@ -109,7 +109,7 @@ export function buildGraph() {
 
 export const SAVED_LAYOUT = {
     "tiles": [
-        { "id": "0", "display": "Punto de Partida", "x": 44, "y": 684 },
+        { "id": "0", "display": "Punto de Partida", "x": 30, "y": 665 },
         { "id": "8", "display": "8", "x": 549, "y": 710 },
         { "id": "11", "display": "11", "x": 739, "y": 643 },
         { "id": "12", "display": "12", "x": 803, "y": 641 },
@@ -188,7 +188,7 @@ export const SAVED_LAYOUT = {
         { "id": "65", "display": "65", "x": 154, "y": 644 },
         { "id": "1", "display": "1", "x": 124, "y": 711 },
         { "id": "66", "display": "66", "x": 85, "y": 617 },
-        { "id": "80", "display": "FINAL", "x": 50, "y": 540 }
+        { "id": "80", "display": "FINAL", "x": 35, "y": 520 }
     ],
     "edges": [
         // Edges auto-generated from buildGraph() - SAVED_LAYOUT edges disabled
