@@ -220,10 +220,14 @@ export class GameEngine {
         // If we have remaining steps from a branch decision, use those
         if (remainingFromBranch > 0) {
             roll = remainingFromBranch;
+            console.log(`🎲 [ROLL] Using remaining steps: ${roll}`);
             // No dice animation needed - already rolled
         } else {
             // 1. Roll & Animation Signal
             roll = Math.floor(Math.random() * 6) + 1;
+            console.log(`🎲 [ROLL] Dice result: ${roll}`);
+            console.log(`  Current position BEFORE move: ${player.pos}`);
+            console.log(`  Target position: ${player.pos} + ${roll} steps`);
 
             bus.emit('DICE_ROLLED', roll);
             network.send({ type: 'DICE_ROLLED', value: roll });
@@ -319,7 +323,11 @@ export class GameEngine {
         });
 
         // Update position
+        const oldPos = player.pos;
         player.pos = path[path.length - 1];
+        console.log(`📍 [POSITION UPDATE] ${oldPos} → ${player.pos}`);
+        console.log(`  Path taken: ${path.join(' → ')}`);
+
         store.setPlayers(players);
         this.syncState();
     }
