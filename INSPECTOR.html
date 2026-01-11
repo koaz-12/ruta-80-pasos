@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TILE INSPECTOR</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            color: cyan;
+            text-align: center;
+        }
+
+        .info {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: cyan;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #00d4ff;
+        }
+
+        pre {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 INSPECTOR DE CASILLAS</h1>
+
+    <div class="info">
+        <h2>Instrucciones:</h2>
+        <ol>
+            <li>Abre el juego en otra pestaña</li>
+            <li>Presiona F12 para abrir la consola</li>
+            <li>Copia el código de abajo</li>
+            <li>Pégalo en la consola y presiona Enter</li>
+            <li>Haz click en cualquier casilla del tablero</li>
+        </ol>
+    </div>
+
+    <div class="info">
+        <h2>Código para pegar en consola:</h2>
+        <pre id="codeBlock">
+// INSPECTOR DIRECTO - v7.7
+(function() {
+    console.clear();
+    console.log('%c🔍 INSPECTOR ACTIVADO', 'color:cyan; font-size:20px; font-weight:bold');
+    
+    document.addEventListener('click', function(e) {
+        let el = e.target;
+        
+        // Buscar grupo de casilla
+        for (let i = 0; i < 10; i++) {
+            if (!el) break;
+            
+            const dataId = el.getAttribute('data-id');
+            if (dataId) {
+                // Crear overlay
+                let ov = document.getElementById('quick-inspector');
+                if (!ov) {
+                    ov = document.createElement('div');
+                    ov.id = 'quick-inspector';
+                    document.body.appendChild(ov);
+                }
+                
+                const x = el.dataset.x || '?';
+                const y = el.dataset.y || '?';
+                const disp = el.getAttribute('data-display') || dataId;
+                
+                ov.innerHTML = `
+                    &lt;div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+                               background:black; color:white; padding:40px; border:4px solid cyan;
+                               border-radius:15px; font-family:monospace; font-size:18px; z-index:999999;
+                               min-width:350px; box-shadow:0 0 50px rgba(0,255,255,0.5);"&gt;
+                        &lt;h1 style="text-align:center; color:cyan; margin:0 0 20px 0;"&gt;CASILLA ${dataId}&lt;/h1&gt;
+                        &lt;div style="line-height:2;"&gt;
+                            &lt;div&gt;&lt;b style="color:yellow;"&gt;ID:&lt;/b&gt; ${dataId}&lt;/div&gt;
+                            &lt;div&gt;&lt;b style="color:yellow;"&gt;Display:&lt;/b&gt; ${disp}&lt;/div&gt;
+                            &lt;div&gt;&lt;b style="color:yellow;"&gt;X:&lt;/b&gt; ${x}&lt;/div&gt;
+                            &lt;div&gt;&lt;b style="color:yellow;"&gt;Y:&lt;/b&gt; ${y}&lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div style="text-align:center; margin-top:20px;"&gt;
+                            &lt;button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                    style="background:cyan; color:black; border:none; padding:15px 40px;
+                                           font-size:18px; font-weight:bold; cursor:pointer; border-radius:8px;"&gt;
+                                CERRAR
+                            &lt;/button&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                `;
+                
+                console.log('%c━━━━ TILE DATA ━━━━', 'color:yellow');
+                console.log('ID:', dataId, '| X:', x, '| Y:', y);
+                return;
+            }
+            el = el.parentElement;
+        }
+    });
+    
+    alert('✅ Inspector activado!\\n\\nHaz click en cualquier casilla del tablero.');
+})();
+        </pre>
+        <button onclick="copyCode()">📋 COPIAR CÓDIGO</button>
+    </div>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('codeBlock').textContent;
+            // Decodificar HTML entities
+            const decoded = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            navigator.clipboard.writeText(decoded).then(() => {
+                alert('✅ Código copiado! Pégalo en la consola del juego.');
+            });
+        }
+    </script>
+</body>
+
+</html>
