@@ -1457,7 +1457,8 @@ export class SVGBoardRenderer {
                 draggedElement.style.cursor = 'pointer';
 
                 // If it wasn't a drag (just a click), open Inspector
-                if (!isDragging) {
+                // ONLY if not in editor mode (inspector conflicts with dragging)
+                if (!isDragging && !this.isEditorMode) {
                     this.openInspector(draggedElement);
                 }
 
