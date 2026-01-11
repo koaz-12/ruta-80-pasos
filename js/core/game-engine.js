@@ -280,32 +280,62 @@ export class GameEngine {
         const pIndex = pending.playerIndex;
         const players = [...store.state.players];
         const player = players[pIndex];
-        console.log(`[RESUME] Player ${pIndex} was at ${player.pos}, moving to ${choiceId}`);
+        console.log(`[RESUME] Player ${pIndex} is at ${player.pos}, chose path starting with ${choiceId}`);
 
-        // Move to chosen branch tile
-        player.pos = choiceId;
-        store.setPlayers(players);
-        this.syncState();
-        console.log(`[RESUME] Player updated to position: ${player.pos}`);
-
-        // Clear pending move
+        // Clear pending move first
         this.pendingMove = null;
 
+        // Reset execution guard
+        this.isExecutingTurn = false;
+
         // Two scenarios:
-        // 1. Player STARTED on branch: now roll dice normally
-        // 2. Player HIT branch mid-move: continue with remaining steps
+        // 1. Player STARTED on branch: player is already on the junction, now roll dice and move in chosen direction
+        // 2. Player HIT branch mid-move: continue with remaining steps starting from chosen direction
+
         if (pending.startingOnBranch) {
-            console.log('[RESUME] Was starting on branch - execute new turn with dice roll');
-            // Player chose path at start of turn - now execute normal turn
+            console.log('[RESUME] Was starting on branch - set first step direction then roll');
+            // Store the chosen direction, then execute turn normally
+            this.pendingDirection = choiceId;
             this.executeTurn(pIndex);
         } else {
-            // Player hit branch mid-move - continue with remaining steps (minus 1 for entering branch)
-            const stepsLeft = (pending.remainingSteps || 0) - 1;
-            console.log(`[RESUME] Was mid-move - continuing with ${stepsLeft} steps`);
+            // Player hit branch mid-move - first step goes to chosen branch
+            const stepsLeft = pending.remainingSteps || 0;
+            console.log(`[RESUME] Was mid-move with ${stepsLeft} steps. Moving to ${choiceId} first.`);
+
             if (stepsLeft > 0) {
-                this.executeTurn(pIndex, stepsLeft);
+                // Move to chosen branch tile (this uses 1 step)
+                const path = [player.pos, choiceId];
+
+                // Calculate remaining path from chosen tile
+                let currentPos = choiceId;
+                let remaining = stepsLeft - 1; // -1 because first step is to choiceId
+
+                while (remaining > 0) {
+                    const node = this.boardGraph[currentPos];
+                    if (!node || !node.next) break;
+
+                    // If another branch, stop here
+                    if (Array.isArray(node.next)) {
+                        console.log(`[RESUME] Hit another junction at ${currentPos}`);
+                        break;
+                    }
+
+                    currentPos = node.next;
+                    path.push(currentPos);
+                    remaining--;
+                }
+
+                console.log('[RESUME] Full path:', path);
+
+                // Animate and complete
+                this.animateMovement(player, path, players).then(() => {
+                    this.endTurn();
+                });
             } else {
-                console.log('[RESUME] No steps left, ending turn');
+                // No steps left, just move to the chosen tile
+                player.pos = choiceId;
+                store.setPlayers(players);
+                this.syncState();
                 this.endTurn();
             }
         }
