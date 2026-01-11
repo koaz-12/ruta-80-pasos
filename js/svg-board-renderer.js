@@ -1468,7 +1468,7 @@ export class SVGBoardRenderer {
         console.log('[INTERACTIVITY] Attaching event listeners to SVG:', this.svg);
         this.svg.addEventListener('mousedown', startDrag);
         this.svg.addEventListener('mousemove', drag);
-        this.svg.addEventListener('mouseup', endDr ag);
+        this.svg.addEventListener('mouseup', endDrag);
         this.svg.addEventListener('mouseleave', endDrag);
         console.log('[INTERACTIVITY] Event listeners attached successfully');
     }
