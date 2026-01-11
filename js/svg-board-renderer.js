@@ -1423,6 +1423,7 @@ export class SVGBoardRenderer {
         };
 
         const drag = (evt) => {
+            console.log('[DRAG] mousemove fired, isEditorMode:', this.isEditorMode, 'draggedElement:', draggedElement);
             if (!this.isEditorMode) return; // EDITOR GUARD
 
             if (draggedElement) {
