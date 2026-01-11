@@ -1539,9 +1539,9 @@ export class SVGBoardRenderer {
         }
 
         // Cancel any ongoing animation for this token
-        if (this.currentAnimationId) {
-            clearTimeout(this.currentAnimationId);
-            this.currentAnimationId = null;
+        if (this.currentTimeout) {
+            clearTimeout(this.currentTimeout);
+            this.currentTimeout = null;
         }
 
         token.classList.add('animating');
@@ -1562,6 +1562,7 @@ export class SVGBoardRenderer {
                 // Finished
                 token.classList.remove('animating');
                 this.currentAnimationId = null;
+                this.currentTimeout = null;
                 if (callback) callback();
                 return;
             }
@@ -1588,12 +1589,9 @@ export class SVGBoardRenderer {
             token.setAttribute('transform', `translate(${tx}, ${ty})`);
 
             // Wait for transition to complete before next hop
-            const timeoutId = setTimeout(() => {
+            this.currentTimeout = setTimeout(() => {
                 hop();
             }, speed + 50); // Add small buffer
-
-            // Store timeout ID for potential cancellation
-            this.currentAnimationId = timeoutId;
         };
 
         hop();
