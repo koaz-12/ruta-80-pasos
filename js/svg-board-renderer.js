@@ -1429,6 +1429,7 @@ export class SVGBoardRenderer {
                 // THRESHOLD CHECK
                 const dx = Math.abs(evt.clientX - startPos.x);
                 const dy = Math.abs(evt.clientY - startPos.y);
+                console.log('[DRAG] mousemove - dx:', dx, 'dy:', dy, 'threshold:', (dx < 3 && dy < 3));
                 if (dx < 3 && dy < 3) return; // Ignore jitter
 
                 isDragging = true;
@@ -1436,6 +1437,7 @@ export class SVGBoardRenderer {
                 const pt = this.getSVGPoint(evt);
                 const newX = Math.round(pt.x - offset.x);
                 const newY = Math.round(pt.y - offset.y);
+                console.log('[DRAG] Moving to:', newX, newY);
 
                 draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
                 draggedElement.dataset.x = newX;
