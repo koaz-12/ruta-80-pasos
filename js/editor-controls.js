@@ -5,6 +5,13 @@
 
     const toggleBtn = document.getElementById('toggle-editor');
     const exportBtn = document.getElementById('export-coords');
+    const controlsDiv = document.getElementById('editor-controls');
+
+    // Check URL params for ?editor=true
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('editor') === 'true') {
+        controlsDiv.style.display = 'flex';
+    }
 
     // Toggle editor mode
     toggleBtn.addEventListener('click', () => {
@@ -67,21 +74,6 @@
         });
     });
 
-    // Visual selection feedback
-    document.addEventListener('click', (e) => {
-        if (!editorMode) return;
-
-        const tile = e.target.closest('.tile-group');
-        if (tile) {
-            // Clear previous selection
-            if (selectedTile) {
-                selectedTile.style.outline = '';
-            }
-
-            // Select new tile
-            selectedTile = tile;
-            selectedTile.style.outline = '3px solid #FF00FF';
-            selectedTile.style.outlineOffset = '2px';
-        }
-    });
+    // Visual selection is handled by SVG Board Renderer now to avoid conflicts
+    // document.addEventListener('click', ...) removed
 })();
