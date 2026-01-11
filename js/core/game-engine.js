@@ -163,6 +163,18 @@ export class GameEngine {
     }
 
     async executeTurn(pIndex, remainingFromBranch = 0) {
+        console.log(`\n═══ [EXECUTE TURN] Player ${pIndex} ═══`);
+        console.log(`  From: ${this.boardGraph[store.state.players[pIndex].pos] ? store.state.players[pIndex].pos : 'unknown'}`);
+        console.log(`  Remaining from branch: ${remainingFromBranch}`);
+        console.log(`  Pending direction: ${this.pendingDirection || 'none'}`);
+        console.log(`  Pending move: ${this.pendingMove ? 'exists' : 'none'}`);
+
+        // GUARD: Prevent re-entry while processing
+        if (this.isExecutingTurn && remainingFromBranch === 0) {
+            console.warn('⚠️ [GUARD] Already executing turn, ignoring duplicate call');
+            return;
+        }
+
         // Set guard flag
         this.isExecutingTurn = true;
 
@@ -175,19 +187,26 @@ export class GameEngine {
         // This happens when they landed on a branch in the previous turn
         if (remainingFromBranch === 0 && !this.pendingDirection) {
             const currentNode = this.boardGraph[player.pos];
-            console.log(`[TURN START] Player ${pIndex} at pos ${player.pos}, node:`, currentNode);
+            console.log(`[BRANCH-CHECK-START] At pos ${player.pos}, is branch: ${Array.isArray(currentNode?.next)}`);
+
             if (currentNode && Array.isArray(currentNode.next)) {
-                console.log(`[JUNCTION START] Player ON junction ${player.pos}, options:`, currentNode.next);
+                console.log(`🔀 [JUNCTION START] Player ON junction ${player.pos}`);
+                console.log(`  Options: ${currentNode.next.join(', ')}`);
+
                 // Player is ON a branch - ask them to choose BEFORE rolling
                 // But only if we haven't already asked (no pendingMove)
                 if (!this.pendingMove) {
                     this.pendingMove = { playerIndex: pIndex, startingOnBranch: true };
+                    console.log(`📋 [PENDING MOVE] Set: startingOnBranch=true`);
+
                     bus.emit('SHOW_DECISION', {
                         options: currentNode.branchInfo,
                         player: player
                     });
-                    console.log('[JUNCTION START] Emitted SHOW_DECISION, waiting for choice');
+                    console.log('✅ [JUNCTION START] Emitted SHOW_DECISION, waiting for choice');
                     return; // Stop here, wait for resumeTurnAfterDecision
+                } else {
+                    console.warn('⚠️ [GUARD] pendingMove already exists, skipping decision modal');
                 }
             }
         }
@@ -221,7 +240,7 @@ export class GameEngine {
 
             // Check if player has a pending direction (from branch choice)
             if (this.pendingDirection && Array.isArray(node.next)) {
-                console.log(`[BRANCH MOVE] Using chosen direction: ${this.pendingDirection}`);
+                console.log(`✅ [BRANCH MOVE] Using chosen direction: ${this.pendingDirection}`);
                 nextPos = this.pendingDirection;
                 this.pendingDirection = null; // Clear after using
             } else if (Array.isArray(node.next)) {
@@ -229,7 +248,13 @@ export class GameEngine {
                 // Calculate actual remaining steps: total roll - steps taken to get here
                 const stepsTaken = path.length - 1; // -1 because path includes starting position
                 const stepsRemaining = roll - stepsTaken;
-                console.log(`[JUNCTION MID-MOVE] Hit junction at ${currentPos}, took ${stepsTaken} steps, ${stepsRemaining} remaining from roll of ${roll}`);
+
+                console.log(`\n🔀 [JUNCTION MID-MOVE] Hit junction at ${currentPos}`);
+                console.log(`  Roll: ${roll}`);
+                console.log(`  Steps taken: ${stepsTaken}`);
+                console.log(`  Steps remaining: ${stepsRemaining}`);
+                console.log(`  Path so far: ${path.join(' → ')}`);
+
                 branchHit = true;
 
                 // Save remaining steps for after decision
@@ -238,10 +263,11 @@ export class GameEngine {
                     remainingSteps: stepsRemaining,
                     pathSoFar: path
                 };
+                console.log(`📋 [PENDING MOVE] Set: remainingSteps=${stepsRemaining}`);
 
                 // Animate movement UP TO this branch point
                 if (path.length > 1) {
-                    console.log("[ANIMATION] Moving to branch point:", path);
+                    console.log("🎬 [ANIMATION] Moving to branch point:", path);
                     await this.animateMovement(player, path, players);
                 }
 
@@ -293,12 +319,16 @@ export class GameEngine {
     }
 
     resumeTurnAfterDecision(choiceId) {
-        console.log(`[RESUME] Player chose direction: ${choiceId}`);
+        console.log(`\n🎯 [RESUME TURN] Player chose: ${choiceId}`);
+
         const pending = this.pendingMove;
         if (!pending) {
-            console.error('[RESUME] No pending move!');
+            console.error('❌ [ERROR] resumeTurnAfterDecision called without pendingMove!');
+            console.error('  This should never happen. Check for duplicate calls.');
             return;
         }
+
+        console.log(`📋 [PENDING MOVE] Data:`, pending);
 
         const pIndex = pending.playerIndex;
         const players = [...store.state.players];
@@ -320,10 +350,14 @@ export class GameEngine {
             this.executeTurn(pIndex);
         } else {
             // Mid-move branch - continue with remaining steps
+            console.log(`✅ [SCENARIO 2] Mid-move branch - continuing with remaining steps`);
             const stepsLeft = pending.remainingSteps || 0;
             console.log(`[RESUME] Mid-move branch - continuing with ${stepsLeft} steps towards ${choiceId}`);
 
             if (stepsLeft > 0) {
+                console.log(`  Steps left: ${stepsLeft}`);
+                console.log(`  Building path from ${player.pos} via ${choiceId}`);
+
                 // Build path starting from chosen branch
                 const path = [player.pos, choiceId];
                 let currentPos = choiceId;
@@ -354,6 +388,7 @@ export class GameEngine {
                 });
             } else {
                 // No steps left after choosing
+                console.log('⏹️ [RESUME] No steps left - ending turn at branch');
                 this.endTurn();
             }
         }
