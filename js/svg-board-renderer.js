@@ -1466,12 +1466,13 @@ export class SVGBoardRenderer {
             }
         };
 
-        console.log('[INTERACTIVITY] Attaching event listeners to SVG:', this.svg);
+        console.log('[INTERACTIVITY] Attaching event listeners');
+        // mousedown on SVG to start drag
         this.svg.addEventListener('mousedown', startDrag);
-        this.svg.addEventListener('mousemove', drag);
-        this.svg.addEventListener('mouseup', endDrag);
-        this.svg.addEventListener('mouseleave', endDrag);
-        console.log('[INTERACTIVITY] Event listeners attached successfully');
+        // mousemove and mouseup on DOCUMENT to capture events even if mouse leaves SVG
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+        console.log('[INTERACTIVITY] Event listeners attached (mousemove/mouseup on document)');
     }
 
     getSVGPoint(evt) {
