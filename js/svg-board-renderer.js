@@ -1783,4 +1783,55 @@ export class SVGBoardRenderer {
 
         console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
     }
+
+    // ✨ Highlight path preview
+    highlightPath(path) {
+        this.clearPathHighlight();
+        const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        pathGroup.id = 'path-preview';
+
+        path.slice(1).forEach(tileId => {
+            const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
+            if (!tileData) return;
+
+            const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            highlight.setAttribute('cx', tileData.x + this.ts / 2);
+            highlight.setAttribute('cy', tileData.y + this.ts / 2);
+            highlight.setAttribute('r', this.ts * 0.4);
+            highlight.setAttribute('fill', 'rgba(255, 215, 0, 0.3)');
+            highlight.setAttribute('stroke', '#FFD700');
+            highlight.setAttribute('stroke-width', '2');
+            pathGroup.appendChild(highlight);
+        });
+
+        this.svg.insertBefore(pathGroup, this.svg.firstChild);
+    }
+
+    clearPathHighlight() {
+        const existing = this.svg.querySelector('#path-preview');
+        if (existing) existing.remove();
+    }
+
+    highlightDestination(tileId) {
+        this.clearDestinationHighlight();
+        const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
+        if (!tileData) return;
+
+        const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        pulse.id = 'destination-highlight';
+        pulse.setAttribute('cx', tileData.x + this.ts / 2);
+        pulse.setAttribute('cy', tileData.y + this.ts / 2);
+        pulse.setAttribute('r', this.ts * 0.5);
+        pulse.setAttribute('fill', 'none');
+        pulse.setAttribute('stroke', '#10b981');
+        pulse.setAttribute('stroke-width', '3');
+        pulse.setAttribute('opacity', '0.8');
+        pulse.style.animation = 'destination-pulse 1s ease-in-out infinite';
+        this.svg.insertBefore(pulse, this.svg.firstChild);
+    }
+
+    clearDestinationHighlight() {
+        const existing = this.svg.querySelector('#destination-highlight');
+        if (existing) existing.remove();
+    }
 }
