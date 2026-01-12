@@ -389,12 +389,36 @@ export class UIRenderer {
             const key = parseInt(e.key);
             if (key >= 1 && key <= options.length) {
                 modal.classList.add('hidden');
+                // Re-enable dice button
+                const diceBtn = document.getElementById('btn-action-roll');
+                if (diceBtn) diceBtn.disabled = false;
+
                 bus.emit('UI_DECISION_MADE', options[key - 1].id);
                 document.removeEventListener('keypress', handleKeypress);
             }
         };
 
+        // Update card onclick to re-enable button too
+        container.querySelectorAll('.decision-option-card').forEach(card => {
+            const originalOnclick = card.onclick;
+            card.onclick = () => {
+                // Re-enable dice button
+                const diceBtn = document.getElementById('btn-action-roll');
+                if (diceBtn) diceBtn.disabled = false;
+
+                originalOnclick();
+            };
+        });
+
         document.addEventListener('keypress', handleKeypress);
+
+        // 🔒 DISABLE DICE BUTTON during decision
+        const diceBtn = document.getElementById('btn-action-roll');
+        if (diceBtn) {
+            diceBtn.disabled = true;
+            console.log('🔒 [DECISION] Dice button disabled');
+        }
+
         modal.classList.remove('hidden');
     }
 

@@ -158,6 +158,12 @@ export class GameEngine {
             return;
         }
 
+        // 🔒 PREVENT ROLL DURING PENDING DECISION
+        if (this.pendingMove) {
+            console.warn('⚠️ [GUARD] Cannot roll dice - waiting for branch decision');
+            return;
+        }
+
         // Prevent double execution
         if (this.isExecutingTurn) {
             console.log('[GUARD] Turn already executing, ignoring duplicate roll');
