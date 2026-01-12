@@ -989,3 +989,122 @@
         opacity: 0.4;
     }
 }
+
+/* ===== ENHANCED DECISION MODAL ===== */
+.decision-modal-enhanced {
+    max-width: 500px;
+    text-align: center;
+}
+
+.decision-header {
+    margin-bottom: 20px;
+}
+
+.decision-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.decision-context {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.decision-context .separator {
+    opacity: 0.5;
+}
+
+.decision-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 15px 0;
+}
+
+.decision-options-enhanced {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.decision-option-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-align: left;
+}
+
+.decision-option-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
+    box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+}
+
+.decision-option-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.decision-option-content {
+    flex: 1;
+}
+
+.decision-option-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.decision-option-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.decision-option-kbd {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-family: monospace;
+    color: var(--accent-color);
+    flex-shrink: 0;
+}
+
+.decision-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.decision-footer kbd {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    margin: 0 2px;
+}
+

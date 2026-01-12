@@ -328,33 +328,73 @@ export class UIRenderer {
     showDecisionModal({ options, player }) {
         const modal = document.getElementById('decision-modal');
         const container = document.getElementById('decision-options');
-
-        // Update modal title to show current position (v6.0)
-        const titleEl = modal.querySelector('h2');
-        if (titleEl && this.boardRenderer) {
-            const position = this.boardRenderer.getSequentialPosition(player.pos);
-            titleEl.innerHTML = `🔀 Bifurcación en Posición ${position}<br><span style="font-size:0.8em; font-weight:400; color:rgba(255,255,255,0.7);">Elige tu camino</span>`;
-        }
+        const currentTileEl = document.getElementById('decision-current-tile');
+        const stepsLeftEl = document.getElementById('decision-steps-left');
 
         container.innerHTML = '';
 
-        options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-option';
-            btn.innerHTML = `
-                <div style="text-align:left;">
-                    <strong style="font-size:1.1em;">${opt.label}</strong>
-                    <br>
-                    <span style="font-size:0.85em; opacity:0.8;">${opt.hazard}</span>
+        // Update contextual information
+        if (currentTileEl && player) {
+            currentTileEl.textContent = player.pos || '?';
+        }
+
+        // Calculate remaining steps - will be set by game engine if mid-move
+        // For now, show "?" if not available
+        if (stepsLeftEl) {
+            const remainingSteps = player.remainingSteps !== undefined ? player.remainingSteps : '?';
+            stepsLeftEl.textContent = remainingSteps;
+        }
+
+        const iconMap = {
+            'Combate': '⚔️',
+            'Mortal': '💀',
+            'Peligroso': '⚠️',
+            'Seguro': '🛡️',
+            'Largo': '📏',
+            'Corto': '⏱️',
+            'Fácil': '✨',
+            'Medio': '🎯',
+            'Difícil': '🔥'
+        };
+
+        const getIcon = (hazard) => {
+            for (const [key, icon] of Object.entries(iconMap)) {
+                if (hazard.includes(key)) return icon;
+            }
+            return '🎲';
+        };
+
+        options.forEach((opt, index) => {
+            const card = document.createElement('div');
+            card.className = 'decision-option-card';
+            card.innerHTML = `
+                <div class="decision-option-icon">${getIcon(opt.hazard)}</div>
+                <div class="decision-option-content">
+                    <div class="decision-option-label">${opt.label}</div>
+                    <div class="decision-option-desc">${opt.hazard}</div>
                 </div>
-                <span style="font-size:1.5em;">${opt.hazard.includes('Combate') || opt.hazard.includes('Mortal') ? '⚔️' : opt.hazard.includes('Seguro') || opt.hazard.includes('Largo') ? '🛡️' : '🎲'}</span>
+                <div class="decision-option-kbd">${index + 1}</div>
             `;
-            btn.onclick = () => {
+
+            card.onclick = () => {
                 modal.classList.add('hidden');
                 bus.emit('UI_DECISION_MADE', opt.id);
             };
-            container.appendChild(btn);
+
+            container.appendChild(card);
         });
+
+        // Keyboard support
+        const handleKeypress = (e) => {
+            const key = parseInt(e.key);
+            if (key >= 1 && key <= options.length) {
+                modal.classList.add('hidden');
+                bus.emit('UI_DECISION_MADE', options[key - 1].id);
+                document.removeEventListener('keypress', handleKeypress);
+            }
+        };
+
+        document.addEventListener('keypress', handleKeypress);
         modal.classList.remove('hidden');
     }
 

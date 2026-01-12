@@ -194,12 +194,28 @@
     </footer>
     </div>
 
-    <!-- Modal de Decisión -->
+    <!-- Decision Modal (Enhanced) -->
     <div id="decision-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2>⚠️ Bifurcación en el Camino</h2>
-            <p>Debes elegir tu destino:</p>
-            <div id="decision-options" class="options-container"></div>
+        <div class="modal-content decision-modal-enhanced">
+            <div class="decision-header">
+                <div class="decision-icon">🔀</div>
+                <h2>¡Bifurcación!</h2>
+                <p class="decision-context">
+                    <span>📍 Casilla <strong id="decision-current-tile">10</strong></span>
+                    <span class="separator">•</span>
+                    <span>👣 <strong id="decision-steps-left">4</strong> pasos restantes</span>
+                </p>
+            </div>
+
+            <p class="decision-subtitle">Elige tu camino:</p>
+
+            <div id="decision-options" class="decision-options-enhanced">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="decision-footer">
+                <small>💡 Tip: Usa las teclas <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd></small>
+            </div>
         </div>
     </div>
 
