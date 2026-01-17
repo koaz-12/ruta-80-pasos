@@ -38,6 +38,9 @@ export class GameEngine {
         bus.on('UI_COMBAT_RESULT', (result) => this.handleCombatResult(result)); // result: {damage, win}
         bus.on('UI_CARD_CLOSED', () => this.endTurn());
 
+        // Combat defeat - handle retreat
+        bus.on('COMBAT_DEFEAT', (data) => this.handleCombatDefeat(data));
+
         bus.on('NETWORK_CONNECTED', (data) => this.handlePlayerJoined(data));
         bus.on('NETWORK_READY', (data) => this.handleNetworkReady(data));
         bus.on('NETWORK_DATA', (data) => this.handleNetworkData(data));
@@ -536,6 +539,76 @@ export class GameEngine {
         store.setPlayers(players);
         store.updateTurn(nextTurn);
         this.syncState();
+    }
+
+    // Handle combat defeat - retreat player
+    handleCombatDefeat({ player, needsRetreat, shieldUsed }) {
+        if (!needsRetreat || shieldUsed) {
+            console.log('🛡️ [RETREAT] No retreat needed (shield used or no damage)');
+            return;
+        }
+
+        console.log(`🏃 [RETREAT] ${player.name} must retreat!`);
+
+        const players = [...store.state.players];
+        const playerData = players.find(p => p.id === player.id);
+        if (!playerData) return;
+
+        const currentPos = playerData.pos;
+
+        // Find previous tile (retreat 1 step)
+        let retreatPos = this.findRetreatTile(currentPos, players);
+
+        if (retreatPos) {
+            console.log(`🏃 [RETREAT] Retreating from ${currentPos} to ${retreatPos}`);
+
+            // Mark as immune to tile effects after retreat
+            playerData.immuneToTileEffect = true;
+            playerData.pos = retreatPos;
+            store.setPlayers(players);
+
+            // Animate retreat
+            bus.emit('PLAYER_MOVING', {
+                playerId: playerData.id,
+                path: [currentPos, retreatPos]
+            });
+
+            bus.emit('SHOW_NOTIFICATION', {
+                message: `${player.name} retrocede a casilla ${retreatPos}`,
+                type: 'warning'
+            });
+        } else {
+            console.log('🏃 [RETREAT] No retreat position available');
+        }
+    }
+
+    // Find empty tile to retreat to
+    findRetreatTile(currentPos, players) {
+        const currentNode = this.boardGraph[currentPos];
+        if (!currentNode) return null;
+
+        // Get all occupied positions
+        const occupiedPositions = new Set(players.map(p => String(p.pos)));
+
+        // Try to find previous tile by looking at what connects TO current position
+        for (const [tileId, node] of Object.entries(this.boardGraph)) {
+            const nextTiles = Array.isArray(node.next) ? node.next : [node.next];
+
+            if (nextTiles.includes(currentPos) || nextTiles.includes(String(currentPos))) {
+                // This tile leads to current position - potential retreat spot
+                if (!occupiedPositions.has(tileId) || tileId === currentPos) {
+                    console.log(`🔍 [RETREAT] Found retreat tile: ${tileId}`);
+                    return tileId;
+                }
+            }
+        }
+
+        // Fallback: go back to position 0 if no other option
+        if (!occupiedPositions.has('0')) {
+            return '0';
+        }
+
+        return null;
     }
 
     // checkTileEvent removed (duplicate)
