@@ -978,12 +978,16 @@
     white-space: pre-wrap;
     word-wrap: break-word;
 }
+
 /* ===== MOVEMENT ANIMATIONS ===== */
 @keyframes destination-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         r: 30px;
         opacity: 0.8;
-    } 
+    }
+
     50% {
         r: 40px;
         opacity: 0.4;
@@ -1007,8 +1011,15 @@
 }
 
 @keyframes pulse-icon {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .decision-context {
@@ -1039,8 +1050,8 @@
 }
 
 .decision-option-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 2px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 15px;
     cursor: pointer;
@@ -1054,8 +1065,8 @@
 .decision-option-card:hover {
     transform: translateY(-3px);
     border-color: var(--accent-color);
-    background: linear-gradient(135deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
-    box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
 .decision-option-icon {
@@ -1081,8 +1092,8 @@
 }
 
 .decision-option-kbd {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     padding: 4px 8px;
     font-size: 0.8rem;
@@ -1094,14 +1105,14 @@
 .decision-footer {
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     font-size: 0.85rem;
 }
 
 .decision-footer kbd {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 3px;
     padding: 2px 6px;
     font-size: 0.8rem;
@@ -1128,10 +1139,21 @@
     transform: translateX(0);
 }
 
-.notification-info { border-left-color: #60a5fa; }
-.notification-danger { border-left-color: #f87171; }
-.notification-success { border-left-color: #4ade80; }
-.notification-warning { border-left-color: #fbbf24; }
+.notification-info {
+    border-left-color: #60a5fa;
+}
+
+.notification-danger {
+    border-left-color: #f87171;
+}
+
+.notification-success {
+    border-left-color: #4ade80;
+}
+
+.notification-warning {
+    border-left-color: #fbbf24;
+}
 
 /* ===== COMBAT ANIMATIONS ===== */
 .roll-animation {
@@ -1139,22 +1161,36 @@
 }
 
 @keyframes dice-shake {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(-15deg) scale(1.2); }
-    50% { transform: rotate(15deg) scale(1.1); }
-    75% { transform: rotate(-10deg) scale(1.15); }
+
+    0%,
+    100% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    25% {
+        transform: rotate(-15deg) scale(1.2);
+    }
+
+    50% {
+        transform: rotate(15deg) scale(1.1);
+    }
+
+    75% {
+        transform: rotate(-10deg) scale(1.15);
+    }
 }
 
-.player-dice, .enemy-dice {
+.player-dice,
+.enemy-dice {
     font-size: 3rem;
     min-width: 80px;
     min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .combat-msg {
@@ -1163,3 +1199,36 @@
     font-size: 1.1rem;
 }
 
+/* Combat Timer and Roll Button */
+.combat-timer {
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.combat-timer #combat-countdown {
+    font-size: 1.5rem;
+    color: #f87171;
+}
+
+.btn-combat-roll {
+    font-size: 1.3rem;
+    padding: 15px 40px;
+    animation: pulse-button 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-button {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+    }
+}

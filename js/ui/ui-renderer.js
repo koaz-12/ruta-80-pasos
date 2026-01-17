@@ -533,9 +533,12 @@ export class UIRenderer {
         const playerIcon = player.stats?.class?.icon || '👤';
 
         // Update combat display
-        const playerDice = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
-        const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
-        const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');
+        const playerDice = modal.querySelector('.player-dice');
+        const enemyDice = modal.querySelector('.enemy-dice');
+        const combatMsg = modal.querySelector('.combat-msg');
+        const rollBtn = document.getElementById('btn-combat-roll');
+        const timerDiv = document.getElementById('combat-timer');
+        const countdownEl = document.getElementById('combat-countdown');
 
         if (playerDice) playerDice.textContent = '?';
         if (enemyDice) enemyDice.textContent = '?';
@@ -545,18 +548,64 @@ export class UIRenderer {
         const header = modal.querySelector('h2');
         if (header) header.innerHTML = `⚔️ COMBATE ⚔️`;
 
-        // Disable dice button
+        // Disable main dice button
         const diceBtn = document.getElementById('btn-action-roll');
         if (diceBtn) diceBtn.disabled = true;
 
+        // Show roll button and timer
+        if (rollBtn) {
+            rollBtn.classList.remove('hidden');
+            rollBtn.disabled = false;
+        }
+        if (timerDiv) timerDiv.classList.remove('hidden');
+
         modal.classList.remove('hidden');
 
-        // Auto-roll after 1 second
-        setTimeout(() => {
-            import('../core/combat-manager.js').then(({ combatManager }) => {
-                combatManager.rollCombat();
-            });
+        // Timer countdown (20 seconds)
+        let countdown = 20;
+        if (countdownEl) countdownEl.textContent = countdown;
+
+        // Store timer references to clear later
+        this.combatTimerInterval = setInterval(() => {
+            countdown--;
+            if (countdownEl) countdownEl.textContent = countdown;
+
+            if (countdown <= 0) {
+                this.clearCombatTimer();
+                this.executeCombatRoll();
+            }
         }, 1000);
+
+        // Roll button click handler
+        const handleRollClick = () => {
+            this.clearCombatTimer();
+            rollBtn?.removeEventListener('click', handleRollClick);
+            this.executeCombatRoll();
+        };
+
+        rollBtn?.addEventListener('click', handleRollClick);
+        this.combatRollHandler = handleRollClick; // Store for cleanup
+    }
+
+    clearCombatTimer() {
+        if (this.combatTimerInterval) {
+            clearInterval(this.combatTimerInterval);
+            this.combatTimerInterval = null;
+        }
+        const timerDiv = document.getElementById('combat-timer');
+        if (timerDiv) timerDiv.classList.add('hidden');
+
+        const rollBtn = document.getElementById('btn-combat-roll');
+        if (rollBtn) {
+            rollBtn.classList.add('hidden');
+            rollBtn.disabled = true;
+        }
+    }
+
+    executeCombatRoll() {
+        import('../core/combat-manager.js').then(({ combatManager }) => {
+            combatManager.rollCombat();
+        });
     }
 
     showCombatRoll({ playerRoll, enemyRoll, round }) {

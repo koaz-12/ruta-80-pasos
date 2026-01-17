@@ -241,7 +241,7 @@
         </div>
     </div>
 
-    <!-- Modal de Combate (Auto-roll) -->
+    <!-- Modal de Combate (Manual roll with timer) -->
     <div id="combat-modal" class="modal-overlay hidden">
         <div class="modal-content combat-arena">
             <h2>⚔️ COMBATE ⚔️</h2>
@@ -256,7 +256,11 @@
                     <div class="enemy-dice">?</div>
                 </div>
             </div>
-            <p class="combat-msg">Preparando combate...</p>
+            <p class="combat-msg">¡Preparado para el combate!</p>
+            <div class="combat-timer" id="combat-timer">
+                <span class="timer-text">Auto-roll en: <strong id="combat-countdown">20</strong>s</span>
+            </div>
+            <button id="btn-combat-roll" class="btn-primary btn-combat-roll">🎲 TIRAR DADOS</button>
         </div>
     </div>
 
