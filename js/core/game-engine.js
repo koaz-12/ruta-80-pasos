@@ -347,7 +347,62 @@ export class GameEngine {
             if (currentPos === '80') break;
         }
 
-        // 3. Animate full movement (if not interrupted by branch)
+        // 3. APPROACH PHASE - Check if destination has rival
+        if (!branchHit && path.length > 1) {
+            const finalPos = path[path.length - 1];
+            const rivalsAtDestination = players.filter(p =>
+                String(p.pos) === String(finalPos) &&
+                p.id !== player.id &&
+                !p.isDead
+            );
+
+            if (rivalsAtDestination.length > 0 && player.stats.food > 0) {
+                // Offer choice: Stay (pay 1 food) or Advance
+                console.log(`🚧 [APPROACH] Rival at destination! Showing choice...`);
+
+                const shouldStay = await new Promise(resolve => {
+                    bus.emit('SHOW_APPROACH_DECISION', {
+                        player,
+                        destination: finalPos,
+                        rival: rivalsAtDestination[0],
+                        hasFood: player.stats.food > 0
+                    });
+
+                    const onDecision = (decision) => {
+                        bus.off('UI_APPROACH_DECISION', onDecision);
+                        resolve(decision === 'stay');
+                    };
+                    bus.on('UI_APPROACH_DECISION', onDecision);
+                });
+
+                if (shouldStay) {
+                    // Player chose to stay - pay 1 food and don't move
+                    console.log(`🏠 [APPROACH] Player chose to stay (-1 food)`);
+                    player.stats.food--;
+                    store.setPlayers(players);
+
+                    bus.emit('SHOW_NOTIFICATION', {
+                        message: `${player.name} se queda (-1 comida)`,
+                        type: 'warning'
+                    });
+
+                    this.isExecutingTurn = false;
+                    this.endTurn();
+                    return;
+                }
+                // Otherwise continue with movement
+                console.log(`⚔️ [APPROACH] Player chose to advance!`);
+            } else if (rivalsAtDestination.length > 0 && player.stats.food === 0) {
+                // No food - forced to advance
+                console.log(`⚠️ [APPROACH] No food! Forced to advance into rival territory!`);
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `¡Sin comida! Debes avanzar...`,
+                    type: 'danger'
+                });
+            }
+        }
+
+        // 4. Animate full movement (if not interrupted by branch)
         if (!branchHit && path.length > 1) {
             console.log("Moving Player along path:", path);
             await this.animateMovement(player, path, players);

@@ -55,6 +55,9 @@ export class UIRenderer {
         bus.on('PVP_COMBAT_END', (data) => this.hidePvPCombat(data));
         bus.on('PVP_ENCOUNTER_END', () => this.hidePvPModal());
 
+        // Approach phase
+        bus.on('SHOW_APPROACH_DECISION', (data) => this.showApproachDecision(data));
+
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
@@ -870,6 +873,60 @@ export class UIRenderer {
     hidePvPModal() {
         document.getElementById('pvp-modal')?.classList.add('hidden');
         document.getElementById('pvp-combat-modal')?.classList.add('hidden');
+    }
+
+    // Show approach decision - Stay or Advance
+    showApproachDecision({ player, destination, rival, hasFood }) {
+        const modal = document.getElementById('pvp-modal'); // Reuse PvP modal
+        if (!modal) return;
+
+        const title = document.getElementById('pvp-title');
+        const yourIcon = document.getElementById('pvp-your-icon');
+        const yourName = document.getElementById('pvp-your-name');
+        const yourStats = document.getElementById('pvp-your-stats');
+        const oppIcon = document.getElementById('pvp-opp-icon');
+        const oppName = document.getElementById('pvp-opp-name');
+        const oppStats = document.getElementById('pvp-opp-stats');
+        const message = document.getElementById('pvp-message');
+        const optionsDiv = document.getElementById('pvp-options');
+
+        title.textContent = '⚠️ PELIGRO ADELANTE ⚠️';
+
+        // Set player info
+        yourIcon.textContent = player.stats?.class?.icon || '👤';
+        yourName.textContent = player.name;
+        yourStats.textContent = `🍗${player.stats?.food || 0}`;
+
+        oppIcon.textContent = rival.stats?.class?.icon || '👤';
+        oppName.textContent = rival.name;
+        oppStats.textContent = `⚔️${rival.stats?.weapons || 0}`;
+
+        message.textContent = `¡${rival.name} está en la casilla ${destination}! ¿Qué haces?`;
+
+        // Build options
+        optionsDiv.innerHTML = '';
+
+        // Stay option (only if has food)
+        const stayBtn = document.createElement('button');
+        stayBtn.className = 'btn-pvp-option';
+        stayBtn.innerHTML = `<span class="pvp-opt-text">🏠 Quedarse</span><span class="pvp-opt-desc">Pagar 1 comida para no moverse</span>`;
+        stayBtn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_APPROACH_DECISION', 'stay');
+        };
+        optionsDiv.appendChild(stayBtn);
+
+        // Advance option
+        const advanceBtn = document.createElement('button');
+        advanceBtn.className = 'btn-pvp-option';
+        advanceBtn.innerHTML = `<span class="pvp-opt-text">⚔️ Avanzar</span><span class="pvp-opt-desc">Entrar y enfrentar al rival</span>`;
+        advanceBtn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_APPROACH_DECISION', 'advance');
+        };
+        optionsDiv.appendChild(advanceBtn);
+
+        modal.classList.remove('hidden');
     }
 }
 
