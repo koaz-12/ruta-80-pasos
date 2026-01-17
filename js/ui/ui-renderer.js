@@ -448,11 +448,15 @@ export class UIRenderer {
 
     showCardModal({ type, card }) {
         const modal = document.getElementById('card-modal');
+        const cardDisplay = modal.querySelector('.card-display');
         const title = document.getElementById('card-title');
         const desc = document.getElementById('card-desc');
         const typeTitle = document.getElementById('card-type');
         const icon = document.querySelector('.card-icon');
         const btn = document.getElementById('btn-close-card');
+
+        // Reset flip state first
+        cardDisplay.classList.remove('flipped');
 
         typeTitle.textContent = type === 'LOOT' ? "HALLAZGO" : "EVENTO";
         icon.textContent = type === 'LOOT' ? "💎" : "📜";
@@ -461,10 +465,18 @@ export class UIRenderer {
 
         modal.classList.remove('hidden');
 
-        // Simple close handler
+        // Auto-flip after brief delay to show card content
+        setTimeout(() => {
+            cardDisplay.classList.add('flipped');
+        }, 800);
+
+        // Close handler
         btn.onclick = () => {
-            modal.classList.add('hidden');
-            bus.emit('UI_CARD_CLOSED');
+            cardDisplay.classList.remove('flipped');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                bus.emit('UI_CARD_CLOSED');
+            }, 300);
         };
     }
 
