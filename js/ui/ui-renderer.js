@@ -58,6 +58,9 @@ export class UIRenderer {
         // Approach phase
         bus.on('SHOW_APPROACH_DECISION', (data) => this.showApproachDecision(data));
 
+        // Market
+        bus.on('SHOW_MARKET', (data) => this.showMarket(data));
+
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
@@ -937,6 +940,86 @@ export class UIRenderer {
             bus.emit('UI_APPROACH_DECISION', 'advance');
         };
         optionsDiv.appendChild(advanceBtn);
+
+        modal.classList.remove('hidden');
+    }
+
+    // Show Market UI
+    showMarket({ player }) {
+        const modal = document.getElementById('market-modal');
+        if (!modal) return;
+
+        const statsDiv = document.getElementById('market-player-stats');
+        const stats = player.stats;
+
+        // Update stats display
+        const updateStats = () => {
+            statsDiv.innerHTML = `
+                <span>❤️ ${stats.life}</span>
+                <span>🍗 ${stats.food}</span>
+                <span>⚔️ ${stats.weapons}</span>
+                <span>🛡️ ${stats.shield}</span>
+            `;
+            // Update button states
+            document.getElementById('market-buy-weapon').disabled = stats.food < 2 || stats.weapons >= 5;
+            document.getElementById('market-sell-weapon').disabled = stats.weapons < 1 || stats.food >= 5;
+            document.getElementById('market-heal').disabled = stats.food < 1 || stats.life >= 3;
+            document.getElementById('market-buy-shield').disabled = stats.food < 3 || stats.shield >= 3;
+        };
+        updateStats();
+
+        // Buy weapon: 2 food -> 1 weapon
+        document.getElementById('market-buy-weapon').onclick = () => {
+            if (stats.food >= 2 && stats.weapons < 5) {
+                stats.food -= 2;
+                stats.weapons++;
+                updateStats();
+                bus.emit('SHOW_NOTIFICATION', { message: '⚔️ Arma comprada!', type: 'success' });
+            }
+        };
+
+        // Sell weapon: 1 weapon -> 2 food
+        document.getElementById('market-sell-weapon').onclick = () => {
+            if (stats.weapons >= 1 && stats.food < 5) {
+                stats.weapons--;
+                stats.food = Math.min(5, stats.food + 2);
+                updateStats();
+                bus.emit('SHOW_NOTIFICATION', { message: '🍗 Arma vendida!', type: 'success' });
+            }
+        };
+
+        // Heal: 1 food -> 1 life
+        document.getElementById('market-heal').onclick = () => {
+            if (stats.food >= 1 && stats.life < 3) {
+                stats.food--;
+                stats.life++;
+                updateStats();
+                bus.emit('SHOW_NOTIFICATION', { message: '❤️ Te has curado!', type: 'success' });
+            }
+        };
+
+        // Buy shield: 3 food -> 1 shield
+        document.getElementById('market-buy-shield').onclick = () => {
+            if (stats.food >= 3 && stats.shield < 3) {
+                stats.food -= 3;
+                stats.shield++;
+                updateStats();
+                bus.emit('SHOW_NOTIFICATION', { message: '🛡️ Escudo comprado!', type: 'success' });
+            }
+        };
+
+        // Close market
+        document.getElementById('btn-close-market').onclick = () => {
+            // Save changes
+            const players = [...window.gameStore?.state?.players || []];
+            const playerData = players.find(p => p.id === player.id);
+            if (playerData) {
+                playerData.stats = stats;
+                window.gameStore?.setPlayers?.(players);
+            }
+            modal.classList.add('hidden');
+            bus.emit('UI_MARKET_CLOSED');
+        };
 
         modal.classList.remove('hidden');
     }

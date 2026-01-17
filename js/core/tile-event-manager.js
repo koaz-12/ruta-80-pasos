@@ -45,6 +45,9 @@ export class TileEventManager {
             case 'luck':
                 this.handleLuckTile(player);
                 break;
+            case 'market':
+                this.handleMarketTile(player);
+                break;
             default:
                 this.processingEvent = false;
                 bus.emit('TILE_EVENT_COMPLETE', { hasEvent: false });
@@ -147,6 +150,27 @@ export class TileEventManager {
             bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'loot' });
         };
         bus.on('UI_CARD_CLOSED', onCardClosed);
+    }
+
+    // Casilla de Mercado - Intercambiar recursos
+    handleMarketTile(player) {
+        console.log('🏪 [TILE EVENT] Market!');
+
+        bus.emit('SHOW_NOTIFICATION', {
+            message: `🏪 ¡Bienvenido al Mercado!`,
+            type: 'info'
+        });
+
+        // Show market UI
+        bus.emit('SHOW_MARKET', { player });
+
+        // Wait for market to close
+        const onMarketClosed = () => {
+            bus.off('UI_MARKET_CLOSED', onMarketClosed);
+            this.processingEvent = false;
+            bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'market' });
+        };
+        bus.on('UI_MARKET_CLOSED', onMarketClosed);
     }
 }
 

@@ -1347,3 +1347,62 @@
     font-size: 1.2rem;
     margin-top: 20px;
 }
+
+/* ===== MARKET STYLES ===== */
+.market-shop {
+    text-align: center;
+    max-width: 400px;
+}
+
+.market-subtitle {
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.market-stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.market-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-market {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 15px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(168, 85, 247, 0.2));
+    border: 2px solid rgba(244, 114, 182, 0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-market:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.4), rgba(168, 85, 247, 0.4));
+    transform: scale(1.02);
+}
+
+.btn-market:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.market-action {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.market-desc {
+    font-size: 0.85rem;
+    color: #aaa;
+}

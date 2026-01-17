@@ -319,6 +319,44 @@
         </div>
     </div>
 
+    <!-- Modal Mercado -->
+    <div id="market-modal" class="modal-overlay hidden">
+        <div class="modal-content market-shop">
+            <h2>🏪 MERCADO 🏪</h2>
+            <p class="market-subtitle">Intercambia tus recursos</p>
+
+            <div class="market-stats" id="market-player-stats">
+                <span>❤️ 3</span>
+                <span>🍗 3</span>
+                <span>⚔️ 1</span>
+                <span>🛡️ 0</span>
+            </div>
+
+            <div class="market-options">
+                <button id="market-buy-weapon" class="btn-market">
+                    <span class="market-action">🍗🍗 → ⚔️</span>
+                    <span class="market-desc">Comprar Arma (2 comida)</span>
+                </button>
+                <button id="market-sell-weapon" class="btn-market">
+                    <span class="market-action">⚔️ → 🍗🍗</span>
+                    <span class="market-desc">Vender Arma (2 comida)</span>
+                </button>
+                <button id="market-heal" class="btn-market">
+                    <span class="market-action">🍗 → ❤️</span>
+                    <span class="market-desc">Curarse (1 comida)</span>
+                </button>
+                <button id="market-buy-shield" class="btn-market">
+                    <span class="market-action">🍗🍗🍗 → 🛡️</span>
+                    <span class="market-desc">Comprar Escudo (3 comida)</span>
+                </button>
+            </div>
+
+            <button id="btn-close-market" class="btn-primary" style="margin-top: 20px; width: 100%;">
+                Salir del Mercado
+            </button>
+        </div>
+    </div>
+
     <!-- Modal Selección de Personaje -->
     <div id="character-modal" class="modal-overlay hidden">
         <div class="modal-content character-select">
