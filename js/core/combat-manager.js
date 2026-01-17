@@ -72,6 +72,12 @@ export class CombatManager {
 
     // Resolver combate
     resolveCombat(playerRoll, enemyRoll) {
+        // Guard: Check if combat is still active
+        if (!this.inCombat || !this.currentCombat) {
+            console.warn('⚠️ [COMBAT] resolveCombat called but no active combat');
+            return;
+        }
+
         const combat = this.currentCombat;
         const player = combat.player;
         const players = [...store.state.players];
