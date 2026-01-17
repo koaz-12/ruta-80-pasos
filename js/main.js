@@ -1,13 +1,13 @@
 import { initDOMHandlers } from './ui/ui-handlers.js';
-import { GameEngine } from './core/game-engine.js';
+import { engine } from './core/game-engine.js';
 import { UIRenderer } from './ui/ui-renderer.js';
 import { BoardEditor } from './editor.js';
 import { SVGBoardRenderer } from './svg-board-renderer.js';
 import { DebugManager } from './debug-manager.js';
 
 // --- INITIALIZATION ---
-const store = window.gameStore = new GameEngine();
-const ui = new UIRenderer(store);
+// Use exported singleton engine (not new instance!)
+const ui = new UIRenderer(engine);
 
 // RENDER BOARD USING SVG
 const boardWrapper = document.getElementById('board-rotator');
@@ -16,7 +16,7 @@ ui.boardRenderer = boardRenderer;
 window.boardRenderer = boardRenderer; // Make it globally accessible for editor
 
 // Initialize Debug Manager (globally accessible)
-window.debugManager = new DebugManager(store);
+window.debugManager = new DebugManager(engine);
 
 // Render board when game starts (Monitor the PARENT container for visibility)
 document.addEventListener('DOMContentLoaded', () => {
