@@ -68,6 +68,17 @@ export class DebugManager {
             settingsModal?.classList.add('hidden');
         });
 
+        // Toggle floating debug button
+        const toggleDebugBtn = document.getElementById('toggle-debug-btn');
+        if (toggleDebugBtn) {
+            // Set initial state from localStorage
+            toggleDebugBtn.checked = localStorage.getItem('debugBtnVisible') === 'true';
+
+            toggleDebugBtn.addEventListener('change', () => {
+                this.toggleFloatingButton(toggleDebugBtn.checked);
+            });
+        }
+
         // Return to lobby
         btnReturnLobby?.addEventListener('click', () => {
             if (confirm('¿Volver al lobby? Se perderá el progreso de la partida.')) {
@@ -283,52 +294,119 @@ ${this.logBuffer.join('\n')}
         }
     }
 
-    // Create floating debug button
+    // Create floating debug button (smaller, draggable, hidden by default)
     createFloatingDebugButton(panel) {
-        // Only show in dev mode
-        const isDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-        if (!isDev) return;
-
         const btn = document.createElement('button');
         btn.id = 'floating-debug-btn';
         btn.innerHTML = '🔧';
         btn.title = 'Debug Panel (F2)';
+
+        // Load saved position or use default
+        const savedPos = localStorage.getItem('debugBtnPos');
+        const pos = savedPos ? JSON.parse(savedPos) : { right: 15, bottom: 120 };
+
+        // Check if button should be visible
+        const isVisible = localStorage.getItem('debugBtnVisible') === 'true';
+
         btn.style.cssText = `
             position: fixed;
-            bottom: 80px;
-            right: 15px;
-            width: 50px;
-            height: 50px;
+            bottom: ${pos.bottom}px;
+            right: ${pos.right}px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+            font-size: 1rem;
+            cursor: grab;
             z-index: 9999;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: box-shadow 0.2s;
+            display: ${isVisible ? 'flex' : 'none'};
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
         `;
 
-        btn.onmouseenter = () => {
-            btn.style.transform = 'scale(1.1)';
-            btn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-        };
-        btn.onmouseleave = () => {
-            btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+        this.floatingBtn = btn;
+        let isDragging = false;
+        let startX, startY, startRight, startBottom;
+
+        // Drag start
+        const startDrag = (e) => {
+            isDragging = true;
+            btn.style.cursor = 'grabbing';
+            const clientX = e.clientX || e.touches?.[0]?.clientX;
+            const clientY = e.clientY || e.touches?.[0]?.clientY;
+            startX = clientX;
+            startY = clientY;
+            startRight = parseInt(btn.style.right);
+            startBottom = parseInt(btn.style.bottom);
+            e.preventDefault();
         };
 
-        btn.onclick = () => {
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                this.updateGameState();
-                console.log('🔧 [DEBUG] Panel opened via floating button');
-            } else {
-                panel.classList.add('hidden');
+        // Drag move
+        const onDrag = (e) => {
+            if (!isDragging) return;
+            const clientX = e.clientX || e.touches?.[0]?.clientX;
+            const clientY = e.clientY || e.touches?.[0]?.clientY;
+            const deltaX = startX - clientX;
+            const deltaY = startY - clientY;
+
+            const newRight = Math.max(5, Math.min(window.innerWidth - 50, startRight + deltaX));
+            const newBottom = Math.max(5, Math.min(window.innerHeight - 50, startBottom + deltaY));
+
+            btn.style.right = newRight + 'px';
+            btn.style.bottom = newBottom + 'px';
+        };
+
+        // Drag end
+        const endDrag = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            btn.style.cursor = 'grab';
+
+            // Save position
+            localStorage.setItem('debugBtnPos', JSON.stringify({
+                right: parseInt(btn.style.right),
+                bottom: parseInt(btn.style.bottom)
+            }));
+
+            // Check if it was a click (not a drag)
+            const clientX = e.clientX || e.changedTouches?.[0]?.clientX;
+            const clientY = e.clientY || e.changedTouches?.[0]?.clientY;
+            const moved = Math.abs(clientX - startX) + Math.abs(clientY - startY);
+
+            if (moved < 5) {
+                // It was a click, toggle panel
+                if (panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                    this.updateGameState();
+                } else {
+                    panel.classList.add('hidden');
+                }
             }
         };
 
+        // Mouse events
+        btn.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+
+        // Touch events
+        btn.addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+
         document.body.appendChild(btn);
-        console.log('🔧 [DEBUG] Floating button created');
+        console.log('🔧 [DEBUG] Floating button created (hidden by default, enable in settings)');
+    }
+
+    // Toggle floating button visibility
+    toggleFloatingButton(visible) {
+        if (this.floatingBtn) {
+            this.floatingBtn.style.display = visible ? 'flex' : 'none';
+            localStorage.setItem('debugBtnVisible', visible ? 'true' : 'false');
+        }
     }
 }
