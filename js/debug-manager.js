@@ -95,6 +95,23 @@ export class DebugManager {
             panel.classList.add('hidden');
         });
 
+        // 🔑 KEYBOARD SHORTCUT: F2 to toggle debug panel
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                    this.updateGameState();
+                    console.log('🔧 [DEBUG] Panel opened via F2');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+        });
+
+        // 🔘 FLOATING DEBUG BUTTON
+        this.createFloatingDebugButton(panel);
+
         // Copy logs button
         const btnCopyLogs = document.getElementById('btn-copy-logs');
         btnCopyLogs?.addEventListener('click', () => {
@@ -264,5 +281,54 @@ ${this.logBuffer.join('\n')}
             // Fallback: show logs in alert (for older browsers)
             alert('Error al copiar. Logs:\n\n' + this.logBuffer.slice(-20).join('\n'));
         }
+    }
+
+    // Create floating debug button
+    createFloatingDebugButton(panel) {
+        // Only show in dev mode
+        const isDev = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+        if (!isDev) return;
+
+        const btn = document.createElement('button');
+        btn.id = 'floating-debug-btn';
+        btn.innerHTML = '🔧';
+        btn.title = 'Debug Panel (F2)';
+        btn.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        `;
+
+        btn.onmouseenter = () => {
+            btn.style.transform = 'scale(1.1)';
+            btn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+        };
+        btn.onmouseleave = () => {
+            btn.style.transform = 'scale(1)';
+            btn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+        };
+
+        btn.onclick = () => {
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                this.updateGameState();
+                console.log('🔧 [DEBUG] Panel opened via floating button');
+            } else {
+                panel.classList.add('hidden');
+            }
+        };
+
+        document.body.appendChild(btn);
+        console.log('🔧 [DEBUG] Floating button created');
     }
 }
