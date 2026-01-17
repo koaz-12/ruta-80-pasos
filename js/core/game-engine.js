@@ -3,6 +3,7 @@ import { store } from './game-state.js';
 import { network } from './network.js';
 import { buildGraph } from '../data/map-data.js';
 import { CLASSES, LUCK_CARDS, EVENT_CARDS } from '../data/rpg-data.js';
+import { tileEventManager } from './tile-event-manager.js';
 
 export class GameEngine {
     constructor() {
@@ -324,9 +325,24 @@ export class GameEngine {
         if (!branchHit && path.length > 1) {
             console.log("Moving Player along path:", path);
             await this.animateMovement(player, path, players);
+
+            // 4. Check tile event at final position
+            const finalPos = path[path.length - 1];
+            console.log(`📍 [TILE CHECK] Checking event at tile ${finalPos}`);
+
+            // Wait for tile event to complete before ending turn
+            await new Promise(resolve => {
+                const onEventComplete = () => {
+                    bus.off('TILE_EVENT_COMPLETE', onEventComplete);
+                    resolve();
+                };
+                bus.on('TILE_EVENT_COMPLETE', onEventComplete);
+
+                tileEventManager.checkTileEvent(player, finalPos);
+            });
         }
 
-        // 4. End turn
+        // 5. End turn
         this.endTurn();
     }
 
