@@ -202,6 +202,14 @@ export class GameEngine {
         const players = [...store.state.players];
         const player = players[pIndex];
 
+        // Skip dead players
+        if (player.isDead) {
+            console.log(`☠️ [SKIP] ${player.name} is dead, skipping turn`);
+            this.isExecutingTurn = false;
+            this.endTurn();
+            return;
+        }
+
         // Clear retreat immunity at start of new turn
         if (player.immuneToTileEffect) {
             console.log(`🛡️ [IMMUNITY] Clearing retreat immunity for ${player.name}`);
@@ -353,9 +361,20 @@ export class GameEngine {
 
                 tileEventManager.checkTileEvent(player, finalPos);
             });
+
+            // 5. Check for victory (reached tile 80)
+            if (finalPos === '80') {
+                console.log(`🏆 [VICTORY] ${player.name} reached the finish line!`);
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏆 ${player.name} ha llegado a la META!`,
+                    type: 'success'
+                });
+                bus.emit('GAME_OVER', { winner: player, reason: 'reached_goal' });
+                return; // Don't end turn normally
+            }
         }
 
-        // 5. End turn
+        // 6. End turn
         this.endTurn();
     }
 
