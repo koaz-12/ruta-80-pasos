@@ -267,11 +267,13 @@ export class UIRenderer {
             // Update bottom bar stats
             const statLife = document.getElementById('stat-life');
             const statFood = document.getElementById('stat-food');
+            const statWeapons = document.getElementById('stat-weapons');
             const statShield = document.getElementById('stat-shield');
 
             if (statLife) statLife.textContent = targetForStats.stats.life;
             if (statFood) statFood.textContent = targetForStats.stats.food;
-            if (statShield) statShield.textContent = targetForStats.stats.weapons || 0;
+            if (statWeapons) statWeapons.textContent = targetForStats.stats.weapons || 0;
+            if (statShield) statShield.textContent = targetForStats.stats.shield || 0;
         }
 
         // Update Tile Counter (v6.0)

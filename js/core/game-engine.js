@@ -103,6 +103,8 @@ export class GameEngine {
             maxLife: 5,
             food: cls.food,
             weapons: cls.weapons,
+            shield: cls.shield || 0,
+            turnCounter: 0, // For hunger system (consume food every 3 turns)
             class: cls // Include full class info (icon, name, bonus)
         };
 
@@ -487,7 +489,35 @@ export class GameEngine {
         this.isExecutingTurn = false;
 
         const players = [...store.state.players];
+        const currentPlayer = players[store.state.turnIndex];
+
+        // 🍖 HUNGER SYSTEM: Check every 3 turns
+        if (currentPlayer && currentPlayer.stats) {
+            currentPlayer.stats.turnCounter++;
+
+            if (currentPlayer.stats.turnCounter >= 3) {
+                currentPlayer.stats.turnCounter = 0; // Reset counter
+
+                if (currentPlayer.stats.food > 0) {
+                    currentPlayer.stats.food--;
+                    console.log(`🍖 [HUNGER] ${currentPlayer.name} consumed 1 food. Remaining: ${currentPlayer.stats.food}`);
+                    bus.emit('SHOW_NOTIFICATION', { message: `${currentPlayer.name} consumió 1 comida`, type: 'info' });
+                } else {
+                    currentPlayer.stats.life--;
+                    console.log(`💀 [STARVATION] ${currentPlayer.name} lost 1 life! Remaining: ${currentPlayer.stats.life}`);
+                    bus.emit('SHOW_NOTIFICATION', { message: `${currentPlayer.name} perdió 1 vida por hambre!`, type: 'danger' });
+
+                    // Check for death
+                    if (currentPlayer.stats.life <= 0) {
+                        console.log(`☠️ [DEATH] ${currentPlayer.name} has died from starvation!`);
+                        bus.emit('PLAYER_DIED', { player: currentPlayer, cause: 'starvation' });
+                    }
+                }
+            }
+        }
+
         const nextTurn = (store.state.turnIndex + 1) % players.length;
+        store.setPlayers(players);
         store.updateTurn(nextTurn);
         this.syncState();
     }
