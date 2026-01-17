@@ -48,6 +48,13 @@ export class UIRenderer {
         // Game over
         bus.on('GAME_OVER', (data) => this.showGameOver(data));
 
+        // PvP events
+        bus.on('SHOW_PVP_DECISION', (data) => this.showPvPDecision(data));
+        bus.on('PVP_COMBAT_START', (data) => this.showPvPCombat(data));
+        bus.on('PVP_COMBAT_ROLL', (data) => this.showPvPRoll(data));
+        bus.on('PVP_COMBAT_END', (data) => this.hidePvPCombat(data));
+        bus.on('PVP_ENCOUNTER_END', () => this.hidePvPModal());
+
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
@@ -764,6 +771,105 @@ export class UIRenderer {
         }, { once: true });
 
         modal.classList.remove('hidden');
+    }
+
+    // ===== PVP UI METHODS =====
+    showPvPDecision({ phase, player, opponent, options }) {
+        const modal = document.getElementById('pvp-modal');
+        if (!modal) return;
+
+        const title = document.getElementById('pvp-title');
+        const yourIcon = document.getElementById('pvp-your-icon');
+        const yourName = document.getElementById('pvp-your-name');
+        const yourStats = document.getElementById('pvp-your-stats');
+        const oppIcon = document.getElementById('pvp-opp-icon');
+        const oppName = document.getElementById('pvp-opp-name');
+        const oppStats = document.getElementById('pvp-opp-stats');
+        const message = document.getElementById('pvp-message');
+        const optionsDiv = document.getElementById('pvp-options');
+
+        // Set player info
+        yourIcon.textContent = player.stats?.class?.icon || '👤';
+        yourName.textContent = player.name;
+        yourStats.textContent = `⚔️${player.stats?.weapons || 0} 🛡️${player.stats?.shield || 0}`;
+
+        oppIcon.textContent = opponent.stats?.class?.icon || '👤';
+        oppName.textContent = opponent.name;
+        oppStats.textContent = `⚔️${opponent.stats?.weapons || 0} 🛡️${opponent.stats?.shield || 0}`;
+
+        // Set title based on phase
+        if (phase === 'defender_choice') {
+            title.textContent = '⚔️ INVASORES ⚔️';
+            message.textContent = `${opponent.name} ha llegado a tu casilla. ¿Qué haces?`;
+        } else {
+            title.textContent = '🕊️ OFERTA DE PAZ 🕊️';
+            message.textContent = `${opponent.name} te ofrece paz. ¿Aceptas?`;
+        }
+
+        // Build options
+        optionsDiv.innerHTML = '';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-pvp-option';
+            btn.innerHTML = `<span class="pvp-opt-text">${opt.text}</span><span class="pvp-opt-desc">${opt.desc}</span>`;
+            btn.onclick = () => {
+                bus.emit('UI_PVP_DECISION', { playerId: player.id, decision: opt.id });
+                modal.classList.add('hidden');
+            };
+            optionsDiv.appendChild(btn);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    showPvPCombat({ player1, player2, isBetray }) {
+        const modal = document.getElementById('pvp-combat-modal');
+        if (!modal) return;
+
+        document.getElementById('pvp-c1-name').textContent = player1.name;
+        document.getElementById('pvp-c2-name').textContent = player2.name;
+        document.getElementById('pvp-c1-dice').textContent = '?';
+        document.getElementById('pvp-c2-dice').textContent = '?';
+        document.getElementById('pvp-c1-weapons').textContent = `⚔️ ${player1.stats?.weapons || 1} dado(s)`;
+        document.getElementById('pvp-c2-weapons').textContent = `⚔️ ${player2.stats?.weapons || 1} dado(s)`;
+        document.getElementById('pvp-combat-msg').textContent = isBetray ? '🗡️ ¡TRAICIÓN!' : '⚔️ ¡COMBATE!';
+
+        document.getElementById('pvp-modal')?.classList.add('hidden');
+        modal.classList.remove('hidden');
+    }
+
+    showPvPRoll({ player1, roll1, diceCount1, player2, roll2, diceCount2 }) {
+        const dice1 = document.getElementById('pvp-c1-dice');
+        const dice2 = document.getElementById('pvp-c2-dice');
+        const msg = document.getElementById('pvp-combat-msg');
+
+        dice1.textContent = roll1;
+        dice2.textContent = roll2;
+        dice1.classList.add('roll-animation');
+        dice2.classList.add('roll-animation');
+
+        msg.textContent = `${roll1} (${diceCount1} 🎲) vs ${roll2} (${diceCount2} 🎲)`;
+
+        setTimeout(() => {
+            dice1.classList.remove('roll-animation');
+            dice2.classList.remove('roll-animation');
+        }, 500);
+    }
+
+    hidePvPCombat({ winner, loser }) {
+        const msg = document.getElementById('pvp-combat-msg');
+        if (msg) {
+            msg.innerHTML = `<span style="color: #4ade80;">🏆 ${winner.name} GANA!</span>`;
+        }
+
+        setTimeout(() => {
+            document.getElementById('pvp-combat-modal')?.classList.add('hidden');
+        }, 2000);
+    }
+
+    hidePvPModal() {
+        document.getElementById('pvp-modal')?.classList.add('hidden');
+        document.getElementById('pvp-combat-modal')?.classList.add('hidden');
     }
 }
 

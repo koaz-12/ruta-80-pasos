@@ -4,6 +4,7 @@ import { network } from './network.js';
 import { buildGraph } from '../data/map-data.js';
 import { CLASSES, LUCK_CARDS, EVENT_CARDS } from '../data/rpg-data.js';
 import { tileEventManager } from './tile-event-manager.js';
+import { pvpManager } from './pvp-manager.js';
 
 export class GameEngine {
     constructor() {
@@ -43,6 +44,10 @@ export class GameEngine {
 
         // Player death
         bus.on('PLAYER_DIED', (data) => this.handlePlayerDeath(data));
+
+        // PvP events
+        bus.on('UI_PVP_DECISION', (data) => pvpManager.handleDecision(data.playerId, data.decision));
+        bus.on('PVP_ENCOUNTER_END', () => this.onPvPEncounterEnd());
 
         bus.on('NETWORK_CONNECTED', (data) => this.handlePlayerJoined(data));
         bus.on('NETWORK_READY', (data) => this.handleNetworkReady(data));
@@ -347,11 +352,26 @@ export class GameEngine {
             console.log("Moving Player along path:", path);
             await this.animateMovement(player, path, players);
 
-            // 4. Check tile event at final position
+            // 4. Check for other players on this tile (PvP)
             const finalPos = path[path.length - 1];
-            console.log(`📍 [TILE CHECK] Checking event at tile ${finalPos}`);
+            console.log(`📍 [TILE CHECK] Checking at tile ${finalPos}`);
 
-            // Wait for tile event to complete before ending turn
+            // Check PvP first - if there's an encounter, wait for it to complete
+            const hasPvPEncounter = pvpManager.checkPvPEncounter(player, finalPos);
+
+            if (hasPvPEncounter) {
+                console.log('⚔️ [PVP] Waiting for encounter to resolve...');
+                // Wait for PvP to end before continuing
+                await new Promise(resolve => {
+                    const onPvPEnd = () => {
+                        bus.off('PVP_ENCOUNTER_END', onPvPEnd);
+                        resolve();
+                    };
+                    bus.on('PVP_ENCOUNTER_END', onPvPEnd);
+                });
+            }
+
+            // 5. Check tile event (only if no PvP or after PvP resolved)
             await new Promise(resolve => {
                 const onEventComplete = () => {
                     bus.off('TILE_EVENT_COMPLETE', onEventComplete);

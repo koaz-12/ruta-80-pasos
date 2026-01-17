@@ -274,6 +274,51 @@
         </div>
     </div>
 
+    <!-- Modal PvP Encounter -->
+    <div id="pvp-modal" class="modal-overlay hidden">
+        <div class="modal-content pvp-encounter">
+            <h2 id="pvp-title">⚔️ ENCUENTRO ⚔️</h2>
+            <div class="pvp-players">
+                <div class="pvp-player pvp-you">
+                    <span class="pvp-icon" id="pvp-your-icon">👤</span>
+                    <span class="pvp-name" id="pvp-your-name">Tú</span>
+                    <span class="pvp-stats" id="pvp-your-stats">⚔️0 🛡️0</span>
+                </div>
+                <div class="pvp-vs">VS</div>
+                <div class="pvp-player pvp-opponent">
+                    <span class="pvp-icon" id="pvp-opp-icon">👤</span>
+                    <span class="pvp-name" id="pvp-opp-name">Rival</span>
+                    <span class="pvp-stats" id="pvp-opp-stats">⚔️0 🛡️0</span>
+                </div>
+            </div>
+            <p class="pvp-message" id="pvp-message">¿Qué quieres hacer?</p>
+            <div class="pvp-options" id="pvp-options">
+                <!-- Options populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal PvP Combat -->
+    <div id="pvp-combat-modal" class="modal-overlay hidden">
+        <div class="modal-content pvp-combat-arena">
+            <h2>⚔️ COMBATE PVP ⚔️</h2>
+            <div class="pvp-combat-display">
+                <div class="pvp-combatant">
+                    <span id="pvp-c1-name">Jugador 1</span>
+                    <div class="pvp-dice" id="pvp-c1-dice">?</div>
+                    <span id="pvp-c1-weapons">⚔️ 1 dado</span>
+                </div>
+                <div class="pvp-vs-combat">VS</div>
+                <div class="pvp-combatant">
+                    <span id="pvp-c2-name">Jugador 2</span>
+                    <div class="pvp-dice" id="pvp-c2-dice">?</div>
+                    <span id="pvp-c2-weapons">⚔️ 1 dado</span>
+                </div>
+            </div>
+            <p class="pvp-combat-msg" id="pvp-combat-msg">Preparando...</p>
+        </div>
+    </div>
+
     <!-- Modal Selección de Personaje -->
     <div id="character-modal" class="modal-overlay hidden">
         <div class="modal-content character-select">
