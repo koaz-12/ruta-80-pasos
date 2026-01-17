@@ -273,16 +273,16 @@ export class UIRenderer {
                 headerAvatar.textContent = targetForStats.stats.class.icon || '👤';
             }
 
-            // Update bottom bar stats
+            // Update bottom bar stats with animation
             const statLife = document.getElementById('stat-life');
             const statFood = document.getElementById('stat-food');
             const statWeapons = document.getElementById('stat-weapons');
             const statShield = document.getElementById('stat-shield');
 
-            if (statLife) statLife.textContent = targetForStats.stats.life;
-            if (statFood) statFood.textContent = targetForStats.stats.food;
-            if (statWeapons) statWeapons.textContent = targetForStats.stats.weapons || 0;
-            if (statShield) statShield.textContent = targetForStats.stats.shield || 0;
+            this.updateStatWithAnimation(statLife, targetForStats.stats.life);
+            this.updateStatWithAnimation(statFood, targetForStats.stats.food);
+            this.updateStatWithAnimation(statWeapons, targetForStats.stats.weapons || 0);
+            this.updateStatWithAnimation(statShield, targetForStats.stats.shield || 0);
         }
 
         // Update Tile Counter (v6.0)
@@ -522,6 +522,29 @@ export class UIRenderer {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 3000);
+    }
+
+    // Animate stat changes with color flash
+    updateStatWithAnimation(element, newValue) {
+        if (!element) return;
+
+        const oldValue = parseInt(element.textContent) || 0;
+        const numValue = parseInt(newValue) || 0;
+
+        if (oldValue !== numValue) {
+            // Flash color based on change
+            const color = numValue > oldValue ? '#4ade80' : '#f87171'; // green for gain, red for loss
+            element.style.transition = 'color 0.2s, transform 0.2s';
+            element.style.color = color;
+            element.style.transform = 'scale(1.3)';
+
+            setTimeout(() => {
+                element.style.color = '';
+                element.style.transform = '';
+            }, 400);
+        }
+
+        element.textContent = numValue;
     }
 
     // ===== COMBAT UI METHODS =====

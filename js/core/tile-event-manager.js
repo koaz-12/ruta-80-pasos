@@ -17,6 +17,13 @@ export class TileEventManager {
             return;
         }
 
+        // Check for retreat immunity
+        if (player.immuneToTileEffect) {
+            console.log(`🛡️ [TILE EVENT] Player ${player.name} is immune (retreat protection)`);
+            bus.emit('TILE_EVENT_COMPLETE', { hasEvent: false, immune: true });
+            return;
+        }
+
         const tileType = getTileType(tileId);
         console.log(`📍 [TILE EVENT] Player ${player.name} landed on tile ${tileId} (${tileType.id})`);
 

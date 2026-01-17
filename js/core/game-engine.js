@@ -199,6 +199,13 @@ export class GameEngine {
         const players = [...store.state.players];
         const player = players[pIndex];
 
+        // Clear retreat immunity at start of new turn
+        if (player.immuneToTileEffect) {
+            console.log(`🛡️ [IMMUNITY] Clearing retreat immunity for ${player.name}`);
+            player.immuneToTileEffect = false;
+            store.setPlayers(players);
+        }
+
         let roll;
 
         // IMPORTANT: Check if player is STARTING their turn on a branch tile
