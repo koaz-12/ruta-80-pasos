@@ -195,15 +195,15 @@ export class PvPManager {
         const diceCount1 = Math.max(1, stats1.weapons || 1);
         const diceCount2 = Math.max(1, stats2.weapons || 1);
 
-        // Roll all dice and take the best
+        // Roll all dice and SUM the results
         let roll1 = 0;
         for (let i = 0; i < diceCount1; i++) {
-            roll1 = Math.max(roll1, Math.floor(Math.random() * 6) + 1);
+            roll1 += Math.floor(Math.random() * 6) + 1;
         }
 
         let roll2 = 0;
         for (let i = 0; i < diceCount2; i++) {
-            roll2 = Math.max(roll2, Math.floor(Math.random() * 6) + 1);
+            roll2 += Math.floor(Math.random() * 6) + 1;
         }
 
         // Betrayal bonus: +1 to roll
@@ -254,10 +254,11 @@ export class PvPManager {
                     type: 'info'
                 });
             } else {
-                // Take damage: -1 life
+                // === LOSER PENALTIES ===
+                // 1. Lose 1 life
                 loserData.stats.life = Math.max(0, loserData.stats.life - 1);
 
-                // LOOT: Winner takes 1 weapon from loser (if loser has any)
+                // 2. Lose 1 weapon to winner (if has any)
                 if (loserData.stats.weapons > 0) {
                     loserData.stats.weapons--;
                     winnerData.stats.weapons = Math.min(5, winnerData.stats.weapons + 1);
@@ -267,7 +268,24 @@ export class PvPManager {
                     });
                 }
 
-                // Check death
+                // 3. Lose 1 food to winner (if has any)
+                if (loserData.stats.food > 0) {
+                    loserData.stats.food--;
+                    winnerData.stats.food = Math.min(5, winnerData.stats.food + 1);
+                    bus.emit('SHOW_NOTIFICATION', {
+                        message: `🍗 ${winner.name} roba 1 comida!`,
+                        type: 'warning'
+                    });
+                }
+
+                // 4. Loser must retreat 1 tile
+                loserData.mustRetreat = true;
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏃 ${loser.name} retrocede 1 casilla`,
+                    type: 'info'
+                });
+
+                // 5. Check death
                 if (loserData.stats.life <= 0) {
                     loserData.isDead = true;
                     bus.emit('PLAYER_DIED', { player: loserData, cause: 'pvp' });
@@ -277,7 +295,7 @@ export class PvPManager {
             store.setPlayers(players);
         }
 
-        bus.emit('PVP_COMBAT_END', { winner, loser });
+        bus.emit('PVP_COMBAT_END', { winner, loser, loserMustRetreat: true });
         this.endEncounter('combat', winner);
     }
 
