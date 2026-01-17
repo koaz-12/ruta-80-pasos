@@ -254,27 +254,15 @@ export class PvPManager {
                     type: 'info'
                 });
             } else {
-                // Take damage
+                // Take damage: -1 life
                 loserData.stats.life = Math.max(0, loserData.stats.life - 1);
 
-                // LOOT: Winner takes ALL of loser's weapons
-                const stolenWeapons = loserData.stats.weapons;
-                if (stolenWeapons > 0) {
-                    winnerData.stats.weapons = Math.min(5, winnerData.stats.weapons + stolenWeapons);
-                    loserData.stats.weapons = 0;
+                // LOOT: Winner takes 1 weapon from loser (if loser has any)
+                if (loserData.stats.weapons > 0) {
+                    loserData.stats.weapons--;
+                    winnerData.stats.weapons = Math.min(5, winnerData.stats.weapons + 1);
                     bus.emit('SHOW_NOTIFICATION', {
-                        message: `⚔️ ${winner.name} roba ${stolenWeapons} arma(s)!`,
-                        type: 'warning'
-                    });
-                }
-
-                // Also steal food if any
-                if (loserData.stats.food > 0) {
-                    const stolenFood = Math.min(2, loserData.stats.food);
-                    winnerData.stats.food = Math.min(5, winnerData.stats.food + stolenFood);
-                    loserData.stats.food = Math.max(0, loserData.stats.food - stolenFood);
-                    bus.emit('SHOW_NOTIFICATION', {
-                        message: `🍖 ${winner.name} roba ${stolenFood} comida!`,
+                        message: `⚔️ ${winner.name} roba 1 arma!`,
                         type: 'warning'
                     });
                 }
