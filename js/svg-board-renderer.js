@@ -3,6 +3,7 @@
  * Tiles organized 1-80 following the sketch flow
  */
 import { SAVED_LAYOUT, buildGraph } from './data/map-data.js';
+import { getTileType, TILE_TYPE_MAP } from './data/tile-types.js';
 
 export class SVGBoardRenderer {
     constructor(container) {
@@ -83,6 +84,9 @@ export class SVGBoardRenderer {
 
         // v7.3: Tile Inspector - Always Active
         this.enableTileInspector();
+
+        // v8.0: Render tile type icons (zombie, luck, event)
+        this.renderTileTypeIcons();
 
         // No orientation check needed - CSS is simple now
         window.addEventListener('resize', () => {
@@ -1833,5 +1837,49 @@ export class SVGBoardRenderer {
     clearDestinationHighlight() {
         const existing = this.svg.querySelector('#destination-highlight');
         if (existing) existing.remove();
+    }
+
+    // v8.0: Render tile type icons on special tiles
+    renderTileTypeIcons() {
+        console.log('🎨 [TILE ICONS] Rendering tile type icons...');
+
+        const tilesRendered = [];
+
+        // Loop through all tiles that have special types
+        for (const [tileId, typeName] of Object.entries(TILE_TYPE_MAP)) {
+            const tileType = getTileType(tileId);
+            if (!tileType || !tileType.icon) continue;
+
+            // Find the tile in SVG
+            const tileGroup = this.svg.querySelector(`g[data-id="${tileId}"]`);
+            if (!tileGroup) {
+                console.log(`  Tile ${tileId} not found in SVG`);
+                continue;
+            }
+
+            // Get tile position
+            const transform = tileGroup.getAttribute('transform');
+            const match = transform?.match(/translate\(([^,]+),\s*([^)]+)\)/);
+            if (!match) continue;
+
+            const x = parseFloat(match[1]);
+            const y = parseFloat(match[2]);
+
+            // Create icon element
+            const icon = document.createElementNS(this.ns, 'text');
+            icon.setAttribute('x', x + 25); // Center of 50x50 tile
+            icon.setAttribute('y', y + 38); // Slightly below center
+            icon.setAttribute('text-anchor', 'middle');
+            icon.setAttribute('font-size', '20');
+            icon.setAttribute('class', 'tile-type-icon');
+            icon.setAttribute('data-tile-id', tileId);
+            icon.setAttribute('pointer-events', 'none');
+            icon.textContent = tileType.icon;
+
+            this.rootGroup.appendChild(icon);
+            tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
+        }
+
+        console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
     }
 }
