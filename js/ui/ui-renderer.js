@@ -35,6 +35,15 @@ export class UIRenderer {
         bus.on('SHOW_DECISION', (data) => this.showDecisionModal(data));
         bus.on('SHOW_CARD', (data) => this.showCardModal(data));
         bus.on('START_COMBAT', (data) => this.showCombatModal(data));
+        bus.on('SHOW_NOTIFICATION', (data) => this.showNotification(data));
+
+        // Combat events
+        bus.on('COMBAT_START', (data) => this.showCombatStart(data));
+        bus.on('COMBAT_ROLL', (data) => this.showCombatRoll(data));
+        bus.on('COMBAT_TIE', () => this.showCombatTie());
+        bus.on('COMBAT_VICTORY', (data) => this.showCombatVictory(data));
+        bus.on('COMBAT_DEFEAT', (data) => this.showCombatDefeat(data));
+        bus.on('COMBAT_END', () => this.hideCombatModal());
 
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
@@ -490,6 +499,145 @@ export class UIRenderer {
             // Fallback if no renderer
             setTimeout(() => bus.emit('ANIMATION_COMPLETE'), 1000);
         }
+    }
+
+    // ===== NOTIFICATION SYSTEM =====
+    showNotification({ message, type = 'info' }) {
+        // Simple toast notification
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999;';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // ===== COMBAT UI METHODS =====
+    showCombatStart({ player, enemyCount, enemyType }) {
+        const modal = document.getElementById('combat-modal');
+        if (!modal) return;
+
+        const enemyIcon = enemyType === 'zombie' ? '🧟' : '🗡️';
+        const playerIcon = player.stats?.class?.icon || '👤';
+
+        // Update combat display
+        const playerDice = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
+        const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
+        const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');
+
+        if (playerDice) playerDice.textContent = '?';
+        if (enemyDice) enemyDice.textContent = '?';
+        if (combatMsg) combatMsg.textContent = `${player.name} vs ${enemyCount}x ${enemyType}`;
+
+        // Update header
+        const header = modal.querySelector('h2');
+        if (header) header.innerHTML = `⚔️ COMBATE ⚔️`;
+
+        // Disable dice button
+        const diceBtn = document.getElementById('btn-action-roll');
+        if (diceBtn) diceBtn.disabled = true;
+
+        modal.classList.remove('hidden');
+
+        // Auto-roll after 1 second
+        setTimeout(() => {
+            import('../core/combat-manager.js').then(({ combatManager }) => {
+                combatManager.rollCombat();
+            });
+        }, 1000);
+    }
+
+    showCombatRoll({ playerRoll, enemyRoll, round }) {
+        const modal = document.getElementById('combat-modal');
+        if (!modal) return;
+
+        const playerDice = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
+        const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
+        const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');
+
+        // Animate dice
+        if (playerDice) {
+            playerDice.textContent = playerRoll;
+            playerDice.classList.add('roll-animation');
+        }
+        if (enemyDice) {
+            enemyDice.textContent = enemyRoll;
+            enemyDice.classList.add('roll-animation');
+        }
+        if (combatMsg) {
+            combatMsg.textContent = `Ronda ${round}: ${playerRoll} vs ${enemyRoll}`;
+        }
+
+        setTimeout(() => {
+            playerDice?.classList.remove('roll-animation');
+            enemyDice?.classList.remove('roll-animation');
+        }, 500);
+    }
+
+    showCombatTie() {
+        const modal = document.getElementById('combat-modal');
+        const combatMsg = modal?.querySelector('.combat-msg') || modal?.querySelector('#combat-msg');
+        if (combatMsg) {
+            combatMsg.textContent = '🔄 ¡Empate! Tirando de nuevo...';
+        }
+    }
+
+    showCombatVictory({ player, loot }) {
+        const modal = document.getElementById('combat-modal');
+        const combatMsg = modal?.querySelector('.combat-msg') || modal?.querySelector('#combat-msg');
+
+        if (combatMsg) {
+            combatMsg.innerHTML = `
+                <span style="color: #4ade80; font-size: 1.5rem;">✅ ¡VICTORIA!</span><br>
+                <span style="font-size: 0.9rem;">Loot: ${loot.title}</span>
+            `;
+        }
+
+        // Close after 2 seconds
+        setTimeout(() => this.hideCombatModal(), 2000);
+    }
+
+    showCombatDefeat({ player, shieldUsed, damage }) {
+        const modal = document.getElementById('combat-modal');
+        const combatMsg = modal?.querySelector('.combat-msg') || modal?.querySelector('#combat-msg');
+
+        if (combatMsg) {
+            if (shieldUsed) {
+                combatMsg.innerHTML = `
+                    <span style="color: #60a5fa; font-size: 1.3rem;">🛡️ ¡Escudo Roto!</span><br>
+                    <span style="font-size: 0.9rem;">Tu escudo absorbió el golpe</span>
+                `;
+            } else {
+                combatMsg.innerHTML = `
+                    <span style="color: #f87171; font-size: 1.5rem;">❌ DERROTA</span><br>
+                    <span style="font-size: 0.9rem;">-1 Vida${damage > 0 ? ', -1 Arma' : ''}</span>
+                `;
+            }
+        }
+
+        // Close after 2 seconds
+        setTimeout(() => this.hideCombatModal(), 2000);
+    }
+
+    hideCombatModal() {
+        const modal = document.getElementById('combat-modal');
+        if (modal) modal.classList.add('hidden');
+
+        // Re-enable dice button
+        const diceBtn = document.getElementById('btn-action-roll');
+        if (diceBtn) diceBtn.disabled = false;
     }
 }
 

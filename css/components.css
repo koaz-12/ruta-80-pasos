@@ -1108,3 +1108,58 @@
     margin: 0 2px;
 }
 
+
+/* ===== NOTIFICATION TOASTS ===== */
+.notification-toast {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.3s ease;
+    border-left: 4px solid #60a5fa;
+    max-width: 300px;
+}
+
+.notification-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-info { border-left-color: #60a5fa; }
+.notification-danger { border-left-color: #f87171; }
+.notification-success { border-left-color: #4ade80; }
+.notification-warning { border-left-color: #fbbf24; }
+
+/* ===== COMBAT ANIMATIONS ===== */
+.roll-animation {
+    animation: dice-shake 0.5s ease;
+}
+
+@keyframes dice-shake {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-15deg) scale(1.2); }
+    50% { transform: rotate(15deg) scale(1.1); }
+    75% { transform: rotate(-10deg) scale(1.15); }
+}
+
+.player-dice, .enemy-dice {
+    font-size: 3rem;
+    min-width: 80px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.combat-msg {
+    text-align: center;
+    padding: 15px;
+    font-size: 1.1rem;
+}
+

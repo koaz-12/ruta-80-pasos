@@ -241,26 +241,22 @@
         </div>
     </div>
 
-    <!-- Modal de Combate -->
+    <!-- Modal de Combate (Auto-roll) -->
     <div id="combat-modal" class="modal-overlay hidden">
         <div class="modal-content combat-arena">
             <h2>⚔️ COMBATE ⚔️</h2>
             <div class="combat-display">
                 <div class="combatant player-side">
                     <h3>TÚ</h3>
-                    <div class="combat-dice-container" id="player-dice"></div>
-                    <p id="player-roll-val">0</p>
+                    <div class="player-dice">?</div>
                 </div>
                 <div class="vs-divider">VS</div>
                 <div class="combatant enemy-side">
                     <h3>ENEMIGO</h3>
-                    <div class="combat-dice-container" id="enemy-dice"></div>
-                    <p id="enemy-roll-val">0</p>
+                    <div class="enemy-dice">?</div>
                 </div>
             </div>
-            <p id="combat-result" class="combat-msg">¡Tira los dados!</p>
-            <button id="btn-combat-roll" class="btn-primary">ATACAR 🎲</button>
-            <button id="btn-combat-continue" class="btn-primary hidden">CONTINUAR</button>
+            <p class="combat-msg">Preparando combate...</p>
         </div>
     </div>
 
