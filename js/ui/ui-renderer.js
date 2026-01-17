@@ -45,6 +45,9 @@ export class UIRenderer {
         bus.on('COMBAT_DEFEAT', (data) => this.showCombatDefeat(data));
         bus.on('COMBAT_END', () => this.hideCombatModal());
 
+        // Game over
+        bus.on('GAME_OVER', (data) => this.showGameOver(data));
+
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
@@ -710,6 +713,57 @@ export class UIRenderer {
         // Re-enable dice button
         const diceBtn = document.getElementById('btn-action-roll');
         if (diceBtn) diceBtn.disabled = false;
+    }
+
+    // Show Game Over screen
+    showGameOver({ winner, reason }) {
+        const modal = document.getElementById('gameover-modal');
+        const title = document.getElementById('gameover-title');
+        const message = document.getElementById('gameover-message');
+        const statsDiv = document.getElementById('gameover-stats');
+        const playAgainBtn = document.getElementById('btn-play-again');
+
+        if (!modal) return;
+
+        // Set content based on outcome
+        if (winner) {
+            // Victory!
+            title.textContent = '🏆 ¡VICTORIA! 🏆';
+            title.style.color = '#4ade80';
+            message.textContent = `${winner.name} es el último superviviente!`;
+
+            if (statsDiv && winner.stats) {
+                statsDiv.innerHTML = `
+                    <p>❤️ Vida: ${winner.stats.life}</p>
+                    <p>🍗 Comida: ${winner.stats.food}</p>
+                    <p>⚔️ Armas: ${winner.stats.weapons}</p>
+                    <p>🛡️ Escudos: ${winner.stats.shield}</p>
+                `;
+            }
+        } else {
+            // Game Over
+            title.textContent = '☠️ GAME OVER ☠️';
+            title.style.color = '#f87171';
+
+            const messages = {
+                'all_dead': 'Todos los jugadores han sido eliminados',
+                'player_died': 'Has sido eliminado',
+                'starvation': 'Moriste de hambre',
+                'combat': 'Has caído en combate'
+            };
+            message.textContent = messages[reason] || 'Fin del juego';
+
+            if (statsDiv) {
+                statsDiv.innerHTML = '<p style="color: #888;">Mejor suerte la próxima vez...</p>';
+            }
+        }
+
+        // Play again button
+        playAgainBtn?.addEventListener('click', () => {
+            location.reload();
+        }, { once: true });
+
+        modal.classList.remove('hidden');
     }
 }
 

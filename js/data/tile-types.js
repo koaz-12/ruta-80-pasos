@@ -13,26 +13,38 @@ export const TILE_TYPES = {
 // Key = tile ID, Value = tile type
 export const TILE_TYPE_MAP = {
     '0': 'SAFE',      // Inicio
-    '5': 'EVENT',
-    '7': 'LUCK',
+    '3': 'EVENT',     // Early event
+    '5': 'LUCK',
+    '7': 'ZOMBIE',    // First zombie
+    '10': 'EVENT',    // Junction event
     '12': 'ZOMBIE',
-    '15': 'EVENT',
-    '20': 'LUCK',
-    '22': 'ZOMBIE',
-    '25': 'SAFE',
-    '28': 'EVENT',
+    '14': 'LUCK',
+    '17': 'EVENT',
+    '20': 'ZOMBIE',
+    '22': 'LUCK',
+    '25': 'SAFE',     // Safe zone
+    '27': 'EVENT',
     '30': 'ZOMBIE',
-    '35': 'LUCK',
-    '40': 'ZOMBIE',
-    '45': 'EVENT',
-    '48': 'SAFE',
+    '33': 'LUCK',
+    '35': 'EVENT',
+    '38': 'ZOMBIE',
+    '40': 'LUCK',
+    '42': 'EVENT',
+    '45': 'ZOMBIE',
+    '48': 'SAFE',     // Safe zone
+    '50': 'EVENT',    // Junction event
     '52': 'ZOMBIE',
     '55': 'LUCK',
-    '60': 'EVENT',
-    '65': 'ZOMBIE',
+    '58': 'EVENT',
+    '60': 'ZOMBIE',
+    '63': 'LUCK',
+    '65': 'EVENT',
+    '68': 'ZOMBIE',
     '70': 'LUCK',
-    '75': 'EVENT',
-    '80': 'SAFE',     // Meta
+    '72': 'EVENT',
+    '75': 'ZOMBIE',   // Final stretch zombie
+    '78': 'LUCK',     // Last loot chance
+    '80': 'SAFE',     // Meta - Victory!
 };
 
 // Helper para obtener tipo de casilla

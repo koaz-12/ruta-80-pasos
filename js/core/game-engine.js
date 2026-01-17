@@ -41,6 +41,9 @@ export class GameEngine {
         // Combat defeat - handle retreat
         bus.on('COMBAT_DEFEAT', (data) => this.handleCombatDefeat(data));
 
+        // Player death
+        bus.on('PLAYER_DIED', (data) => this.handlePlayerDeath(data));
+
         bus.on('NETWORK_CONNECTED', (data) => this.handlePlayerJoined(data));
         bus.on('NETWORK_READY', (data) => this.handleNetworkReady(data));
         bus.on('NETWORK_DATA', (data) => this.handleNetworkData(data));
@@ -616,6 +619,45 @@ export class GameEngine {
         }
 
         return null;
+    }
+
+    // Handle player death
+    handlePlayerDeath({ player, cause }) {
+        console.log(`☠️ [DEATH] ${player.name} has died! Cause: ${cause}`);
+
+        const players = [...store.state.players];
+        const playerData = players.find(p => p.id === player.id);
+
+        if (playerData) {
+            playerData.isDead = true;
+            playerData.deathCause = cause;
+            store.setPlayers(players);
+        }
+
+        // Count alive players
+        const alivePlayers = players.filter(p => !p.isDead);
+        console.log(`  Alive players: ${alivePlayers.length}`);
+
+        // Show death notification
+        bus.emit('SHOW_NOTIFICATION', {
+            message: `☠️ ${player.name} ha muerto (${cause === 'starvation' ? 'hambre' : 'combate'})`,
+            type: 'danger'
+        });
+
+        // Check game over conditions
+        if (alivePlayers.length === 0) {
+            // All players dead - Game Over
+            console.log('🎮 [GAME OVER] All players eliminated!');
+            setTimeout(() => bus.emit('GAME_OVER', { winner: null, reason: 'all_dead' }), 2000);
+        } else if (alivePlayers.length === 1 && players.length > 1) {
+            // Only one player left in multiplayer - They win!
+            console.log(`🏆 [VICTORY] ${alivePlayers[0].name} is the last survivor!`);
+            setTimeout(() => bus.emit('GAME_OVER', { winner: alivePlayers[0], reason: 'last_survivor' }), 2000);
+        } else if (players.length === 1 && playerData.isDead) {
+            // Single player died - Game Over
+            console.log('🎮 [GAME OVER] Single player eliminated!');
+            setTimeout(() => bus.emit('GAME_OVER', { winner: null, reason: 'player_died' }), 2000);
+        }
     }
 
     // checkTileEvent removed (duplicate)
