@@ -480,8 +480,11 @@ export class SVGBoardRenderer {
                 🏠 Volver al Lobby
             </button>
 
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:20px;">
-                <button id="tool-save" title="Guardar" style="background:#28a745; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px;">💾</button>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+                <button id="tool-save" title="Exportar JSON" style="background:#28a745; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px;">💾</button>
+                <label title="Importar JSON" style="background:#17a2b8; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;">
+                    📥 <input type="file" accept=".json" style="display:none" id="tool-import">
+                </label>
                 <label title="Subir Fondo" style="background:#495057; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;">
                     🖼️ <input type="file" accept="image/*" style="display:none" id="tool-upload">
                 </label>
@@ -513,6 +516,26 @@ export class SVGBoardRenderer {
 
         document.getElementById('tool-save').onclick = () => this.exportSkeleton();
         document.getElementById('tool-new').onclick = () => this.addNewTile();
+
+        // Import JSON handler
+        document.getElementById('tool-import').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (confirm('¿Importar layout? Esto reemplazará el tablero actual.')) {
+                        localStorage.setItem('BOARD_LAYOUT_BACKUP', evt.target.result);
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    alert('Error al leer JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+
         document.getElementById('tool-upload').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -798,23 +821,39 @@ export class SVGBoardRenderer {
 
     exportSkeleton() {
         const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
+            const id = g.getAttribute('data-id');
+            // Detect type from TILE_TYPE_MAP
+            const typeKey = TILE_TYPE_MAP[String(id)];
+            const tileType = typeKey || 'NORMAL';
+
             return {
-                id: g.getAttribute('data-id'),
-                display: g.getAttribute('data-display'), // Saving display number too
+                id: id,
+                display: g.getAttribute('data-display'),
                 x: parseInt(g.dataset.x),
-                y: parseInt(g.dataset.y)
+                y: parseInt(g.dataset.y),
+                type: tileType
             };
         });
 
         const edges = this.edges;
 
-        const json = JSON.stringify({ tiles, edges });
+        const data = { tiles, edges, version: 'v2' };
+        const json = JSON.stringify(data, null, 2);
         console.log("SKELETON DATA:", json);
 
-        // Save to Local Storage for Persistence
+        // Save to Local Storage
         localStorage.setItem('BOARD_LAYOUT_BACKUP', json);
 
-        alert("¡Guardado en Navegador! (Y copiado al portapapeles) \nRecarga la página y se mantendrá.");
+        // Download as file
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `board-layout-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        alert("✅ Guardado en Navegador y descargado como JSON!\n\n🔹 Incluye tipos de casillas\n🔹 Copia al portapapeles también");
         navigator.clipboard.writeText(json);
     }
 
