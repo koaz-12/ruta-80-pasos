@@ -1,16 +1,16 @@
 // Configuración de RPG: Clases y Cartas
 
 export const CLASSES = [
-    { id: 'medic', name: 'Curandero', life: 4, food: 2, weapons: 0, shield: 0, bonus: 'Vida+', icon: '🧙' },
-    { id: 'soldier', name: 'Combatiente', life: 3, food: 2, weapons: 1, shield: 0, bonus: 'Doble Dado', icon: '⚔️' },
-    { id: 'scout', name: 'Explorador', life: 3, food: 3, weapons: 0, shield: 0, bonus: 'Comida+', icon: '🧭' },
-    { id: 'tank', name: 'Escudero', life: 3, food: 2, weapons: 0, shield: 1, bonus: 'Defensa', icon: '🛡️' }
+    { id: 'medic', name: 'Curandero', life: 5, food: 10, weapons: 0, shield: 0, bonus: 'Vida+', icon: '🧙' },
+    { id: 'soldier', name: 'Combatiente', life: 4, food: 10, weapons: 1, shield: 0, bonus: 'Doble Dado', icon: '⚔️' },
+    { id: 'scout', name: 'Explorador', life: 4, food: 10, weapons: 0, shield: 0, bonus: 'Comida+', icon: '🧭' },
+    { id: 'tank', name: 'Escudero', life: 4, food: 10, weapons: 0, shield: 1, bonus: 'Defensa', icon: '🛡️' }
 ];
 
 // MAX_RESOURCES: Límite máximo de cada recurso
 export const MAX_RESOURCES = {
-    life: 5,
-    food: 5,
+    life: 6,
+    food: 15,
     weapons: 5,
     shield: 5
 };
