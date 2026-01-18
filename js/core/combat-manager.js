@@ -97,10 +97,10 @@ export class CombatManager {
         const playerData = players.find(p => p.id === player.id);
 
         if (playerRoll === enemyRoll) {
-            // EMPATE - Re-roll
-            console.log('🔄 [COMBAT] Tie! Re-rolling...');
-            bus.emit('COMBAT_TIE', {});
-            setTimeout(() => this.rollCombat(), 1000);
+            // EMPATE - Request manual re-roll with 20s timer
+            console.log('🔄 [COMBAT] Tie! Player must re-roll...');
+            bus.emit('COMBAT_TIE', { needsReroll: true });
+            // Don't auto-roll - let UI handle the 20s timer
             return;
         }
 

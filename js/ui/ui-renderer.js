@@ -40,7 +40,7 @@ export class UIRenderer {
         // Combat events
         bus.on('COMBAT_START', (data) => this.showCombatStart(data));
         bus.on('COMBAT_ROLL', (data) => this.showCombatRoll(data));
-        bus.on('COMBAT_TIE', () => this.showCombatTie());
+        bus.on('COMBAT_TIE', (data) => this.showCombatTie(data));
         bus.on('COMBAT_VICTORY', (data) => this.showCombatVictory(data));
         bus.on('COMBAT_DEFEAT', (data) => this.showCombatDefeat(data));
 
@@ -787,11 +787,59 @@ export class UIRenderer {
         }, 500);
     }
 
-    showCombatTie() {
+    showCombatTie({ needsReroll }) {
         const modal = document.getElementById('combat-modal');
         const combatMsg = modal?.querySelector('.combat-msg') || modal?.querySelector('#combat-msg');
+        const rollBtn = document.getElementById('btn-combat-roll');
+        const timerDiv = document.getElementById('combat-timer');
+        const countdownEl = document.getElementById('combat-countdown');
+
         if (combatMsg) {
-            combatMsg.textContent = '🔄 ¡Empate! Tirando de nuevo...';
+            combatMsg.innerHTML = `
+                <span style="color: #f59e0b; font-size: 1.3rem;">🔄 ¡EMPATE!</span><br>
+                <span style="font-size: 0.9rem;">Debes tirar de nuevo...</span>
+            `;
+        }
+
+        // Show roll button again with 20s timer
+        if (needsReroll && rollBtn) {
+            rollBtn.classList.remove('hidden');
+            rollBtn.disabled = false;
+            rollBtn.textContent = '🎲 TIRAR DE NUEVO';
+
+            if (timerDiv) timerDiv.classList.remove('hidden');
+
+            // Reset isRolling flag
+            import('../core/combat-manager.js').then(({ combatManager }) => {
+                combatManager.isRolling = false;
+            });
+
+            // Timer countdown (20 seconds)
+            let countdown = 20;
+            if (countdownEl) countdownEl.textContent = countdown;
+
+            // Clear any existing timer
+            this.clearCombatTimer();
+
+            this.combatTimerInterval = setInterval(() => {
+                countdown--;
+                if (countdownEl) countdownEl.textContent = countdown;
+
+                if (countdown <= 0) {
+                    this.clearCombatTimer();
+                    this.executeCombatRoll();
+                }
+            }, 1000);
+
+            // Roll button click handler
+            const handleRollClick = () => {
+                this.clearCombatTimer();
+                rollBtn?.removeEventListener('click', handleRollClick);
+                this.executeCombatRoll();
+            };
+
+            rollBtn?.addEventListener('click', handleRollClick);
+            this.combatRollHandler = handleRollClick;
         }
     }
 
