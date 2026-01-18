@@ -484,23 +484,28 @@ export class SVGBoardRenderer {
         const boardContainer = document.querySelector('.board-container');
         if (boardContainer) {
             boardContainer.classList.remove('hidden');
-            boardContainer.style.display = 'flex';
-            boardContainer.style.width = '100vw';
-            boardContainer.style.height = '100vh';
-            boardContainer.style.position = 'fixed';
-            boardContainer.style.top = '0';
-            boardContainer.style.left = '0';
-            boardContainer.style.zIndex = '1';
-            boardContainer.style.overflow = 'hidden';
+            boardContainer.style.cssText = `
+                display: flex;
+                width: 100vw;
+                height: 100vh;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1;
+                overflow: hidden;
+                background: #000;
+            `;
         }
 
-        // 3. Ensure SVG scales properly on mobile
+        // 3. Ensure SVG container scales properly
         if (this.container) {
-            this.container.style.width = '100%';
-            this.container.style.height = '100%';
-            this.container.style.display = 'flex';
-            this.container.style.justifyContent = 'center';
-            this.container.style.alignItems = 'center';
+            this.container.style.cssText = `
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
         }
 
         // 4. Render if needed
@@ -508,13 +513,13 @@ export class SVGBoardRenderer {
             this.render();
         }
 
-        // 5. Scale SVG for mobile
+        // 5. Adjust SVG for mobile - fill entire viewport
         if (this.svg) {
-            // On mobile, ensure minimum scale
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
-                this.svg.style.minWidth = '100vw';
-                this.svg.style.minHeight = '100vh';
+                // Change aspect ratio to slice (fill) instead of meet
+                this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                this.svg.style.cssText = 'width:100vw;height:100vh;background:#F7F5E6;touch-action:none;cursor:grab';
             }
         }
 
