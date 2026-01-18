@@ -2151,10 +2151,12 @@ export class SVGBoardRenderer {
             const x = parseFloat(match[1]);
             const y = parseFloat(match[2]);
 
-            // Create icon element
+            // Create icon element - ADD TO TILE GROUP so it moves together
             const icon = document.createElementNS(this.ns, 'text');
-            icon.setAttribute('x', x + 25); // Center of 50x50 tile
-            icon.setAttribute('y', y + 38); // Slightly below center
+
+            // Position relative to tile center (tile is 50x50)
+            icon.setAttribute('x', 25);  // Center of tile
+            icon.setAttribute('y', 38);  // Slightly below center
             icon.setAttribute('text-anchor', 'middle');
             icon.setAttribute('font-size', '20');
             icon.setAttribute('class', 'tile-type-icon');
@@ -2162,7 +2164,8 @@ export class SVGBoardRenderer {
             icon.setAttribute('pointer-events', 'none');
             icon.textContent = tileType.icon;
 
-            this.rootGroup.appendChild(icon);
+            // Add to tileGroup (not rootGroup) so icon moves with tile
+            tileGroup.appendChild(icon);
             tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
         }
 
