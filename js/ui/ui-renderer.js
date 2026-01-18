@@ -51,6 +51,9 @@ export class UIRenderer {
         // Game over
         bus.on('GAME_OVER', (data) => this.showGameOver(data));
 
+        // Zombie fight/retreat decision
+        bus.on('SHOW_ZOMBIE_DECISION', (data) => this.showZombieDecision(data));
+
         // PvP events
         bus.on('SHOW_PVP_DECISION', (data) => this.showPvPDecision(data));
         bus.on('PVP_COMBAT_START', (data) => this.showPvPCombat(data));
@@ -1153,6 +1156,63 @@ export class UIRenderer {
 
         // Auto dismiss after 3 seconds
         setTimeout(dismiss, 3000);
+    }
+
+    // ===== ZOMBIE DECISION =====
+
+    showZombieDecision({ player, enemyCount, onFight, onRetreat }) {
+        // Create modal overlay
+        let modal = document.getElementById('zombie-decision-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'zombie-decision-modal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.85); z-index: 10000;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+            `;
+            document.body.appendChild(modal);
+        }
+
+        const zombieEmoji = enemyCount > 1 ? '🧟🧟' : '🧟';
+
+        modal.innerHTML = `
+            <div style="text-align: center; max-width: 350px; padding: 30px;">
+                <div style="font-size: 64px; margin-bottom: 20px;">${zombieEmoji}</div>
+                <div style="font-size: 24px; color: #ef4444; font-weight: bold; margin-bottom: 10px;">
+                    ¡ENCUENTRO ZOMBIE!
+                </div>
+                <div style="font-size: 16px; color: #999; margin-bottom: 30px;">
+                    ${enemyCount} zombie${enemyCount > 1 ? 's' : ''} te bloquean el paso
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="zombie-fight-btn" style="
+                        padding: 15px 30px; font-size: 16px; cursor: pointer;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border: none; border-radius: 10px; color: white;
+                        font-weight: bold;
+                    ">⚔️ PELEAR</button>
+                    <button id="zombie-retreat-btn" style="
+                        padding: 15px 30px; font-size: 16px; cursor: pointer;
+                        background: linear-gradient(135deg, #6b7280, #4b5563);
+                        border: none; border-radius: 10px; color: white;
+                        font-weight: bold;
+                    ">🏃 HUIR</button>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+
+        document.getElementById('zombie-fight-btn').onclick = () => {
+            modal.style.display = 'none';
+            onFight();
+        };
+
+        document.getElementById('zombie-retreat-btn').onclick = () => {
+            modal.style.display = 'none';
+            onRetreat();
+        };
     }
 
     // ===== CHAT SYSTEM =====

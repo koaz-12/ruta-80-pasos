@@ -57,30 +57,61 @@ export class TileEventManager {
         }
     }
 
-    // Casilla de Zombie - Combate automático
+    // Casilla de Zombie - Preguntar si pelear o retroceder
     handleZombieTile(player) {
         console.log('🧟 [TILE EVENT] Zombie encounter!');
 
         // 50% chance 1 zombie, 50% chance 2 zombies
         const enemyCount = Math.random() < 0.5 ? 1 : 2;
 
-        bus.emit('SHOW_NOTIFICATION', {
-            message: `¡${enemyCount} zombie${enemyCount > 1 ? 's' : ''} te atacan!`,
-            type: 'danger'
+        // Show fight or retreat decision
+        bus.emit('SHOW_ZOMBIE_DECISION', {
+            player,
+            enemyCount,
+            onFight: () => {
+                console.log('⚔️ [ZOMBIE] Player chose to FIGHT!');
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `¡${enemyCount} zombie${enemyCount > 1 ? 's' : ''} te atacan!`,
+                    type: 'danger'
+                });
+
+                // Start combat after brief delay
+                setTimeout(() => {
+                    combatManager.startCombat(player, enemyCount, 'zombie');
+                }, 500);
+
+                // Listen for combat end
+                const onCombatEnd = () => {
+                    bus.off('COMBAT_END', onCombatEnd);
+                    this.processingEvent = false;
+                    bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'combat' });
+                };
+                bus.on('COMBAT_END', onCombatEnd);
+            },
+            onRetreat: () => {
+                console.log('🏃 [ZOMBIE] Player chose to RETREAT!');
+
+                // Get the starting position from player's previous position
+                const startPos = player.previousPosition || player.position;
+
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏃 ${player.name} huye del zombie! Retrocede a casilla ${startPos}`,
+                    type: 'warning'
+                });
+
+                // Move player back to starting position
+                const players = [...store.state.players];
+                const playerData = players.find(p => p.id === player.id);
+                if (playerData) {
+                    playerData.position = startPos;
+                    store.setPlayers(players);
+                    bus.emit('STATE_UPDATED', store.state);
+                }
+
+                this.processingEvent = false;
+                bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'retreat' });
+            }
         });
-
-        // Iniciar combate después de breve delay para que se vea notificación
-        setTimeout(() => {
-            combatManager.startCombat(player, enemyCount, 'zombie');
-        }, 500);
-
-        // Escuchar fin de combate
-        const onCombatEnd = () => {
-            bus.off('COMBAT_END', onCombatEnd);
-            this.processingEvent = false;
-            bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'combat' });
-        };
-        bus.on('COMBAT_END', onCombatEnd);
     }
 
     // Casilla de Evento - Carta aleatoria (puede ser combate u otro efecto)

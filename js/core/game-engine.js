@@ -494,8 +494,9 @@ export class GameEngine {
             setTimeout(onComplete, 5000 + (path.length * 500));
         });
 
-        // Update position
+        // Update position (save previous for zombie retreat)
         const oldPos = player.pos;
+        player.previousPosition = oldPos; // Save for potential retreat
         player.pos = path[path.length - 1];
         console.log(`📍 [POSITION UPDATE] ${oldPos} → ${player.pos}`);
         console.log(`  Path taken: ${path.join(' → ')}`);
