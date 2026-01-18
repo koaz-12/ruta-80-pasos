@@ -474,18 +474,23 @@ export class SVGBoardRenderer {
     }
 
     activateEditorMode() {
-        this.isEditorMode = true; // Unlock
+        this.isEditorMode = true;
 
         // 1. Hide Lobby
         const lobby = document.querySelector('.lobby-container');
         if (lobby) lobby.style.display = 'none';
 
-        // 2. Show Board Container
-        // 2. Show Board Container (Main Parent)
+        // 2. Show Board Container fullscreen
         const boardContainer = document.querySelector('.board-container');
         if (boardContainer) {
             boardContainer.classList.remove('hidden');
             boardContainer.style.display = 'flex';
+            boardContainer.style.width = '100vw';
+            boardContainer.style.height = '100vh';
+            boardContainer.style.position = 'fixed';
+            boardContainer.style.top = '0';
+            boardContainer.style.left = '0';
+            boardContainer.style.zIndex = '1';
         }
 
         // 3. Render if needed
@@ -493,16 +498,14 @@ export class SVGBoardRenderer {
             this.render();
         }
 
-        // 4. Ensure Editor Panel Exists (Force Init)
+        // 4. Ensure Editor Panel Exists
         if (!this.editorPanel) {
             this.initEditor();
         }
 
-        // 5. Show Editor Panel & Adjust Layout
+        // 5. Show Editor Panel
         if (this.editorPanel) {
             this.editorPanel.style.display = 'flex';
-            document.body.style.paddingRight = '280px'; // Prevent overlap
-            document.body.style.transition = 'padding-right 0.3s';
         }
 
         window.dispatchEvent(new Event('resize'));
