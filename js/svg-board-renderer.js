@@ -1726,10 +1726,10 @@ export class SVGBoardRenderer {
         setTimeout(() => hop(), 300);
     }
 
-    // v7.6: Tile Inspector - Now uses simple method
+    // v7.6: Tile Inspector - Full editor inspector
     enableTileInspector() {
-        console.log('%c🔍 Simple Tile Inspector Enabled', 'color: cyan; font-weight: bold');
-        console.log('Click cualquier casilla para ver su información');
+        console.log('%c🔧 Editor Inspector Enabled', 'color: cyan; font-weight: bold');
+        console.log('Click cualquier casilla para editar sus propiedades');
 
         this.svg.addEventListener('click', (evt) => {
             // Only show inspector in editor mode
@@ -1744,8 +1744,8 @@ export class SVGBoardRenderer {
 
             if (!target) return;
 
-            // Show simple info overlay
-            this.showSimpleTileInfo(target);
+            // Show full editor inspector with type dropdown
+            this.openInspector(target);
         });
     }
 
