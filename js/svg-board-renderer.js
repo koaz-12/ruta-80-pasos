@@ -484,51 +484,20 @@ export class SVGBoardRenderer {
         const boardContainer = document.querySelector('.board-container');
         if (boardContainer) {
             boardContainer.classList.remove('hidden');
-            boardContainer.style.cssText = `
-                display: flex;
-                width: 100vw;
-                height: 100vh;
-                position: fixed;
-                top: 0;
-                left: 0;
-                z-index: 1;
-                overflow: hidden;
-                background: #000;
-            `;
+            boardContainer.style.display = 'flex';
         }
 
-        // 3. Ensure SVG container scales properly
-        if (this.container) {
-            this.container.style.cssText = `
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            `;
-        }
-
-        // 4. Render if needed
+        // 3. Render if needed
         if (!this.svg) {
             this.render();
         }
 
-        // 5. Adjust SVG for mobile - fill entire viewport
-        if (this.svg) {
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                // Change aspect ratio to slice (fill) instead of meet
-                this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-                this.svg.style.cssText = 'width:100vw;height:100vh;background:#F7F5E6;touch-action:none;cursor:grab';
-            }
-        }
-
-        // 6. Ensure Editor Panel Exists
+        // 4. Ensure Editor Panel Exists
         if (!this.editorPanel) {
             this.initEditor();
         }
 
-        // 7. Show Editor Panel
+        // 5. Show Editor Panel
         if (this.editorPanel) {
             this.editorPanel.style.display = 'flex';
         }
