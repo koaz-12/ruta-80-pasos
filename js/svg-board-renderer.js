@@ -491,19 +491,39 @@ export class SVGBoardRenderer {
             boardContainer.style.top = '0';
             boardContainer.style.left = '0';
             boardContainer.style.zIndex = '1';
+            boardContainer.style.overflow = 'hidden';
         }
 
-        // 3. Render if needed
+        // 3. Ensure SVG scales properly on mobile
+        if (this.container) {
+            this.container.style.width = '100%';
+            this.container.style.height = '100%';
+            this.container.style.display = 'flex';
+            this.container.style.justifyContent = 'center';
+            this.container.style.alignItems = 'center';
+        }
+
+        // 4. Render if needed
         if (!this.svg) {
             this.render();
         }
 
-        // 4. Ensure Editor Panel Exists
+        // 5. Scale SVG for mobile
+        if (this.svg) {
+            // On mobile, ensure minimum scale
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                this.svg.style.minWidth = '100vw';
+                this.svg.style.minHeight = '100vh';
+            }
+        }
+
+        // 6. Ensure Editor Panel Exists
         if (!this.editorPanel) {
             this.initEditor();
         }
 
-        // 5. Show Editor Panel
+        // 7. Show Editor Panel
         if (this.editorPanel) {
             this.editorPanel.style.display = 'flex';
         }
