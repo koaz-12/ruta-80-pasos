@@ -13,8 +13,8 @@ export class TileEventManager {
     // Verificar y ejecutar evento de casilla
     checkTileEvent(player, tileId) {
         if (this.processingEvent) {
-            console.warn('⚠️ [TILE EVENT] Already processing event');
-            return;
+            console.warn('⚠️ [TILE EVENT] Already processing event - forcing reset');
+            this.processingEvent = false; // Force reset to prevent stuck state
         }
 
         // Check for retreat immunity
