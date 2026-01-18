@@ -469,28 +469,80 @@ export class SVGBoardRenderer {
         const panel = this.editorPanel;
         if (!panel) return;
 
-        // SIDEBAR ONLY HAS GLOBAL TOOLS NOW
-        panel.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #555; padding-bottom:10px;">
-                <h3 style="margin:0; font-size:16px; color:#eee;">Editor Estudio</h3>
-                <button id="uni-close" style="background:none; border:none; color:#bbb; cursor:pointer; font-size:18px;" title="Minimizar">▼</button>
-            </div>
-            
-            <button id="tool-exit" style="width:100%; background:#dc3545; color:white; border:none; padding:10px; border-radius:6px; margin-bottom:20px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px;">
-                🏠 Volver al Lobby
-            </button>
+        // Get current board size
+        const currentWidth = this.width || 850;
+        const currentHeight = this.height || 1400;
 
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
-                <button id="tool-save" title="Exportar JSON" style="background:#28a745; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px;">💾</button>
-                <label title="Importar JSON" style="background:#17a2b8; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;">
-                    📥 <input type="file" accept=".json" style="display:none" id="tool-import">
-                </label>
-                <label title="Subir Fondo" style="background:#495057; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center;">
-                    🖼️ <input type="file" accept="image/*" style="display:none" id="tool-upload">
-                </label>
-                <button id="tool-new" title="Nueva Casilla" style="background:#007bff; border:none; border-radius:8px; height:40px; cursor:pointer; font-size:20px;">➕</button>
+        // NEW ORGANIZED PANEL DESIGN
+        panel.innerHTML = `
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:2px solid #444; background:#2d2d2d;">
+                <h3 style="margin:0; font-size:18px; color:#fff; font-weight:bold;">🎨 EDITOR ESTUDIO</h3>
+                <button id="uni-close" style="background:none; border:none; color:#bbb; cursor:pointer; font-size:20px;" title="Minimizar">✕</button>
             </div>
-            <small style="color:#888; display:block; text-align:center;">Selecciona una ficha para ver sus propiedades.</small>
+
+            <!-- Configuration Section -->
+            <div style="padding:15px; border-bottom:1px solid #333;">
+                <div style="color:#9cdcfe; font-size:13px; font-weight:bold; margin-bottom:12px;">⚙️ CONFIGURACIÓN</div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="color:#aaa; font-size:11px; display:block; margin-bottom:4px;">Ancho (px)</label>
+                    <input type="number" id="board-width" value="${currentWidth}" 
+                           style="width:100%; background:#3c3c3c; border:1px solid #555; color:#fff; padding:6px; border-radius:4px;" />
+                </div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="color:#aaa; font-size:11px; display:block; margin-bottom:4px;">Alto (px)</label>
+                    <input type="number" id="board-height" value="${currentHeight}"
+                           style="width:100%; background:#3c3c3c; border:1px solid #555; color:#fff; padding:6px; border-radius:4px;" />
+                </div>
+                
+                <button id="apply-size" style="width:100%; background:#667eea; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+                    Aplicar Tamaño
+                </button>
+            </div>
+
+            <!-- Tools Section -->
+            <div style="padding:15px; border-bottom:1px solid #333;">
+                <div style="color:#9cdcfe; font-size:13px; font-weight:bold; margin-bottom:12px;">🛠️ HERRAMIENTAS</div>
+                
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:10px;">
+                    <button id="tool-new" title="Nueva Casilla" style="background:#007bff; border:none; border-radius:6px; height:45px; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center;">
+                        ➕
+                    </button>
+                    <button id="tool-clear" title="Limpiar Todo" style="background:#ff6b6b; border:none; border-radius:6px; height:45px; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center;">
+                        🗑️
+                    </button>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
+                    <button id="tool-save" title="Exportar JSON" style="background:#28a745; border:none; border-radius:6px; height:45px; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center;">
+                        💾
+                    </button>
+                    <label title="Importar JSON" style="background:#17a2b8; border:none; border-radius:6px; height:45px; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center;">
+                        📥 <input type="file" accept=".json" style="display:none" id="tool-import">
+                    </label>
+                </div>
+                
+                <label title="Subir Fondo" style="background:#6c757d; border:none; border-radius:6px; height:45px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; margin-top:8px;">
+                    🖼️ Imagen de Fondo <input type="file" accept="image/*" style="display:none" id="tool-upload">
+                </label>
+            </div>
+
+            <!-- Info Section -->
+            <div style="padding:15px;">
+                <div style="color:#666; font-size:11px; text-align:center; line-height:1.4;">
+                    <p style="margin:0 0 8px 0;">Click en una casilla para editarla</p>
+                    <p style="margin:0; color:#4ade80;">Tablero: ${currentWidth}×${currentHeight}px</p>
+                </div>
+            </div>
+
+            <!-- Exit Button -->
+            <div style="padding:15px; border-top:2px solid #444;">
+                <button id="tool-exit" style="width:100%; background:#dc3545; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:14px;">
+                    🏠 Volver al Lobby
+                </button>
+            </div>
         `;
 
         // SIDEBAR EVENTS
@@ -503,7 +555,7 @@ export class SVGBoardRenderer {
         document.getElementById('tool-exit').onclick = () => {
             panel.style.display = 'none';
             document.body.style.paddingRight = '0';
-            if (this.inspectorWin) this.inspectorWin.remove(); // Clean up inspector
+            if (this.inspectorWin) this.inspectorWin.remove();
 
             const game = document.querySelector('.game-container') || document.querySelector('.board-container');
             if (game) game.classList.add('hidden');
@@ -512,6 +564,22 @@ export class SVGBoardRenderer {
             if (lobby) lobby.style.display = 'flex';
 
             window.location.reload();
+        };
+
+        // Apply board size
+        document.getElementById('apply-size').onclick = () => {
+            const newWidth = parseInt(document.getElementById('board-width').value) || 850;
+            const newHeight = parseInt(document.getElementById('board-height').value) || 1400;
+
+            this.setBoardSize(newWidth, newHeight);
+            this.drawUnifiedControls(); // Refresh panel to show new size
+        };
+
+        // Clear all tiles
+        document.getElementById('tool-clear').onclick = () => {
+            if (confirm('⚠️ ¿Eliminar TODAS las casillas?\n\nEsta acción no se puede deshacer.')) {
+                this.clearAllTiles();
+            }
         };
 
         document.getElementById('tool-save').onclick = () => this.exportSkeleton();
@@ -870,6 +938,37 @@ export class SVGBoardRenderer {
 
         alert("✅ Guardado en Navegador y descargado como JSON!\n\n🔹 Incluye tipos de casillas\n🔹 Copia al portapapeles también");
         navigator.clipboard.writeText(json);
+    }
+
+    // Set board size
+    setBoardSize(width, height) {
+        this.width = width;
+        this.height = height;
+
+        // Update SVG viewBox
+        if (this.svg) {
+            this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            console.log(`📐 Board size updated: ${width}×${height}px`);
+        }
+    }
+
+    // Clear all tiles from board
+    clearAllTiles() {
+        if (!this.svg) return;
+
+        // Remove all tile groups
+        const tiles = this.svg.querySelectorAll('.tile-group');
+        tiles.forEach(tile => tile.remove());
+
+        // Clear edges
+        this.edges = [];
+        this.drawEdges();
+
+        // Close inspector if open
+        if (this.inspectorWin) this.inspectorWin.remove();
+
+        console.log('🗑️ All tiles cleared');
+        alert('✅ Todas las casillas eliminadas\n\n Usa ➕ para crear nuevas');
     }
 
     drawBoard() {
