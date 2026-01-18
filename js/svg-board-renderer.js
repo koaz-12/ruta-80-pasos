@@ -1740,12 +1740,41 @@ export class SVGBoardRenderer {
         };
 
         console.log('[INTERACTIVITY] Attaching event listeners');
-        // mousedown on SVG to start drag
-        this.svg.addEventListener('mousedown', startDrag);
-        // mousemove and mouseup on DOCUMENT to capture events even if mouse leaves SVG
-        document.addEventListener('mousemove', drag);
+
+        // Helper to get clientX/Y from mouse or touch event
+        const getClientPos = (evt) => {
+            if (evt.touches && evt.touches.length > 0) {
+                return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+            }
+            return { x: evt.clientX, y: evt.clientY };
+        };
+
+        // Wrapped handlers for touch support
+        const handleStart = (evt) => {
+            const pos = getClientPos(evt);
+            evt.clientX = pos.x;
+            evt.clientY = pos.y;
+            startDrag(evt);
+        };
+
+        const handleMove = (evt) => {
+            const pos = getClientPos(evt);
+            evt.clientX = pos.x;
+            evt.clientY = pos.y;
+            drag(evt);
+        };
+
+        // Mouse events
+        this.svg.addEventListener('mousedown', handleStart);
+        document.addEventListener('mousemove', handleMove);
         document.addEventListener('mouseup', endDrag);
-        console.log('[INTERACTIVITY] Event listeners attached (mousemove/mouseup on document)');
+
+        // Touch events for mobile tile dragging
+        this.svg.addEventListener('touchstart', handleStart, { passive: true });
+        document.addEventListener('touchmove', handleMove, { passive: false });
+        document.addEventListener('touchend', endDrag);
+
+        console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
     }
 
     getSVGPoint(evt) {
