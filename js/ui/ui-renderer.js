@@ -694,22 +694,30 @@ export class UIRenderer {
 
         if (playerDice) playerDice.textContent = '?';
         if (enemyDice) enemyDice.textContent = '?';
-        if (combatMsg) combatMsg.textContent = `${player.name} vs ${enemyCount}x ${enemyType}`;
+        if (combatMsg) {
+            combatMsg.innerHTML = `
+                <span style="font-size: 1.2rem;">${player.name} vs ${enemyCount}x ${enemyType}</span><br>
+                <span style="color: #f59e0b; font-size: 0.9rem;">¡Usa tu dado para atacar!</span>
+            `;
+        }
 
         // Update header
         const header = modal.querySelector('h2');
         if (header) header.innerHTML = `⚔️ COMBATE ⚔️`;
 
-        // Disable main dice button
-        const diceBtn = document.getElementById('btn-action-roll');
-        if (diceBtn) diceBtn.disabled = true;
+        // HIDE the modal roll button - we use main dice now
+        if (rollBtn) rollBtn.classList.add('hidden');
 
-        // Show roll button and timer
-        if (rollBtn) {
-            rollBtn.classList.remove('hidden');
-            rollBtn.disabled = false;
-        }
+        // Show timer
         if (timerDiv) timerDiv.classList.remove('hidden');
+
+        // ENABLE main dice button for combat
+        const mainDiceBtn = document.getElementById('btn-action-roll');
+        if (mainDiceBtn) {
+            mainDiceBtn.disabled = false;
+            mainDiceBtn.classList.add('combat-mode'); // Visual indicator
+            mainDiceBtn.style.animation = 'pulse 1s infinite';
+        }
 
         modal.classList.remove('hidden');
 
@@ -728,15 +736,18 @@ export class UIRenderer {
             }
         }, 1000);
 
-        // Roll button click handler
-        const handleRollClick = () => {
+        // Set up main dice button for combat roll
+        const handleMainDiceClick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.clearCombatTimer();
-            rollBtn?.removeEventListener('click', handleRollClick);
+            mainDiceBtn?.removeEventListener('click', handleMainDiceClick);
             this.executeCombatRoll();
         };
 
-        rollBtn?.addEventListener('click', handleRollClick);
-        this.combatRollHandler = handleRollClick; // Store for cleanup
+        // Remove existing listeners and add combat handler
+        mainDiceBtn?.addEventListener('click', handleMainDiceClick, { once: true });
+        this.combatMainDiceHandler = handleMainDiceClick;
     }
 
     clearCombatTimer() {
@@ -751,6 +762,13 @@ export class UIRenderer {
         if (rollBtn) {
             rollBtn.classList.add('hidden');
             rollBtn.disabled = true;
+        }
+
+        // Reset main dice button style
+        const mainDiceBtn = document.getElementById('btn-action-roll');
+        if (mainDiceBtn) {
+            mainDiceBtn.classList.remove('combat-mode');
+            mainDiceBtn.style.animation = '';
         }
     }
 
@@ -790,29 +808,32 @@ export class UIRenderer {
     showCombatTie({ needsReroll }) {
         const modal = document.getElementById('combat-modal');
         const combatMsg = modal?.querySelector('.combat-msg') || modal?.querySelector('#combat-msg');
-        const rollBtn = document.getElementById('btn-combat-roll');
         const timerDiv = document.getElementById('combat-timer');
         const countdownEl = document.getElementById('combat-countdown');
 
         if (combatMsg) {
             combatMsg.innerHTML = `
                 <span style="color: #f59e0b; font-size: 1.3rem;">🔄 ¡EMPATE!</span><br>
-                <span style="font-size: 0.9rem;">Debes tirar de nuevo...</span>
+                <span style="font-size: 0.9rem;">¡Usa tu dado para tirar de nuevo!</span>
             `;
         }
 
-        // Show roll button again with 20s timer
-        if (needsReroll && rollBtn) {
-            rollBtn.classList.remove('hidden');
-            rollBtn.disabled = false;
-            rollBtn.textContent = '🎲 TIRAR DE NUEVO';
-
+        // Use main dice for re-roll
+        if (needsReroll) {
             if (timerDiv) timerDiv.classList.remove('hidden');
 
             // Reset isRolling flag
             import('../core/combat-manager.js').then(({ combatManager }) => {
                 combatManager.isRolling = false;
             });
+
+            // Enable main dice button
+            const mainDiceBtn = document.getElementById('btn-action-roll');
+            if (mainDiceBtn) {
+                mainDiceBtn.disabled = false;
+                mainDiceBtn.classList.add('combat-mode');
+                mainDiceBtn.style.animation = 'pulse 1s infinite';
+            }
 
             // Timer countdown (20 seconds)
             let countdown = 20;
@@ -831,15 +852,17 @@ export class UIRenderer {
                 }
             }, 1000);
 
-            // Roll button click handler
-            const handleRollClick = () => {
+            // Main dice click handler
+            const handleMainDiceClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.clearCombatTimer();
-                rollBtn?.removeEventListener('click', handleRollClick);
+                mainDiceBtn?.removeEventListener('click', handleMainDiceClick);
                 this.executeCombatRoll();
             };
 
-            rollBtn?.addEventListener('click', handleRollClick);
-            this.combatRollHandler = handleRollClick;
+            mainDiceBtn?.addEventListener('click', handleMainDiceClick, { once: true });
+            this.combatMainDiceHandler = handleMainDiceClick;
         }
     }
 
