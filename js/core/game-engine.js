@@ -698,8 +698,20 @@ export class GameEngine {
         }
 
         const nextTurn = (store.state.turnIndex + 1) % players.length;
+        const nextPlayer = players[nextTurn];
+
         store.setPlayers(players);
         store.updateTurn(nextTurn);
+
+        // Emit turn change event for UI to show transition
+        if (store.state.role === 'OFFLINE' && nextPlayer) {
+            bus.emit('TURN_CHANGED', {
+                player: nextPlayer,
+                playerIndex: nextTurn,
+                totalPlayers: players.length
+            });
+        }
+
         this.syncState();
     }
 
@@ -855,6 +867,14 @@ export class GameEngine {
                     }
                 }
             }
+        } else if (data.type === 'CHAT_MESSAGE') {
+            // Emit chat message to UI
+            bus.emit('CHAT_RECEIVED', {
+                message: data.message,
+                playerName: data.playerName,
+                timestamp: data.timestamp,
+                isRemote: true
+            });
         }
     }
 

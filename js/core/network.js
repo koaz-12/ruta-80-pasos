@@ -49,6 +49,21 @@ export class NetworkManager {
         }
     }
 
+    // Send chat message
+    sendChat(message, playerName) {
+        this.send({
+            type: 'CHAT_MESSAGE',
+            message,
+            playerName,
+            timestamp: Date.now()
+        });
+    }
+
+    // Check if connected
+    isConnected() {
+        return this.conn && this.conn.open;
+    }
+
     generateShortId() {
         return 'R80-' + Math.floor(1000 + Math.random() * 9000);
     }

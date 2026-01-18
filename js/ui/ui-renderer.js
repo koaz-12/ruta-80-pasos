@@ -43,6 +43,9 @@ export class UIRenderer {
         bus.on('COMBAT_TIE', () => this.showCombatTie());
         bus.on('COMBAT_VICTORY', (data) => this.showCombatVictory(data));
         bus.on('COMBAT_DEFEAT', (data) => this.showCombatDefeat(data));
+
+        // Chat system (online only)
+        bus.on('CHAT_RECEIVED', (data) => this.addChatMessage(data));
         bus.on('COMBAT_END', () => this.hideCombatModal());
 
         // Game over
@@ -63,6 +66,9 @@ export class UIRenderer {
 
         // Move choice (advance or stay)
         bus.on('SHOW_MOVE_CHOICE', (data) => this.showMoveChoice(data));
+
+        // Hotseat turn transition
+        bus.on('TURN_CHANGED', (data) => this.showTurnTransition(data));
 
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
@@ -1086,6 +1092,180 @@ export class UIRenderer {
         }
 
         modal.classList.remove('hidden');
+    }
+
+    // Show turn transition overlay for hotseat mode
+    showTurnTransition({ player, playerIndex, totalPlayers }) {
+        // Create or get overlay
+        let overlay = document.getElementById('turn-transition-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'turn-transition-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.9); z-index: 10000;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                opacity: 0; transition: opacity 0.3s;
+                pointer-events: none;
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        const playerIcon = player.stats?.class?.icon || '👤';
+        const playerColor = ['#4ade80', '#60a5fa', '#f472b6', '#facc15'][playerIndex % 4];
+
+        overlay.innerHTML = `
+            <div style="text-align: center; transform: scale(0.8); transition: transform 0.4s;">
+                <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 0.5s ease;">${playerIcon}</div>
+                <div style="font-size: 18px; color: #888; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px;">
+                    Turno de
+                </div>
+                <div style="font-size: 36px; font-weight: bold; color: ${playerColor}; margin-bottom: 15px;">
+                    ${player.name}
+                </div>
+                <div style="font-size: 14px; color: #666;">
+                    Jugador ${playerIndex + 1} de ${totalPlayers}
+                </div>
+                <div style="margin-top: 30px; font-size: 14px; color: #888;">
+                    🎲 Toca para continuar
+                </div>
+            </div>
+        `;
+
+        // Show with animation
+        overlay.style.opacity = '1';
+        overlay.style.pointerEvents = 'auto';
+
+        // Animate content
+        requestAnimationFrame(() => {
+            const content = overlay.querySelector('div');
+            if (content) content.style.transform = 'scale(1)';
+        });
+
+        // Click to dismiss
+        const dismiss = () => {
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            overlay.removeEventListener('click', dismiss);
+        };
+
+        overlay.addEventListener('click', dismiss);
+
+        // Auto dismiss after 3 seconds
+        setTimeout(dismiss, 3000);
+    }
+
+    // ===== CHAT SYSTEM =====
+
+    // Initialize chat UI (called when showing game interface for online)
+    initChatUI() {
+        // Check if already exists
+        if (document.getElementById('chat-container')) return;
+
+        // Create chat button
+        const chatBtn = document.createElement('button');
+        chatBtn.id = 'chat-toggle-btn';
+        chatBtn.innerHTML = '💬';
+        chatBtn.style.cssText = `
+            position: fixed; bottom: 20px; left: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none; font-size: 24px; cursor: pointer;
+            z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        `;
+        chatBtn.onmouseover = () => chatBtn.style.transform = 'scale(1.1)';
+        chatBtn.onmouseout = () => chatBtn.style.transform = 'scale(1)';
+        chatBtn.onclick = () => this.toggleChat();
+        document.body.appendChild(chatBtn);
+
+        // Create chat panel
+        const chatPanel = document.createElement('div');
+        chatPanel.id = 'chat-container';
+        chatPanel.style.cssText = `
+            position: fixed; bottom: 80px; left: 20px;
+            width: 280px; height: 350px;
+            background: rgba(30,30,30,0.95); border-radius: 12px;
+            z-index: 999; display: none; flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        `;
+        chatPanel.innerHTML = `
+            <div style="padding: 12px; background: #2d2d2d; border-bottom: 1px solid #444;">
+                <span style="color: #fff; font-weight: bold;">💬 Chat</span>
+            </div>
+            <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px;"></div>
+            <div style="padding: 10px; border-top: 1px solid #444; display: flex; gap: 8px;">
+                <input id="chat-input" type="text" placeholder="Escribe un mensaje..." 
+                       style="flex: 1; background: #3c3c3c; border: none; color: #fff; padding: 8px; border-radius: 6px;" />
+                <button id="chat-send" style="background: #667eea; border: none; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer;">➤</button>
+            </div>
+        `;
+        document.body.appendChild(chatPanel);
+
+        // Send message handlers
+        const sendMessage = () => {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // Get current player name
+            const me = store.getPlayer(store.state.myId);
+            const playerName = me?.name || 'Jugador';
+
+            // Send via network
+            import('../core/network.js').then(({ network }) => {
+                network.sendChat(msg, playerName);
+            });
+
+            // Add locally
+            this.addChatMessage({ message: msg, playerName, isRemote: false });
+            input.value = '';
+        };
+
+        document.getElementById('chat-send').onclick = sendMessage;
+        document.getElementById('chat-input').onkeypress = (e) => {
+            if (e.key === 'Enter') sendMessage();
+        };
+
+        this.chatMessages = [];
+    }
+
+    toggleChat() {
+        const panel = document.getElementById('chat-container');
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        }
+    }
+
+    addChatMessage({ message, playerName, isRemote }) {
+        const container = document.getElementById('chat-messages');
+        if (!container) {
+            // Chat not initialized, init it
+            this.initChatUI();
+            return this.addChatMessage({ message, playerName, isRemote });
+        }
+
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = `
+            margin-bottom: 8px; padding: 8px; border-radius: 8px;
+            background: ${isRemote ? '#3c3c3c' : '#667eea'};
+            text-align: ${isRemote ? 'left' : 'right'};
+        `;
+        msgDiv.innerHTML = `
+            <div style="font-size: 10px; color: #888; margin-bottom: 2px;">${playerName}</div>
+            <div style="color: #fff; font-size: 13px;">${message}</div>
+        `;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+
+        // Flash chat button if panel is closed
+        const panel = document.getElementById('chat-container');
+        const btn = document.getElementById('chat-toggle-btn');
+        if (panel && panel.style.display === 'none' && isRemote && btn) {
+            btn.style.animation = 'pulse 0.5s ease 3';
+            setTimeout(() => btn.style.animation = '', 1500);
+        }
     }
 }
 
