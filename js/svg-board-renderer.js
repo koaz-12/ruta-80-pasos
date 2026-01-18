@@ -775,9 +775,24 @@ export class SVGBoardRenderer {
 
         // === CONNECTIONS UPDATE ===
         const connsDiv = win.querySelector('#insp-conn-list');
-        let numId; // Declare numId here to make it accessible to the add button
+        let numId;
         if (connsDiv) {
             numId = parseInt(id);
+
+            // Show connections from boardGraph (game data)
+            if (this.boardGraph && this.boardGraph[id]) {
+                const graphNext = this.boardGraph[id].next;
+                const nextIds = Array.isArray(graphNext) ? graphNext : [graphNext];
+
+                nextIds.forEach(nextId => {
+                    const tag = document.createElement('span');
+                    tag.style.cssText = "background:#4ade80; color:black; padding:2px 8px; border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:5px; margin-right:4px; margin-bottom:4px; font-weight:bold;";
+                    tag.innerHTML = `→ ${nextId} <span style='color:#666; font-size:9px;'>(GAME)</span>`;
+                    connsDiv.appendChild(tag);
+                });
+            }
+
+            // Show manual editor edges
             const myEdges = this.edges.filter(e => e[0] === numId || e[1] === numId);
             myEdges.forEach(e => {
                 const other = (e[0] === numId) ? e[1] : e[0];
