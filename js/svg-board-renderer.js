@@ -493,11 +493,11 @@ export class SVGBoardRenderer {
         panel.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
             if (startDrag(touch.clientX, touch.clientY, e.target)) {
-                e.preventDefault();
+                // Only prevent if dragging started
             }
-        }, { passive: false });
+        }, { passive: true });
 
-        document.addEventListener('touchmove', (e) => {
+        panel.addEventListener('touchmove', (e) => {
             if (isDragging) {
                 const touch = e.touches[0];
                 doDrag(touch.clientX, touch.clientY);
@@ -505,7 +505,7 @@ export class SVGBoardRenderer {
             }
         }, { passive: false });
 
-        document.addEventListener('touchend', endDrag);
+        panel.addEventListener('touchend', endDrag);
     }
 
     activateEditorMode() {
@@ -556,11 +556,17 @@ export class SVGBoardRenderer {
                 </div>
             `;
 
-            document.getElementById('uni-expand').onclick = () => {
+            const expandBtn = document.getElementById('uni-expand');
+            const doExpand = () => {
                 panel.isMinimized = false;
-                panel.style.width = '320px';
+                panel.style.width = '280px';
                 localStorage.setItem('editorPanelMinimized', 'false');
                 this.drawUnifiedControls();
+            };
+            expandBtn.onclick = doExpand;
+            expandBtn.ontouchend = (e) => {
+                e.preventDefault();
+                doExpand();
             };
             return;
         }
