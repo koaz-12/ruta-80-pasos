@@ -827,6 +827,16 @@ export class GameEngine {
     // checkTileEvent removed (duplicate)
 
     handleNetworkData(data) {
+        // Heartbeat handlers
+        if (data.type === 'PING') {
+            network.send({ type: 'PONG', timestamp: data.timestamp });
+            return;
+        }
+        if (data.type === 'PONG') {
+            network.handlePong();
+            return;
+        }
+
         if (data.type === 'LOBBY_UPDATE') {
             store.state.players = data.players; // Sync players list
             bus.emit('LOBBY_PLAYERS_UPDATED', data.players);
