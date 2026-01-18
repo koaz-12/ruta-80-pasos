@@ -61,6 +61,9 @@ export class UIRenderer {
         // Market
         bus.on('SHOW_MARKET', (data) => this.showMarket(data));
 
+        // Move choice (advance or stay)
+        bus.on('SHOW_MOVE_CHOICE', (data) => this.showMoveChoice(data));
+
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }
 
@@ -1020,6 +1023,67 @@ export class UIRenderer {
             modal.classList.add('hidden');
             bus.emit('UI_MARKET_CLOSED');
         };
+
+        modal.classList.remove('hidden');
+    }
+
+    // Show choice to advance or stay after rolling dice
+    showMoveChoice({ player, roll, hasFood }) {
+        const modal = document.getElementById('pvp-modal'); // Reuse PvP modal
+        if (!modal) {
+            // If no modal, auto-advance
+            bus.emit('UI_MOVE_CHOICE', 'advance');
+            return;
+        }
+
+        const title = document.getElementById('pvp-title');
+        const yourIcon = document.getElementById('pvp-your-icon');
+        const yourName = document.getElementById('pvp-your-name');
+        const yourStats = document.getElementById('pvp-your-stats');
+        const oppIcon = document.getElementById('pvp-opp-icon');
+        const oppName = document.getElementById('pvp-opp-name');
+        const oppStats = document.getElementById('pvp-opp-stats');
+        const message = document.getElementById('pvp-message');
+        const optionsDiv = document.getElementById('pvp-options');
+
+        title.textContent = `🎲 RESULTADO: ${roll}`;
+
+        // Set player info
+        yourIcon.textContent = player.stats?.class?.icon || '👤';
+        yourName.textContent = player.name;
+        yourStats.textContent = `🍗${player.stats?.food || 0}`;
+
+        // Hide opponent side
+        oppIcon.textContent = '🎯';
+        oppName.textContent = `${roll} casillas`;
+        oppStats.textContent = '';
+
+        message.textContent = `¿Qué quieres hacer?`;
+
+        // Build options
+        optionsDiv.innerHTML = '';
+
+        // Advance option
+        const advanceBtn = document.createElement('button');
+        advanceBtn.className = 'btn-pvp-option';
+        advanceBtn.innerHTML = `<span class="pvp-opt-text">🚶 Avanzar</span><span class="pvp-opt-desc">Moverse ${roll} casillas</span>`;
+        advanceBtn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_MOVE_CHOICE', 'advance');
+        };
+        optionsDiv.appendChild(advanceBtn);
+
+        // Stay option (only if has food)
+        if (hasFood) {
+            const stayBtn = document.createElement('button');
+            stayBtn.className = 'btn-pvp-option';
+            stayBtn.innerHTML = `<span class="pvp-opt-text">🏠 Quedarse</span><span class="pvp-opt-desc">Pagar 1 comida para no moverse</span>`;
+            stayBtn.onclick = () => {
+                modal.classList.add('hidden');
+                bus.emit('UI_MOVE_CHOICE', 'stay');
+            };
+            optionsDiv.appendChild(stayBtn);
+        }
 
         modal.classList.remove('hidden');
     }

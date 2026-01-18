@@ -279,8 +279,42 @@ export class GameEngine {
             bus.emit('DICE_ROLLED', roll);
             network.send({ type: 'DICE_ROLLED', value: roll });
 
-            // Wait for animation (3.5s)
+            // Wait for dice animation (3.5s)
             await new Promise(r => setTimeout(r, 3500));
+
+            // === NEW: Ask player if they want to advance or stay ===
+            if (player.stats.food > 0) {
+                const shouldAdvance = await new Promise(resolve => {
+                    bus.emit('SHOW_MOVE_CHOICE', {
+                        player,
+                        roll,
+                        hasFood: player.stats.food > 0
+                    });
+
+                    const onDecision = (decision) => {
+                        bus.off('UI_MOVE_CHOICE', onDecision);
+                        resolve(decision === 'advance');
+                    };
+                    bus.on('UI_MOVE_CHOICE', onDecision);
+                });
+
+                if (!shouldAdvance) {
+                    // Player chose to stay - consume 1 food
+                    console.log(`🏠 [STAY] ${player.name} chose to stay (-1 food)`);
+                    player.stats.food--;
+                    store.setPlayers(players);
+
+                    bus.emit('SHOW_NOTIFICATION', {
+                        message: `${player.name} se queda en su lugar (-1 comida)`,
+                        type: 'warning'
+                    });
+
+                    this.isExecutingTurn = false;
+                    this.endTurn();
+                    return;
+                }
+                console.log(`🚶 [ADVANCE] ${player.name} chose to advance`);
+            }
         }
 
         // 2. Calculate Path step by step
@@ -416,14 +450,9 @@ export class GameEngine {
 
             if (hasPvPEncounter) {
                 console.log('⚔️ [PVP] Waiting for encounter to resolve...');
-                // Wait for PvP to end before continuing
-                await new Promise(resolve => {
-                    const onPvPEnd = () => {
-                        bus.off('PVP_ENCOUNTER_END', onPvPEnd);
-                        resolve();
-                    };
-                    bus.on('PVP_ENCOUNTER_END', onPvPEnd);
-                });
+                // PVP encounter started - onPvPEncounterEnd will handle ending the turn
+                // Don't continue with tile events since PVP IS the tile event
+                return;
             }
 
             // 5. Check tile event (only if no PvP or after PvP resolved)
