@@ -806,6 +806,15 @@ export class GameEngine {
         bus.emit('SHOW_CHAR_SELECT', CLASSES);
     }
 
+    // Called when PvP encounter ends (peace, combat, or retreat)
+    onPvPEncounterEnd() {
+        console.log('🏁 [PVP] Encounter ended, resetting turn state');
+        // Reset the guard flag so next player can roll
+        this.isExecutingTurn = false;
+        // End current player's turn
+        this.endTurn();
+    }
+
     syncState() {
         if (store.state.role === 'HOST') {
             network.send({
