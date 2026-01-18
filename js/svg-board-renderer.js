@@ -396,15 +396,15 @@ export class SVGBoardRenderer {
         const pos = savedPos ? JSON.parse(savedPos) : { top: 50, right: 50 };
         const isMinimized = localStorage.getItem('editorPanelMinimized') === 'true';
 
-        // Create floating draggable panel
+        // Create floating draggable panel (SMALLER SIZE)
         this.editorPanel = document.createElement('div');
         this.editorPanel.id = 'unified-editor-panel';
         Object.assign(this.editorPanel.style, {
             position: 'fixed',
             top: pos.top + 'px',
             right: pos.right + 'px',
-            width: isMinimized ? '60px' : '320px',
-            maxHeight: '90vh',
+            width: isMinimized ? '60px' : '280px',  // Smaller: 280px instead of 320px
+            maxHeight: '85vh',  // Don't take entire screen
             display: 'none',
             flexDirection: 'column',
             background: '#1e1e1e',
@@ -413,7 +413,8 @@ export class SVGBoardRenderer {
             zIndex: '10000',
             boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
             overflow: 'hidden',
-            transition: 'width 0.3s ease'
+            transition: 'width 0.3s ease',
+            cursor: 'grab'  // Show it's draggable
         });
 
         this.editorPanel.isMinimized = isMinimized;
@@ -431,11 +432,15 @@ export class SVGBoardRenderer {
         let isDragging = false;
         let startX, startY, startTop, startRight;
 
-        // Drag from header only
+        // Drag from anywhere on panel (improved)
         panel.addEventListener('mousedown', (e) => {
-            // Only drag if clicking on header area (first 50px)
-            const rect = panel.getBoundingClientRect();
-            if (e.clientY - rect.top > 60) return; // Not in header
+            // Don't drag if clicking on interactive elements
+            if (e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'BUTTON' ||
+                e.target.tagName === 'SELECT' ||
+                e.target.tagName === 'LABEL') {
+                return;
+            }
 
             isDragging = true;
             startX = e.clientX;
@@ -462,7 +467,7 @@ export class SVGBoardRenderer {
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
-                panel.style.cursor = 'default';
+                panel.style.cursor = 'grab';
 
                 // Save position
                 localStorage.setItem('editorPanelPos', JSON.stringify({
@@ -610,7 +615,7 @@ export class SVGBoardRenderer {
         document.getElementById('uni-close').onclick = () => {
             // Toggle minimize/maximize
             panel.isMinimized = !panel.isMinimized;
-            panel.style.width = panel.isMinimized ? '60px' : '320px';
+            panel.style.width = panel.isMinimized ? '60px' : '280px';  // Match new size
             localStorage.setItem('editorPanelMinimized', panel.isMinimized ? 'true' : 'false');
 
             // Redraw panel to show minimized or expanded view
