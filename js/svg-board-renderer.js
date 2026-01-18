@@ -391,40 +391,86 @@ export class SVGBoardRenderer {
     }
 
     initEditor() {
-        // 1. Unified Right Panel (Hidden by default)
+        // Load saved position or use default
+        const savedPos = localStorage.getItem('editorPanelPos');
+        const pos = savedPos ? JSON.parse(savedPos) : { top: 50, right: 50 };
+        const isMinimized = localStorage.getItem('editorPanelMinimized') === 'true';
+
+        // Create floating draggable panel
         this.editorPanel = document.createElement('div');
         this.editorPanel.id = 'unified-editor-panel';
         Object.assign(this.editorPanel.style, {
-            position: 'fixed', top: '0', right: '0', height: '100%',
-            width: '280px',
-            display: 'none', flexDirection: 'column',
-            background: 'rgba(33, 37, 41, 0.95)', borderLeft: '1px solid #555',
-            zIndex: '9999', padding: '15px', boxSizing: 'border-box',
-            backdropFilter: 'blur(5px)', boxShadow: '-5px 0 15px rgba(0,0,0,0.3)',
-            overflowY: 'auto'
+            position: 'fixed',
+            top: pos.top + 'px',
+            right: pos.right + 'px',
+            width: isMinimized ? '60px' : '320px',
+            maxHeight: '90vh',
+            display: 'none',
+            flexDirection: 'column',
+            background: '#1e1e1e',
+            border: '2px solid #444',
+            borderRadius: '8px',
+            zIndex: '10000',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+            overflow: 'hidden',
+            transition: 'width 0.3s ease'
         });
-        document.body.appendChild(this.editorPanel);
 
-        // 2. Restore Button (Wrench) - Initially Hidden
-        this.restoreBtn = document.createElement('button');
-        this.restoreBtn.id = 'editor-restore-btn';
-        this.restoreBtn.innerHTML = '🔧';
-        this.restoreBtn.title = 'Abrir Editor';
-        Object.assign(this.restoreBtn.style, {
-            position: 'fixed', top: '10px', right: '10px',
-            zIndex: '10000', fontSize: '24px', background: 'rgba(0,0,0,0.5)',
-            color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px',
-            cursor: 'pointer', display: 'none', justifyContent: 'center', alignItems: 'center'
-        });
-        this.restoreBtn.onclick = () => {
-            this.editorPanel.style.display = 'flex';
-            this.restoreBtn.style.display = 'none';
-            document.body.style.paddingRight = '280px';
-        };
-        document.body.appendChild(this.restoreBtn);
+        this.editorPanel.isMinimized = isMinimized;
+        document.body.appendChild(this.editorPanel);
 
         // Populate Controls
         this.drawUnifiedControls();
+
+        // Make panel draggable
+        this.makePanelDraggable();
+    }
+
+    makePanelDraggable() {
+        const panel = this.editorPanel;
+        let isDragging = false;
+        let startX, startY, startTop, startRight;
+
+        // Drag from header only
+        panel.addEventListener('mousedown', (e) => {
+            // Only drag if clicking on header area (first 50px)
+            const rect = panel.getBoundingClientRect();
+            if (e.clientY - rect.top > 60) return; // Not in header
+
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startTop = parseInt(panel.style.top) || 0;
+            startRight = parseInt(panel.style.right) || 0;
+            panel.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            const newTop = Math.max(0, Math.min(window.innerHeight - 100, startTop + deltaY));
+            const newRight = Math.max(0, Math.min(window.innerWidth - 100, startRight - deltaX));
+
+            panel.style.top = newTop + 'px';
+            panel.style.right = newRight + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                panel.style.cursor = 'default';
+
+                // Save position
+                localStorage.setItem('editorPanelPos', JSON.stringify({
+                    top: parseInt(panel.style.top),
+                    right: parseInt(panel.style.right)
+                }));
+            }
+        });
     }
 
     activateEditorMode() {
@@ -468,6 +514,23 @@ export class SVGBoardRenderer {
     drawUnifiedControls() {
         const panel = this.editorPanel;
         if (!panel) return;
+
+        // If minimized, show only icon
+        if (panel.isMinimized) {
+            panel.innerHTML = `
+                <div style="display:flex; justify-content:center; align-items:center; padding:15px; cursor:pointer; background:#2d2d2d; border-radius:8px;" id="uni-expand" title="Expandir Editor">
+                    <span style="font-size:28px;">🎨</span>
+                </div>
+            `;
+
+            document.getElementById('uni-expand').onclick = () => {
+                panel.isMinimized = false;
+                panel.style.width = '320px';
+                localStorage.setItem('editorPanelMinimized', 'false');
+                this.drawUnifiedControls();
+            };
+            return;
+        }
 
         // Get current board size
         const currentWidth = this.width || 850;
@@ -547,14 +610,17 @@ export class SVGBoardRenderer {
 
         // SIDEBAR EVENTS
         document.getElementById('uni-close').onclick = () => {
-            panel.style.display = 'none';
-            document.body.style.paddingRight = '0';
-            if (this.restoreBtn) this.restoreBtn.style.display = 'flex';
+            // Toggle minimize/maximize
+            panel.isMinimized = !panel.isMinimized;
+            panel.style.width = panel.isMinimized ? '60px' : '320px';
+            localStorage.setItem('editorPanelMinimized', panel.isMinimized ? 'true' : 'false');
+
+            // Redraw panel to show minimized or expanded view
+            this.drawUnifiedControls();
         };
 
         document.getElementById('tool-exit').onclick = () => {
             panel.style.display = 'none';
-            document.body.style.paddingRight = '0';
             if (this.inspectorWin) this.inspectorWin.remove();
 
             const game = document.querySelector('.game-container') || document.querySelector('.board-container');
