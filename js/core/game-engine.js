@@ -475,6 +475,7 @@ export class GameEngine {
                 }, 5000);
 
                 try {
+                    console.log(`🎯 [TILE EVENT] Calling checkTileEvent for tile ${finalPos}`);
                     tileEventManager.checkTileEvent(player, finalPos);
                 } catch (err) {
                     console.error('❌ [TILE EVENT] Error:', err);
