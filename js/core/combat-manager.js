@@ -17,6 +17,7 @@ export class CombatManager {
         }
 
         this.inCombat = true;
+        this.isRolling = false; // Reset roll guard
         this.currentCombat = {
             player,
             enemyCount,
@@ -42,6 +43,13 @@ export class CombatManager {
             return;
         }
 
+        // Guard against double rolls
+        if (this.isRolling) {
+            console.warn('⚠️ [COMBAT] Already rolling, ignoring duplicate');
+            return;
+        }
+        this.isRolling = true;
+
         this.currentCombat.round++;
 
         // Tirar dados
@@ -66,8 +74,13 @@ export class CombatManager {
             round: this.currentCombat.round
         });
 
-        // Resolver resultado
-        setTimeout(() => this.resolveCombat(playerRoll, enemyRoll), 1500);
+        // Resolver resultado - store values locally to avoid race conditions
+        const pRoll = playerRoll;
+        const eRoll = enemyRoll;
+        setTimeout(() => {
+            this.isRolling = false;
+            this.resolveCombat(pRoll, eRoll);
+        }, 1500);
     }
 
     // Resolver combate
