@@ -296,6 +296,43 @@
     box-shadow: none;
 }
 
+/* Combat mode dice animations */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-15deg) scale(1.1);
+    }
+
+    50% {
+        transform: rotate(15deg) scale(1.2);
+    }
+
+    75% {
+        transform: rotate(-10deg) scale(1.1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px 2px rgba(255, 107, 53, 0.6);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 5px rgba(255, 107, 53, 1);
+    }
+}
+
+.btn-roll.combat-mode {
+    animation: pulse 1s infinite;
+}
+
 /* Mobile Responsive */
 @media (max-width: 480px) {
     .bottom-bar {

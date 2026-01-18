@@ -775,16 +775,16 @@ export class UIRenderer {
     executeCombatRoll() {
         // Animate the main dice button
         const mainDice = document.getElementById('btn-action-roll');
-        const diceCube = mainDice?.querySelector('.dice-cube');
+        const diceIcon = mainDice?.querySelector('.dice-icon');
 
-        if (diceCube) {
-            // Add rolling animation
-            diceCube.classList.add('rolling');
+        if (diceIcon) {
+            // Add shake animation to dice emoji
+            diceIcon.style.animation = 'shake 0.5s ease-in-out';
 
-            // Stop animation after a short delay
+            // Remove animation after it completes
             setTimeout(() => {
-                diceCube.classList.remove('rolling');
-            }, 600);
+                diceIcon.style.animation = '';
+            }, 500);
         }
 
         // Execute the combat roll
@@ -803,7 +803,13 @@ export class UIRenderer {
         const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
         const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');
 
-        // Animate dice
+        // Update main dice button to show player's roll
+        const mainDiceResult = document.getElementById('dice-last-roll');
+        if (mainDiceResult) {
+            mainDiceResult.textContent = playerRoll;
+        }
+
+        // Update modal dice displays
         if (playerDice) {
             playerDice.textContent = playerRoll;
             playerDice.classList.add('roll-animation');
@@ -813,7 +819,8 @@ export class UIRenderer {
             enemyDice.classList.add('roll-animation');
         }
         if (combatMsg) {
-            combatMsg.textContent = `Ronda ${round}: ${playerRoll} vs ${enemyRoll}`;
+            const result = playerRoll > enemyRoll ? '✅' : playerRoll < enemyRoll ? '❌' : '🔄';
+            combatMsg.innerHTML = `<span style="font-size: 1.5rem;">${result}</span><br>Tú: ${playerRoll} vs Enemigo: ${enemyRoll}`;
         }
 
         setTimeout(() => {
