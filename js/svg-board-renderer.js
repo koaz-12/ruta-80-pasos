@@ -32,6 +32,11 @@ export class SVGBoardRenderer {
         this.mortal = '#FF6B6B';
 
         this.isEditorMode = false; // Default blocked
+
+        // Grid settings (load from localStorage)
+        this.showGrid = localStorage.getItem('editorShowGrid') === 'true';
+        this.snapToGrid = localStorage.getItem('editorSnapToGrid') === 'true';
+        this.gridSize = parseInt(localStorage.getItem('editorGridSize')) || 25;
     }
 
     render() {
@@ -538,6 +543,11 @@ export class SVGBoardRenderer {
             this.editorPanel.style.display = 'flex';
         }
 
+        // 6. Render grid if enabled
+        if (this.showGrid) {
+            this.renderGrid();
+        }
+
         window.dispatchEvent(new Event('resize'));
     }
 
@@ -628,6 +638,30 @@ export class SVGBoardRenderer {
                 <button id="apply-size" style="width:100%; background:#667eea; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
                     Aplicar Tamaño
                 </button>
+                
+                <!-- Grid Controls -->
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid #333;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <span style="color:#aaa; font-size:11px;">📐 Grid Visual</span>
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" id="grid-toggle" ${this.showGrid ? 'checked' : ''} 
+                                   style="width:18px; height:18px; cursor:pointer;" />
+                        </label>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <span style="color:#aaa; font-size:11px;">🧲 Snap-to-Grid</span>
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" id="snap-toggle" ${this.snapToGrid ? 'checked' : ''} 
+                                   style="width:18px; height:18px; cursor:pointer;" />
+                        </label>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="color:#aaa; font-size:11px; white-space:nowrap;">Tamaño:</span>
+                        <input type="number" id="grid-size" value="${this.gridSize || 25}" min="10" max="100" step="5"
+                               style="flex:1; background:#3c3c3c; border:1px solid #555; color:#fff; padding:4px; border-radius:4px; font-size:11px;" />
+                        <span style="color:#666; font-size:10px;">px</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Tools Section -->
@@ -748,6 +782,24 @@ export class SVGBoardRenderer {
         document.getElementById('project-load').onclick = () => this.showProjectList('load');
         document.getElementById('project-new').onclick = () => this.newProject();
         document.getElementById('project-delete').onclick = () => this.showProjectList('delete');
+
+        // === GRID CONTROL HANDLERS ===
+        document.getElementById('grid-toggle').onchange = (e) => {
+            this.showGrid = e.target.checked;
+            localStorage.setItem('editorShowGrid', this.showGrid ? 'true' : 'false');
+            this.renderGrid();
+        };
+
+        document.getElementById('snap-toggle').onchange = (e) => {
+            this.snapToGrid = e.target.checked;
+            localStorage.setItem('editorSnapToGrid', this.snapToGrid ? 'true' : 'false');
+        };
+
+        document.getElementById('grid-size').onchange = (e) => {
+            this.gridSize = parseInt(e.target.value) || 25;
+            localStorage.setItem('editorGridSize', this.gridSize);
+            if (this.showGrid) this.renderGrid();
+        };
     }
 
     addNewTile() {
@@ -1317,6 +1369,81 @@ export class SVGBoardRenderer {
         this.setProjects(data);
         alert(`🗑️ Proyecto "${project.name}" eliminado`);
         this.drawUnifiedControls();
+    }
+
+    // Render visual grid on the board
+    renderGrid() {
+        // Remove existing grid
+        const existingGrid = this.svg.querySelector('#editor-grid');
+        if (existingGrid) existingGrid.remove();
+
+        if (!this.showGrid) return;
+
+        const gridGroup = document.createElementNS(this.ns, 'g');
+        gridGroup.id = 'editor-grid';
+        gridGroup.style.pointerEvents = 'none'; // Don't interfere with clicks
+
+        const width = this.width || 850;
+        const height = this.height || 1400;
+        const size = this.gridSize || 25;
+
+        // Create grid pattern using lines
+        // Vertical lines
+        for (let x = 0; x <= width; x += size) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', 0);
+            line.setAttribute('x2', x);
+            line.setAttribute('y2', height);
+            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
+            line.setAttribute('stroke-width', '0.5');
+            gridGroup.appendChild(line);
+        }
+
+        // Horizontal lines
+        for (let y = 0; y <= height; y += size) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', 0);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', width);
+            line.setAttribute('y2', y);
+            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
+            line.setAttribute('stroke-width', '0.5');
+            gridGroup.appendChild(line);
+        }
+
+        // Major gridlines every 100px
+        for (let x = 0; x <= width; x += 100) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', 0);
+            line.setAttribute('x2', x);
+            line.setAttribute('y2', height);
+            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
+            line.setAttribute('stroke-width', '1');
+            gridGroup.appendChild(line);
+        }
+        for (let y = 0; y <= height; y += 100) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', 0);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', width);
+            line.setAttribute('y2', y);
+            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
+            line.setAttribute('stroke-width', '1');
+            gridGroup.appendChild(line);
+        }
+
+        // Insert at beginning of rootGroup so it's behind tiles
+        this.rootGroup.insertBefore(gridGroup, this.rootGroup.firstChild);
+        console.log(`📐 [GRID] Rendered grid: ${size}px spacing`);
+    }
+
+    // Snap position to grid
+    snapToGridPos(value) {
+        if (!this.snapToGrid) return value;
+        const size = this.gridSize || 25;
+        return Math.round(value / size) * size;
     }
 
     // Set board size
@@ -1985,8 +2112,14 @@ export class SVGBoardRenderer {
                 const ctm = this.rootGroup.getScreenCTM().inverse();
                 const svgPt = pt.matrixTransform(ctm);
 
-                const newX = Math.round(svgPt.x - offset.x);
-                const newY = Math.round(svgPt.y - offset.y);
+                // Apply snap-to-grid if enabled
+                let newX = Math.round(svgPt.x - offset.x);
+                let newY = Math.round(svgPt.y - offset.y);
+
+                if (this.snapToGrid && this.isEditorMode) {
+                    newX = this.snapToGridPos(newX);
+                    newY = this.snapToGridPos(newY);
+                }
 
                 draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
                 draggedElement.dataset.x = newX;
