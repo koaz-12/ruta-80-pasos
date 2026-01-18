@@ -458,6 +458,9 @@ export class GameEngine {
                 return;
             }
 
+            // Wait a moment after arriving at tile before showing event
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
             // 5. Check tile event (only if no PvP or after PvP resolved)
             await new Promise(resolve => {
                 let completed = false;
@@ -609,6 +612,9 @@ export class GameEngine {
                     if (hasPvPEncounter) {
                         return; // PVP will handle ending the turn
                     }
+
+                    // Wait a moment after arriving at tile before showing event
+                    await new Promise(resolve => setTimeout(resolve, 1500));
 
                     // Check tile event (market, zombie, luck, event)
                     await new Promise(resolve => {
