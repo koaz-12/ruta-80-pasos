@@ -57,8 +57,8 @@ export class SVGBoardRenderer {
         // Let browser handle aspect ratio perfectly
         this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
-        // Clean styling
-        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6;touch-action:none;cursor:grab';
+        // Clean styling - touch-action:manipulation allows pan and zoom on mobile
+        this.svg.style.cssText = 'width:100%;height:100%;background:#F7F5E6;touch-action:manipulation;cursor:grab';
         this.svg.id = 'game-board-svg';
 
         this.container.innerHTML = '';
