@@ -227,6 +227,7 @@ export class TileEventManager {
                     message: `🏠 ¡Zona Segura! ${player.name} recupera +1 ❤️`,
                     type: 'success'
                 });
+                bus.emit('RESOURCE_CHANGE', { icon: '❤️', amount: '+1', color: '#22c55e' });
                 console.log(`  ${player.name} recovered 1 life. Now: ${playerData.stats.life}`);
             } else {
                 bus.emit('SHOW_NOTIFICATION', {
