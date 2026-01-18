@@ -184,6 +184,9 @@ export class GameEngine {
             return;
         }
 
+        // Reset endTurn guard for this new turn
+        this.endingTurn = false;
+
         // Si soy HOST u OFFLINE, ejecuto la lógica
         this.executeTurn(state.turnIndex);
     }
@@ -684,7 +687,14 @@ export class GameEngine {
     }
 
     endTurn() {
-        // Reset guard flag
+        // Guard against multiple calls in the same turn
+        if (this.endingTurn) {
+            console.warn('⚠️ [END TURN] Already ending turn, ignoring duplicate call');
+            return;
+        }
+        this.endingTurn = true;
+
+        // Reset execution guard
         this.isExecutingTurn = false;
 
         const players = [...store.state.players];

@@ -1246,6 +1246,11 @@ export class UIRenderer {
 
     // Show turn transition overlay for hotseat mode
     showTurnTransition({ player, playerIndex, totalPlayers }) {
+        // Guard: Check if player exists
+        if (!player) {
+            console.warn('⚠️ [UI] showTurnTransition called with null player');
+            return;
+        }
         // Create or get overlay
         let overlay = document.getElementById('turn-transition-overlay');
         if (!overlay) {
