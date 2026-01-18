@@ -548,7 +548,117 @@ export class SVGBoardRenderer {
             this.renderGrid();
         }
 
+        // 7. Setup keyboard shortcuts
+        if (!this.keyboardInitialized) {
+            this.initKeyboardShortcuts();
+            this.keyboardInitialized = true;
+        }
+
         window.dispatchEvent(new Event('resize'));
+    }
+
+    // Keyboard shortcuts for editor
+    initKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.isEditorMode) return;
+
+            // Don't trigger if typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // Delete - remove selected tile
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (this.selectedTileId) {
+                    const group = this.svg.querySelector(`g[data-id="${this.selectedTileId}"]`);
+                    if (group && confirm(`¿Eliminar casilla ${this.selectedTileId}?`)) {
+                        group.remove();
+                        this.edges = this.edges.filter(edge =>
+                            edge[0] !== parseInt(this.selectedTileId) &&
+                            edge[1] !== parseInt(this.selectedTileId)
+                        );
+                        this.drawEdges();
+                        this.selectedTileId = null;
+                        this.showEditorNotification('🗑️ Casilla eliminada');
+                    }
+                }
+                return;
+            }
+
+            // Ctrl+S - Save project
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                this.saveCurrentProject();
+                return;
+            }
+
+            // Ctrl+N - New project
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                this.newProject();
+                return;
+            }
+
+            // G - Toggle grid
+            if (e.key === 'g' || e.key === 'G') {
+                this.showGrid = !this.showGrid;
+                localStorage.setItem('editorShowGrid', this.showGrid ? 'true' : 'false');
+                this.renderGrid();
+                this.showEditorNotification(this.showGrid ? '📐 Grid activado' : '📐 Grid desactivado');
+                const checkbox = document.getElementById('grid-toggle');
+                if (checkbox) checkbox.checked = this.showGrid;
+                return;
+            }
+
+            // S - Toggle snap
+            if (e.key === 's' && !e.ctrlKey) {
+                this.snapToGrid = !this.snapToGrid;
+                localStorage.setItem('editorSnapToGrid', this.snapToGrid ? 'true' : 'false');
+                this.showEditorNotification(this.snapToGrid ? '🧲 Snap activado' : '🧲 Snap desactivado');
+                const checkbox = document.getElementById('snap-toggle');
+                if (checkbox) checkbox.checked = this.snapToGrid;
+                return;
+            }
+
+            // N - New tile
+            if (e.key === 'n' && !e.ctrlKey) {
+                this.addNewTile();
+                this.showEditorNotification('➕ Nueva casilla creada');
+                return;
+            }
+
+            // Escape - Deselect / close inspector
+            if (e.key === 'Escape') {
+                this.selectedTileId = null;
+                if (this.inspectorWin) this.inspectorWin.remove();
+                this.showEditorNotification('Deseleccionado');
+                return;
+            }
+        });
+
+        console.log('⌨️ [EDITOR] Keyboard shortcuts initialized');
+    }
+
+    // Show quick notification in editor
+    showEditorNotification(message) {
+        let notif = document.getElementById('editor-notification');
+        if (!notif) {
+            notif = document.createElement('div');
+            notif.id = 'editor-notification';
+            notif.style.cssText = `
+                position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+                background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px;
+                border-radius: 20px; font-size: 14px; z-index: 10002;
+                transition: opacity 0.3s; pointer-events: none;
+            `;
+            document.body.appendChild(notif);
+        }
+
+        notif.textContent = message;
+        notif.style.opacity = '1';
+
+        clearTimeout(this.notifTimeout);
+        this.notifTimeout = setTimeout(() => {
+            notif.style.opacity = '0';
+        }, 1500);
     }
 
 
@@ -825,6 +935,7 @@ export class SVGBoardRenderer {
 
     openInspector(tileGroup) {
         this.selectedTile = tileGroup;
+        this.selectedTileId = tileGroup.getAttribute('data-id'); // Track for keyboard shortcuts
         const id = tileGroup.getAttribute('data-id');
         const display = tileGroup.getAttribute('data-display');
         const x = tileGroup.dataset.x || 0;
