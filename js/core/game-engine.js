@@ -457,13 +457,29 @@ export class GameEngine {
 
             // 5. Check tile event (only if no PvP or after PvP resolved)
             await new Promise(resolve => {
+                let completed = false;
                 const onEventComplete = () => {
+                    if (completed) return;
+                    completed = true;
                     bus.off('TILE_EVENT_COMPLETE', onEventComplete);
                     resolve();
                 };
                 bus.on('TILE_EVENT_COMPLETE', onEventComplete);
 
-                tileEventManager.checkTileEvent(player, finalPos);
+                // Fallback timeout in case event never completes
+                setTimeout(() => {
+                    if (!completed) {
+                        console.warn('⚠️ [TILE EVENT] Timeout - forcing completion');
+                        onEventComplete();
+                    }
+                }, 5000);
+
+                try {
+                    tileEventManager.checkTileEvent(player, finalPos);
+                } catch (err) {
+                    console.error('❌ [TILE EVENT] Error:', err);
+                    onEventComplete();
+                }
             });
 
             // 5. Check for victory (reached tile 80)

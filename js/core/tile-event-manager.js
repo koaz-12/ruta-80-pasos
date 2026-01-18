@@ -92,7 +92,20 @@ export class TileEventManager {
                 console.log('🏃 [ZOMBIE] Player chose to RETREAT!');
 
                 // Get the starting position from player's previous position
-                const startPos = player.previousPosition || player.position;
+                const players = [...store.state.players];
+                const playerData = players.find(p => p.id === player.id);
+
+                if (!playerData) {
+                    console.error('❌ [RETREAT] Player not found!');
+                    this.processingEvent = false;
+                    bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'retreat' });
+                    return;
+                }
+
+                const currentPos = playerData.pos;
+                const startPos = playerData.previousPosition || currentPos;
+
+                console.log(`🏃 [RETREAT] From ${currentPos} back to ${startPos}`);
 
                 bus.emit('SHOW_NOTIFICATION', {
                     message: `🏃 ${player.name} huye del zombie! Retrocede a casilla ${startPos}`,
@@ -100,13 +113,14 @@ export class TileEventManager {
                 });
 
                 // Move player back to starting position
-                const players = [...store.state.players];
-                const playerData = players.find(p => p.id === player.id);
-                if (playerData) {
-                    playerData.position = startPos;
-                    store.setPlayers(players);
-                    bus.emit('STATE_UPDATED', store.state);
-                }
+                playerData.pos = startPos;
+                store.setPlayers(players);
+
+                // Emit animation for retreat
+                bus.emit('PLAYER_MOVING', {
+                    playerId: playerData.id,
+                    path: [String(currentPos), String(startPos)]
+                });
 
                 this.processingEvent = false;
                 bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'retreat' });
