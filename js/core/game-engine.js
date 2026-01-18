@@ -683,11 +683,13 @@ export class GameEngine {
                 if (currentPlayer.stats.food > 0) {
                     currentPlayer.stats.food--;
                     console.log(`🍖 [HUNGER] ${currentPlayer.name} consumed 1 food. Remaining: ${currentPlayer.stats.food}`);
-                    bus.emit('SHOW_NOTIFICATION', { message: `${currentPlayer.name} consumió 1 comida`, type: 'info' });
+                    bus.emit('SHOW_NOTIFICATION', { message: `🍖 ${currentPlayer.name} consumió 1 comida`, type: 'info' });
+                    bus.emit('RESOURCE_CHANGE', { icon: '🍗', amount: '-1', color: '#f59e0b' });
                 } else {
                     currentPlayer.stats.life--;
                     console.log(`💀 [STARVATION] ${currentPlayer.name} lost 1 life! Remaining: ${currentPlayer.stats.life}`);
-                    bus.emit('SHOW_NOTIFICATION', { message: `${currentPlayer.name} perdió 1 vida por hambre!`, type: 'danger' });
+                    bus.emit('SHOW_NOTIFICATION', { message: `💀 ${currentPlayer.name} perdió 1 vida por hambre!`, type: 'danger' });
+                    bus.emit('RESOURCE_CHANGE', { icon: '❤️', amount: '-1', color: '#ef4444' });
 
                     // Check for death
                     if (currentPlayer.stats.life <= 0) {

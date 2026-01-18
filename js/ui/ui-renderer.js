@@ -44,6 +44,9 @@ export class UIRenderer {
         bus.on('COMBAT_VICTORY', (data) => this.showCombatVictory(data));
         bus.on('COMBAT_DEFEAT', (data) => this.showCombatDefeat(data));
 
+        // Resource change floating indicator
+        bus.on('RESOURCE_CHANGE', (data) => this.showFloatingIndicator(data.icon, data.amount, data.color));
+
         // Chat system (online only)
         bus.on('CHAT_RECEIVED', (data) => this.addChatMessage(data));
         bus.on('COMBAT_END', () => this.hideCombatModal());
@@ -463,6 +466,11 @@ export class UIRenderer {
 
     showCardModal({ type, card }) {
         const modal = document.getElementById('card-modal');
+        if (!modal) {
+            console.error('❌ [UI] Card modal not found!');
+            return;
+        }
+
         const cardDisplay = modal.querySelector('.card-display');
         const title = document.getElementById('card-title');
         const desc = document.getElementById('card-desc');
@@ -471,28 +479,109 @@ export class UIRenderer {
         const btn = document.getElementById('btn-close-card');
 
         // Reset flip state first
-        cardDisplay.classList.remove('flipped');
+        if (cardDisplay) cardDisplay.classList.remove('flipped');
 
-        typeTitle.textContent = type === 'LOOT' ? "HALLAZGO" : "EVENTO";
-        icon.textContent = type === 'LOOT' ? "💎" : "📜";
-        title.textContent = card.title || "Carta Desconocida";
-        desc.textContent = card.desc || "Efecto misterioso...";
+        // Set content
+        if (typeTitle) typeTitle.textContent = type === 'LOOT' ? "🎁 HALLAZGO" : "📜 EVENTO";
+        if (icon) icon.textContent = type === 'LOOT' ? "💎" : "⚡";
+        if (title) title.textContent = card.title || "Carta Desconocida";
+        if (desc) desc.textContent = card.desc || "Efecto misterioso...";
 
+        // Ensure high z-index and visibility
+        modal.style.zIndex = '10001';
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        console.log(`🃏 [UI] Showing card: ${card.title} (${type})`);
+
+        // Show floating resource change indicator
+        if (card.desc) {
+            this.showResourceChange(card.desc);
+        }
 
         // Auto-flip after brief delay to show card content
         setTimeout(() => {
-            cardDisplay.classList.add('flipped');
-        }, 800);
+            if (cardDisplay) cardDisplay.classList.add('flipped');
+        }, 600);
 
         // Close handler
-        btn.onclick = () => {
-            cardDisplay.classList.remove('flipped');
+        if (btn) {
+            btn.onclick = () => {
+                if (cardDisplay) cardDisplay.classList.remove('flipped');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                    bus.emit('UI_CARD_CLOSED');
+                }, 300);
+            };
+        }
+    }
+
+    // Show floating resource change indicator
+    showResourceChange(description) {
+        // Parse description for resource changes
+        const changes = [];
+        if (description.includes('+1 Vida') || description.includes('+1 ❤️')) changes.push({ icon: '❤️', amount: '+1', color: '#22c55e' });
+        if (description.includes('+2 Vida')) changes.push({ icon: '❤️', amount: '+2', color: '#22c55e' });
+        if (description.includes('-1 Vida')) changes.push({ icon: '❤️', amount: '-1', color: '#ef4444' });
+        if (description.includes('+1 Comida') || description.includes('+1 🍗')) changes.push({ icon: '🍗', amount: '+1', color: '#22c55e' });
+        if (description.includes('+2 Comida')) changes.push({ icon: '🍗', amount: '+2', color: '#22c55e' });
+        if (description.includes('+3 Comida')) changes.push({ icon: '🍗', amount: '+3', color: '#22c55e' });
+        if (description.includes('-1 Comida')) changes.push({ icon: '🍗', amount: '-1', color: '#ef4444' });
+        if (description.includes('-2 Comida')) changes.push({ icon: '🍗', amount: '-2', color: '#ef4444' });
+        if (description.includes('+1 Arma')) changes.push({ icon: '⚔️', amount: '+1', color: '#22c55e' });
+        if (description.includes('+2 Arma')) changes.push({ icon: '⚔️', amount: '+2', color: '#22c55e' });
+        if (description.includes('-1 Arma')) changes.push({ icon: '⚔️', amount: '-1', color: '#ef4444' });
+        if (description.includes('+1 Escudo')) changes.push({ icon: '🛡️', amount: '+1', color: '#22c55e' });
+        if (description.includes('+2 Escudo')) changes.push({ icon: '🛡️', amount: '+2', color: '#22c55e' });
+        if (description.includes('de todo')) {
+            changes.push({ icon: '❤️', amount: '+1', color: '#22c55e' });
+            changes.push({ icon: '🍗', amount: '+1', color: '#22c55e' });
+            changes.push({ icon: '⚔️', amount: '+1', color: '#22c55e' });
+        }
+
+        // Show each change as floating indicator
+        changes.forEach((change, index) => {
             setTimeout(() => {
-                modal.classList.add('hidden');
-                bus.emit('UI_CARD_CLOSED');
-            }, 300);
-        };
+                this.showFloatingIndicator(change.icon, change.amount, change.color);
+            }, index * 300);
+        });
+    }
+
+    // Show floating indicator animation
+    showFloatingIndicator(icon, amount, color) {
+        const indicator = document.createElement('div');
+        indicator.className = 'floating-resource-indicator';
+        indicator.innerHTML = `<span style="font-size: 24px;">${icon}</span> <span style="font-weight: bold;">${amount}</span>`;
+        indicator.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            color: ${color};
+            text-shadow: 0 0 10px ${color}, 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 10002;
+            pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards;
+        `;
+
+        // Add animation keyframes if not exists
+        if (!document.getElementById('float-animation-style')) {
+            const style = document.createElement('style');
+            style.id = 'float-animation-style';
+            style.textContent = `
+                @keyframes floatUp {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                    20% { opacity: 1; transform: translate(-50%, -70%) scale(1.2); }
+                    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(indicator);
+        setTimeout(() => indicator.remove(), 1500);
     }
 
     showCombatModal({ player, enemyLevel }) {
@@ -713,12 +802,18 @@ export class UIRenderer {
         if (combatMsg) {
             combatMsg.innerHTML = `
                 <span style="color: #4ade80; font-size: 1.5rem;">✅ ¡VICTORIA!</span><br>
-                <span style="font-size: 0.9rem;">Loot: ${loot.title}</span>
+                <span style="font-size: 0.9rem;">🎁 Loot: ${loot.title}</span><br>
+                <span style="font-size: 0.85rem; color: #888;">${loot.desc}</span>
             `;
         }
 
-        // Close after 2 seconds
-        setTimeout(() => this.hideCombatModal(), 2000);
+        // Show loot card with floating indicator
+        setTimeout(() => {
+            this.showResourceChange(loot.desc);
+        }, 500);
+
+        // Close after 3 seconds
+        setTimeout(() => this.hideCombatModal(), 3000);
     }
 
     showCombatDefeat({ player, shieldUsed, damage }) {
@@ -731,16 +826,20 @@ export class UIRenderer {
                     <span style="color: #60a5fa; font-size: 1.3rem;">🛡️ ¡Escudo Roto!</span><br>
                     <span style="font-size: 0.9rem;">Tu escudo absorbió el golpe</span>
                 `;
+                // Show shield break indicator
+                this.showFloatingIndicator('🛡️', '-1', '#60a5fa');
             } else {
                 combatMsg.innerHTML = `
                     <span style="color: #f87171; font-size: 1.5rem;">❌ DERROTA</span><br>
-                    <span style="font-size: 0.9rem;">-1 Vida${damage > 0 ? ', -1 Arma' : ''}</span>
+                    <span style="font-size: 0.9rem;">-1 Vida, ¡Debes retroceder!</span>
                 `;
+                // Show life loss indicator
+                this.showFloatingIndicator('❤️', '-1', '#ef4444');
             }
         }
 
-        // Close after 2 seconds
-        setTimeout(() => this.hideCombatModal(), 2000);
+        // Close after 2.5 seconds
+        setTimeout(() => this.hideCombatModal(), 2500);
     }
 
     hideCombatModal() {
