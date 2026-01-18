@@ -575,12 +575,38 @@ export class SVGBoardRenderer {
         const currentWidth = this.width || 850;
         const currentHeight = this.height || 1400;
 
+        // Get active project name
+        const activeProject = this.getActiveProject();
+        const projectName = activeProject ? activeProject.name : 'Sin proyecto';
+
         // NEW ORGANIZED PANEL DESIGN
         panel.innerHTML = `
             <!-- Header -->
             <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:2px solid #444; background:#2d2d2d;">
                 <h3 style="margin:0; font-size:18px; color:#fff; font-weight:bold;">🎨 EDITOR ESTUDIO</h3>
                 <button id="uni-close" style="background:none; border:none; color:#bbb; cursor:pointer; font-size:20px;" title="Minimizar">✕</button>
+            </div>
+
+            <!-- Projects Section (NEW) -->
+            <div style="padding:15px; border-bottom:1px solid #333; background:#252525;">
+                <div style="color:#9cdcfe; font-size:13px; font-weight:bold; margin-bottom:8px;">📁 PROYECTOS</div>
+                <div id="active-project-name" style="color:#4ade80; font-size:12px; margin-bottom:10px; padding:6px; background:#1a1a1a; border-radius:4px; text-align:center;">
+                    📋 ${projectName}
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px;">
+                    <button id="project-save" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:11px;">
+                        💾 Guardar
+                    </button>
+                    <button id="project-load" style="background:#17a2b8; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:11px;">
+                        📂 Cargar
+                    </button>
+                    <button id="project-new" style="background:#6c757d; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:11px;">
+                        ✨ Nuevo
+                    </button>
+                    <button id="project-delete" style="background:#dc3545; color:#fff; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size:11px;">
+                        🗑️ Eliminar
+                    </button>
+                </div>
             </div>
 
             <!-- Configuration Section -->
@@ -716,6 +742,12 @@ export class SVGBoardRenderer {
             reader.onload = (evt) => this.setBackgroundImage(evt.target.result);
             reader.readAsDataURL(file);
         };
+
+        // === PROJECT MANAGEMENT HANDLERS ===
+        document.getElementById('project-save').onclick = () => this.saveCurrentProject();
+        document.getElementById('project-load').onclick = () => this.showProjectList('load');
+        document.getElementById('project-new').onclick = () => this.newProject();
+        document.getElementById('project-delete').onclick = () => this.showProjectList('delete');
     }
 
     addNewTile() {
@@ -1043,6 +1075,248 @@ export class SVGBoardRenderer {
 
         alert("✅ Guardado en Navegador y descargado como JSON!\n\n🔹 Incluye tipos de casillas\n🔹 Copia al portapapeles también");
         navigator.clipboard.writeText(json);
+    }
+
+    // === PROJECT MANAGEMENT SYSTEM ===
+
+    // Get all projects from localStorage
+    getProjects() {
+        try {
+            const data = localStorage.getItem('editorProjects');
+            return data ? JSON.parse(data) : { projects: [], activeProjectId: null };
+        } catch {
+            return { projects: [], activeProjectId: null };
+        }
+    }
+
+    // Save projects to localStorage
+    setProjects(data) {
+        localStorage.setItem('editorProjects', JSON.stringify(data));
+    }
+
+    // Get active project
+    getActiveProject() {
+        const data = this.getProjects();
+        if (!data.activeProjectId) return null;
+        return data.projects.find(p => p.id === data.activeProjectId) || null;
+    }
+
+    // Get current board data as project data
+    getCurrentBoardData() {
+        const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
+            const id = g.getAttribute('data-id');
+            const typeKey = TILE_TYPE_MAP[String(id)];
+            return {
+                id: id,
+                display: g.getAttribute('data-display'),
+                x: parseInt(g.dataset.x),
+                y: parseInt(g.dataset.y),
+                type: typeKey || 'NORMAL'
+            };
+        });
+        return {
+            tiles,
+            edges: this.edges,
+            boardWidth: this.width || 850,
+            boardHeight: this.height || 1400
+        };
+    }
+
+    // Save current project
+    saveCurrentProject() {
+        const data = this.getProjects();
+        const activeProject = data.projects.find(p => p.id === data.activeProjectId);
+
+        if (activeProject) {
+            // Update existing project
+            activeProject.data = this.getCurrentBoardData();
+            activeProject.modified = new Date().toISOString();
+            this.setProjects(data);
+            alert(`✅ Proyecto "${activeProject.name}" guardado!`);
+        } else {
+            // Create new project
+            const name = prompt('Nombre del proyecto:');
+            if (!name || !name.trim()) return;
+
+            const newProject = {
+                id: 'proj_' + Date.now(),
+                name: name.trim(),
+                created: new Date().toISOString(),
+                modified: new Date().toISOString(),
+                data: this.getCurrentBoardData()
+            };
+
+            data.projects.push(newProject);
+            data.activeProjectId = newProject.id;
+            this.setProjects(data);
+
+            alert(`✅ Proyecto "${name}" creado!`);
+            this.drawUnifiedControls(); // Refresh panel to show new name
+        }
+    }
+
+    // Create new project
+    newProject() {
+        const data = this.getProjects();
+        const activeProject = data.projects.find(p => p.id === data.activeProjectId);
+
+        if (activeProject && !confirm('¿Crear nuevo proyecto?\n\nEl proyecto actual se guardará primero.')) {
+            return;
+        }
+
+        // Save current if exists
+        if (activeProject) {
+            activeProject.data = this.getCurrentBoardData();
+            activeProject.modified = new Date().toISOString();
+        }
+
+        // Clear active project and board
+        data.activeProjectId = null;
+        this.setProjects(data);
+        this.clearAllTiles();
+        this.drawUnifiedControls();
+    }
+
+    // Show project list modal
+    showProjectList(mode) {
+        const data = this.getProjects();
+
+        if (data.projects.length === 0) {
+            alert('📁 No hay proyectos guardados.\n\nUsa "💾 Guardar" para crear uno.');
+            return;
+        }
+
+        // Create modal
+        let modal = document.getElementById('project-modal');
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = 'project-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 10001;
+            display: flex; align-items: center; justify-content: center;
+        `;
+
+        const title = mode === 'load' ? '📂 Cargar Proyecto' : '🗑️ Eliminar Proyecto';
+        const actionBtn = mode === 'load' ? '📂 Cargar' : '🗑️ Eliminar';
+        const actionColor = mode === 'load' ? '#17a2b8' : '#dc3545';
+
+        modal.innerHTML = `
+            <div style="background:#1e1e1e; border-radius:12px; width:320px; max-height:80vh; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+                <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; color:#fff; font-size:16px;">${title}</h3>
+                    <button id="close-project-modal" style="background:none; border:none; color:#888; font-size:20px; cursor:pointer;">✕</button>
+                </div>
+                <div id="project-list" style="max-height:300px; overflow-y:auto; padding:10px;">
+                    ${data.projects.map(p => `
+                        <div class="project-item" data-id="${p.id}" style="
+                            padding:12px; margin-bottom:8px; background:#2d2d2d; border-radius:8px;
+                            cursor:pointer; border:2px solid transparent; transition:all 0.2s;
+                        " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='transparent'">
+                            <div style="color:#fff; font-weight:bold; margin-bottom:4px;">${p.name}</div>
+                            <div style="color:#666; font-size:11px;">
+                                📅 ${new Date(p.modified).toLocaleDateString()} • 
+                                🧱 ${p.data?.tiles?.length || 0} tiles
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="padding:15px; border-top:1px solid #333;">
+                    <button id="project-action-btn" disabled style="
+                        width:100%; background:${actionColor}; color:#fff; border:none;
+                        padding:10px; border-radius:6px; cursor:pointer; font-size:14px; opacity:0.5;
+                    ">${actionBtn}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        let selectedId = null;
+        const actionBtnEl = document.getElementById('project-action-btn');
+
+        // Selection handlers
+        modal.querySelectorAll('.project-item').forEach(item => {
+            item.onclick = () => {
+                modal.querySelectorAll('.project-item').forEach(i => i.style.background = '#2d2d2d');
+                item.style.background = '#3d3d3d';
+                selectedId = item.dataset.id;
+                actionBtnEl.disabled = false;
+                actionBtnEl.style.opacity = '1';
+            };
+        });
+
+        // Close button
+        document.getElementById('close-project-modal').onclick = () => modal.remove();
+
+        // Action button
+        actionBtnEl.onclick = () => {
+            if (!selectedId) return;
+
+            if (mode === 'load') {
+                this.loadProject(selectedId);
+            } else {
+                this.deleteProject(selectedId);
+            }
+            modal.remove();
+        };
+
+        // Click outside to close
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+    }
+
+    // Load project by ID
+    loadProject(projectId) {
+        const data = this.getProjects();
+        const project = data.projects.find(p => p.id === projectId);
+
+        if (!project) {
+            alert('❌ Proyecto no encontrado');
+            return;
+        }
+
+        // Set as active
+        data.activeProjectId = projectId;
+        this.setProjects(data);
+
+        // Load board data
+        if (project.data) {
+            const layoutJson = JSON.stringify({
+                tiles: project.data.tiles,
+                edges: project.data.edges,
+                version: 'v2'
+            });
+            localStorage.setItem('BOARD_LAYOUT_BACKUP', layoutJson);
+
+            // Reload to apply
+            alert(`📂 Cargando proyecto "${project.name}"...`);
+            window.location.reload();
+        }
+    }
+
+    // Delete project by ID
+    deleteProject(projectId) {
+        const data = this.getProjects();
+        const project = data.projects.find(p => p.id === projectId);
+
+        if (!project) return;
+
+        if (!confirm(`¿Eliminar proyecto "${project.name}"?\n\nEsta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        data.projects = data.projects.filter(p => p.id !== projectId);
+
+        if (data.activeProjectId === projectId) {
+            data.activeProjectId = null;
+        }
+
+        this.setProjects(data);
+        alert(`🗑️ Proyecto "${project.name}" eliminado`);
+        this.drawUnifiedControls();
     }
 
     // Set board size
