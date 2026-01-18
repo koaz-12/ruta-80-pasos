@@ -692,7 +692,9 @@ export class GameEngine {
 
         // 🍖 HUNGER SYSTEM: Check every 3 turns
         if (currentPlayer && currentPlayer.stats) {
+            console.log(`🍖 [HUNGER DEBUG] ${currentPlayer.name} turnCounter before: ${currentPlayer.stats.turnCounter}`);
             currentPlayer.stats.turnCounter++;
+            console.log(`🍖 [HUNGER DEBUG] ${currentPlayer.name} turnCounter after: ${currentPlayer.stats.turnCounter}`);
 
             if (currentPlayer.stats.turnCounter >= 3) {
                 currentPlayer.stats.turnCounter = 0; // Reset counter
