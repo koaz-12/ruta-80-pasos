@@ -432,50 +432,80 @@ export class SVGBoardRenderer {
         let isDragging = false;
         let startX, startY, startTop, startRight;
 
-        // Drag from anywhere on panel (improved)
-        panel.addEventListener('mousedown', (e) => {
-            // Don't drag if clicking on interactive elements
-            if (e.target.tagName === 'INPUT' ||
-                e.target.tagName === 'BUTTON' ||
-                e.target.tagName === 'SELECT' ||
-                e.target.tagName === 'LABEL') {
-                return;
-            }
+        const isInteractive = (target) => {
+            return target.tagName === 'INPUT' ||
+                target.tagName === 'BUTTON' ||
+                target.tagName === 'SELECT' ||
+                target.tagName === 'LABEL';
+        };
+
+        const startDrag = (clientX, clientY, target) => {
+            if (isInteractive(target)) return false;
 
             isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
+            startX = clientX;
+            startY = clientY;
             startTop = parseInt(panel.style.top) || 0;
             startRight = parseInt(panel.style.right) || 0;
             panel.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
+            return true;
+        };
 
-        document.addEventListener('mousemove', (e) => {
+        const doDrag = (clientX, clientY) => {
             if (!isDragging) return;
 
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
 
             const newTop = Math.max(0, Math.min(window.innerHeight - 100, startTop + deltaY));
             const newRight = Math.max(0, Math.min(window.innerWidth - 100, startRight - deltaX));
 
             panel.style.top = newTop + 'px';
             panel.style.right = newRight + 'px';
-        });
+        };
 
-        document.addEventListener('mouseup', () => {
+        const endDrag = () => {
             if (isDragging) {
                 isDragging = false;
                 panel.style.cursor = 'grab';
 
-                // Save position
                 localStorage.setItem('editorPanelPos', JSON.stringify({
                     top: parseInt(panel.style.top),
                     right: parseInt(panel.style.right)
                 }));
             }
+        };
+
+        // Mouse events (PC)
+        panel.addEventListener('mousedown', (e) => {
+            if (startDrag(e.clientX, e.clientY, e.target)) {
+                e.preventDefault();
+            }
         });
+
+        document.addEventListener('mousemove', (e) => {
+            doDrag(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('mouseup', endDrag);
+
+        // Touch events (Mobile)
+        panel.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            if (startDrag(touch.clientX, touch.clientY, e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                doDrag(touch.clientX, touch.clientY);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', endDrag);
     }
 
     activateEditorMode() {
