@@ -553,17 +553,11 @@ export class SVGBoardRenderer {
         // Remove existing inspector window to refresh
         if (this.inspectorWin) this.inspectorWin.remove();
 
-        // Infer Type
-        const r = tileGroup.querySelector('rect');
-        let type = 'normal';
-        let col = '#A0C4FF';
-        if (r) {
-            col = r.getAttribute('fill'); // Keep original color for reference
-            const fill = col.toUpperCase();
-            if (['#90EE90', '#7CFC00'].includes(fill)) type = 'safe';
-            if (['#FF6B6B', '#FF0000'].includes(fill)) type = 'mortal';
-            if (['#FFD700', 'GOLD'].includes(fill)) type = 'gold';
-        }
+        // Infer Type from TILE_TYPE_MAP
+        const typeKey = TILE_TYPE_MAP[String(id)];
+        const tileTypeData = typeKey ? getTileType(id) : { id: 'normal', color: '#A0C4FF' };
+        let type = tileTypeData.id;
+        let col = tileTypeData.color;
 
         // CREATE FLOATING WINDOW (PRO DARK THEME)
         const win = document.createElement('div');
@@ -614,11 +608,13 @@ export class SVGBoardRenderer {
                     </div>
                     <div style="${rowStyle}">
                          <label style="${labelStyle}">Type</label>
-                         <select id="insp-type" style="${inputStyle} width:100px; cursor:pointer;">
+                         <select id="insp-type" style="${inputStyle} width:120px; cursor:pointer;">
                             <option value="normal" ${type === 'normal' ? 'selected' : ''}>Normal</option>
-                            <option value="safe" ${type === 'safe' ? 'selected' : ''}>Safe</option>
-                            <option value="mortal" ${type === 'mortal' ? 'selected' : ''}>Mortal</option>
-                            <option value="gold" ${type === 'gold' ? 'selected' : ''}>Gold</option>
+                            <option value="zombie" ${type === 'zombie' ? 'selected' : ''}>🧟 Zombie</option>
+                            <option value="luck" ${type === 'luck' ? 'selected' : ''}>🍀 Suerte</option>
+                            <option value="event" ${type === 'event' ? 'selected' : ''}>❓ Evento</option>
+                            <option value="market" ${type === 'market' ? 'selected' : ''}>🏪 Mercado</option>
+                            <option value="safe" ${type === 'safe' ? 'selected' : ''}>🏠 Segura</option>
                          </select>
                     </div>
                      <div style="${rowStyle}">
@@ -716,19 +712,22 @@ export class SVGBoardRenderer {
             this.selectedTile.dataset.y = vY;
             this.drawEdges();
 
-            // RENDER AS SPACE (Clean Floor)
+            // RENDER WITH GAME TILE COLORS
             const rects = this.selectedTile.querySelectorAll('rect');
             rects.forEach(re => {
-                re.setAttribute('rx', '4'); // Slight round for space
+                re.setAttribute('rx', '4');
                 re.setAttribute('stroke-width', '1');
-                re.removeAttribute('filter'); // Remove shadow/glow
+                re.removeAttribute('filter');
 
-                let fill = '#fcfcfc'; // Almost White Floor
-                let stroke = '#adb5bd'; // Neutral Border
+                let fill = '#f7f5e6'; // Normal tile color
+                let stroke = '#adb5bd';
 
-                if (vType === 'safe') { fill = '#e8f5e9'; stroke = '#81c784'; }
-                if (vType === 'mortal') { fill = '#fbe9e7'; stroke = '#ef5350'; }
-                if (vType === 'gold') { fill = '#fffde7'; stroke = '#fdd835'; }
+                // Game tile type colors (matching tile-types.js)
+                if (vType === 'zombie') { fill = '#4ade80'; stroke = '#22c55e'; } // Green
+                if (vType === 'luck') { fill = '#a78bfa'; stroke = '#8b5cf6'; }    // Purple
+                if (vType === 'event') { fill = '#fbbf24'; stroke = '#f59e0b'; }   // Yellow
+                if (vType === 'market') { fill = '#f472b6'; stroke = '#ec4899'; }  // Pink
+                if (vType === 'safe') { fill = '#60a5fa'; stroke = '#3b82f6'; }    // Blue
 
                 re.setAttribute('fill', fill);
                 re.setAttribute('stroke', stroke);
