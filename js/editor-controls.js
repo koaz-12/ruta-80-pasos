@@ -10,40 +10,18 @@
     // Enter Editor from Lobby button
     if (lobbyEditorBtn) {
         lobbyEditorBtn.addEventListener('click', () => {
-            // Hide lobby
-            const lobby = document.getElementById('lobby-screen');
-            if (lobby) lobby.classList.add('hidden');
+            console.log('[EDITOR] Loading editor from lobby...');
 
-            // Show board container
-            const boardContainer = document.querySelector('.board-container');
-            if (boardContainer) boardContainer.classList.remove('hidden');
-
-            // Show editor controls
-            if (controlsDiv) controlsDiv.style.display = 'flex';
-
-            // Wait for board to be visible and rendered, then activate editor
+            // Wait for board renderer to be ready
             setTimeout(() => {
-                if (window.boardRenderer) {
-                    // Force render if not already rendered
-                    if (!window.boardRenderer.svg) {
-                        window.boardRenderer.render();
-                    }
-
-                    // Activate editor mode
-                    window.boardRenderer.isEditorMode = true;
-                    editorMode = true;
-
-                    if (toggleBtn) {
-                        toggleBtn.textContent = '🔧 Modo Editor: ON';
-                        toggleBtn.style.background = '#FF5722';
-                    }
-                    if (exportBtn) exportBtn.style.display = 'block';
-
-                    console.log('[EDITOR] Mode activated. You can now drag tiles.');
+                if (window.boardRenderer && window.boardRenderer.activateEditorMode) {
+                    window.boardRenderer.activateEditorMode();
+                    console.log('[EDITOR] Editor mode activated via SVGBoardRenderer');
                 } else {
                     console.error('[EDITOR] Board renderer not available');
+                    alert('Error: El editor no está disponible. Recarga la página.');
                 }
-            }, 500); // Wait 500ms for render to complete
+            }, 100);
         });
     }
 
