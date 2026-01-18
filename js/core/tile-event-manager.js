@@ -48,6 +48,9 @@ export class TileEventManager {
             case 'market':
                 this.handleMarketTile(player);
                 break;
+            case 'safe':
+                this.handleSafeTile(player);
+                break;
             default:
                 this.processingEvent = false;
                 bus.emit('TILE_EVENT_COMPLETE', { hasEvent: false });
@@ -171,6 +174,39 @@ export class TileEventManager {
             bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'market' });
         };
         bus.on('UI_MARKET_CLOSED', onMarketClosed);
+    }
+
+    // Casilla Segura - Descanso y recuperación
+    handleSafeTile(player) {
+        console.log('🏠 [TILE EVENT] Safe zone!');
+
+        const players = [...store.state.players];
+        const playerData = players.find(p => p.id === player.id);
+
+        if (playerData && playerData.stats) {
+            // Recover 1 life (up to max)
+            const oldLife = playerData.stats.life;
+            playerData.stats.life = Math.min(playerData.stats.life + 1, 6); // MAX_LIFE = 6
+
+            const lifeGained = playerData.stats.life - oldLife;
+
+            if (lifeGained > 0) {
+                store.setPlayers(players);
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏠 ¡Zona Segura! ${player.name} recupera +1 ❤️`,
+                    type: 'success'
+                });
+                console.log(`  ${player.name} recovered 1 life. Now: ${playerData.stats.life}`);
+            } else {
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏠 Zona Segura - ${player.name} ya tiene vida máxima`,
+                    type: 'info'
+                });
+            }
+        }
+
+        this.processingEvent = false;
+        bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'safe' });
     }
 }
 

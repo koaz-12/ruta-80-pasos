@@ -60,5 +60,6 @@ export function getTileType(tileId) {
 // Helper para verificar si casilla tiene evento
 export function hasTileEvent(tileId) {
     const type = getTileType(tileId);
-    return type.id !== 'normal' && type.id !== 'safe';
+    // All special tiles have events (except normal)
+    return type.id !== 'normal';
 }
