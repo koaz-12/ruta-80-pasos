@@ -539,8 +539,37 @@ export class GameEngine {
 
                 console.log('[RESUME] Continuing path:', path);
 
-                // Animate and complete
-                this.animateMovement(player, path, players).then(() => {
+                // Animate and then check tile events (was missing!)
+                this.animateMovement(player, path, players).then(async () => {
+                    const finalPos = path[path.length - 1];
+
+                    // Check for victory
+                    if (finalPos === '80') {
+                        console.log(`🏆 [VICTORY] ${player.name} reached the finish line!`);
+                        bus.emit('SHOW_NOTIFICATION', {
+                            message: `🏆 ${player.name} ha llegado a la META!`,
+                            type: 'success'
+                        });
+                        bus.emit('GAME_OVER', { winner: player, reason: 'reached_goal' });
+                        return;
+                    }
+
+                    // Check PVP
+                    const hasPvPEncounter = pvpManager.checkPvPEncounter(player, finalPos);
+                    if (hasPvPEncounter) {
+                        return; // PVP will handle ending the turn
+                    }
+
+                    // Check tile event (market, zombie, luck, event)
+                    await new Promise(resolve => {
+                        const onEventComplete = () => {
+                            bus.off('TILE_EVENT_COMPLETE', onEventComplete);
+                            resolve();
+                        };
+                        bus.on('TILE_EVENT_COMPLETE', onEventComplete);
+                        tileEventManager.checkTileEvent(player, finalPos);
+                    });
+
                     this.endTurn();
                 });
             } else {
