@@ -773,6 +773,21 @@ export class UIRenderer {
     }
 
     executeCombatRoll() {
+        // Animate the main dice button
+        const mainDice = document.getElementById('btn-action-roll');
+        const diceCube = mainDice?.querySelector('.dice-cube');
+
+        if (diceCube) {
+            // Add rolling animation
+            diceCube.classList.add('rolling');
+
+            // Stop animation after a short delay
+            setTimeout(() => {
+                diceCube.classList.remove('rolling');
+            }, 600);
+        }
+
+        // Execute the combat roll
         import('../core/combat-manager.js').then(({ combatManager }) => {
             combatManager.rollCombat();
         });
