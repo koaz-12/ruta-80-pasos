@@ -782,6 +782,8 @@ export class UIRenderer {
         const modal = document.getElementById('combat-modal');
         if (!modal) return;
 
+        console.log(`🎲 [UI] showCombatRoll - Player: ${playerRoll}, Enemy: ${enemyRoll}`);
+
         const playerDice = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
         const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
         const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');

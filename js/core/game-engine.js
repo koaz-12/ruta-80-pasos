@@ -472,13 +472,13 @@ export class GameEngine {
                 };
                 bus.on('TILE_EVENT_COMPLETE', onEventComplete);
 
-                // Fallback timeout in case event never completes
+                // Fallback timeout in case event never completes (30s for combat scenarios)
                 setTimeout(() => {
                     if (!completed) {
                         console.warn('⚠️ [TILE EVENT] Timeout - forcing completion');
                         onEventComplete();
                     }
-                }, 5000);
+                }, 30000);
 
                 try {
                     console.log(`🎯 [TILE EVENT] Calling checkTileEvent for tile ${finalPos}`);
