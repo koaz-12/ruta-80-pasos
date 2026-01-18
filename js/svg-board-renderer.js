@@ -484,6 +484,7 @@ export class SVGBoardRenderer {
         const boardContainer = document.querySelector('.board-container');
         if (boardContainer) {
             boardContainer.classList.remove('hidden');
+            boardContainer.classList.add('editor-mode-active'); // Prevent mobile scaling
             boardContainer.style.display = 'flex';
         }
 
