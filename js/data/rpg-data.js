@@ -1,10 +1,16 @@
 // Configuración de RPG: Clases y Cartas
 
 export const CLASSES = [
-    { id: 'medic', name: 'Curandero', life: 5, food: 10, weapons: 0, shield: 0, bonus: 'Vida+', icon: '🧙' },
-    { id: 'soldier', name: 'Combatiente', life: 4, food: 10, weapons: 1, shield: 0, bonus: 'Doble Dado', icon: '⚔️' },
-    { id: 'scout', name: 'Explorador', life: 4, food: 10, weapons: 0, shield: 0, bonus: 'Comida+', icon: '🧭' },
-    { id: 'tank', name: 'Escudero', life: 4, food: 10, weapons: 0, shield: 1, bonus: 'Defensa', icon: '🛡️' }
+    // Curandero: +1 vida extra inicial
+    { id: 'medic', name: 'Curandero', life: 6, food: 5, weapons: 0, shield: 0, bonus: 'Vida+', icon: '🧙', passive: '+1 vida inicial' },
+    // Combatiente: Empieza con 1 arma
+    { id: 'soldier', name: 'Combatiente', life: 5, food: 5, weapons: 1, shield: 0, bonus: 'Arma', icon: '⚔️', passive: 'Empieza con arma' },
+    // Explorador: Balanced
+    { id: 'scout', name: 'Explorador', life: 6, food: 6, weapons: 0, shield: 0, bonus: 'Balanced', icon: '🧭', passive: null },
+    // Tanque (antes Escudero): Empieza con escudo
+    { id: 'tank', name: 'Tanque', life: 5, food: 6, weapons: 0, shield: 1, bonus: 'Escudo', icon: '🛡️', passive: 'Empieza con escudo' },
+    // Científico: Portal al inicio (salta 5 casillas, 1 sola vez)
+    { id: 'scientist', name: 'Científico', life: 5, food: 5, weapons: 0, shield: 0, bonus: 'Portal', icon: '🔬', passive: 'Portal inicial', hasPortal: true }
 ];
 
 // MAX_RESOURCES: Límite máximo de cada recurso
