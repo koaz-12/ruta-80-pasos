@@ -383,8 +383,10 @@ export class GameEngine {
                     player: player
                 });
                 return; // Wait for decision
-            } else {
-                // Normal single path
+            }
+
+            // Normal single path - only if nextPos wasn't already set by pendingDirection
+            if (!nextPos && !Array.isArray(node.next)) {
                 nextPos = node.next;
             }
 
