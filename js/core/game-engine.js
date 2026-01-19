@@ -459,35 +459,41 @@ export class GameEngine {
             }
 
             // Wait a moment after arriving at tile before showing event
+            console.log('⏳ [TILE EVENT] Waiting 1.5s before checking tile event...');
             await new Promise(resolve => setTimeout(resolve, 1500));
+            console.log('✅ [TILE EVENT] Delay complete, proceeding to check tile event');
 
             // 5. Check tile event (only if no PvP or after PvP resolved)
-            await new Promise(resolve => {
-                let completed = false;
-                const onEventComplete = () => {
-                    if (completed) return;
-                    completed = true;
-                    bus.off('TILE_EVENT_COMPLETE', onEventComplete);
-                    resolve();
-                };
-                bus.on('TILE_EVENT_COMPLETE', onEventComplete);
+            try {
+                await new Promise(resolve => {
+                    let completed = false;
+                    const onEventComplete = () => {
+                        if (completed) return;
+                        completed = true;
+                        bus.off('TILE_EVENT_COMPLETE', onEventComplete);
+                        resolve();
+                    };
+                    bus.on('TILE_EVENT_COMPLETE', onEventComplete);
 
-                // Fallback timeout in case event never completes (30s for combat scenarios)
-                setTimeout(() => {
-                    if (!completed) {
-                        console.warn('⚠️ [TILE EVENT] Timeout - forcing completion');
+                    // Fallback timeout in case event never completes (30s for combat scenarios)
+                    setTimeout(() => {
+                        if (!completed) {
+                            console.warn('⚠️ [TILE EVENT] Timeout - forcing completion');
+                            onEventComplete();
+                        }
+                    }, 30000);
+
+                    try {
+                        console.log(`🎯 [TILE EVENT] Calling checkTileEvent for tile ${finalPos}`);
+                        tileEventManager.checkTileEvent(player, finalPos);
+                    } catch (err) {
+                        console.error('❌ [TILE EVENT] Error:', err);
                         onEventComplete();
                     }
-                }, 30000);
-
-                try {
-                    console.log(`🎯 [TILE EVENT] Calling checkTileEvent for tile ${finalPos}`);
-                    tileEventManager.checkTileEvent(player, finalPos);
-                } catch (err) {
-                    console.error('❌ [TILE EVENT] Error:', err);
-                    onEventComplete();
-                }
-            });
+                });
+            } catch (err) {
+                console.error('❌ [TILE EVENT] Promise error:', err);
+            }
 
             // 5. Check for victory (reached tile 80)
             if (finalPos === '80') {
