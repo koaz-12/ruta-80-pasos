@@ -52,25 +52,41 @@ export class CombatManager {
 
         this.currentCombat.round++;
 
-        // Tirar dados
-        const playerRoll = Math.floor(Math.random() * 6) + 1;
+        // === MULTI-DICE SYSTEM ===
+        // Player rolls dice equal to weapons (minimum 1)
+        const playerWeapons = Math.max(1, this.currentCombat.player.stats?.weapons || 1);
+        let playerRoll = 0;
+        const playerDice = [];
+        for (let i = 0; i < playerWeapons; i++) {
+            const die = Math.floor(Math.random() * 6) + 1;
+            playerDice.push(die);
+            playerRoll += die;
+        }
 
-        // Enemigo tira por cada uno (suma o max?)
-        // Por simplicidad: cada enemigo tira, se usa el mejor
+        // Enemies roll dice equal to their count (sum all)
+        const enemyCount = this.currentCombat.enemyCount;
         let enemyRoll = 0;
-        for (let i = 0; i < this.currentCombat.enemyCount; i++) {
-            const roll = Math.floor(Math.random() * 6) + 1;
-            enemyRoll = Math.max(enemyRoll, roll);
+        const enemyDice = [];
+        for (let i = 0; i < enemyCount; i++) {
+            const die = Math.floor(Math.random() * 6) + 1;
+            enemyDice.push(die);
+            enemyRoll += die;
         }
 
         this.currentCombat.playerRoll = playerRoll;
         this.currentCombat.enemyRoll = enemyRoll;
+        this.currentCombat.playerDice = playerDice;
+        this.currentCombat.enemyDice = enemyDice;
 
-        console.log(`🎲 [COMBAT] Round ${this.currentCombat.round}: Player ${playerRoll} vs Enemy ${enemyRoll}`);
+        console.log(`🎲 [COMBAT] Round ${this.currentCombat.round}: Player ${playerDice.join('+')}=${playerRoll} (${playerWeapons} dice) vs Enemy ${enemyDice.join('+')}=${enemyRoll} (${enemyCount} dice)`);
 
         bus.emit('COMBAT_ROLL', {
             playerRoll,
             enemyRoll,
+            playerDice,
+            enemyDice,
+            playerDiceCount: playerWeapons,
+            enemyDiceCount: enemyCount,
             round: this.currentCombat.round
         });
 

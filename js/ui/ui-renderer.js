@@ -820,39 +820,54 @@ export class UIRenderer {
         }, 1000); // 1 second of animation before result
     }
 
-    showCombatRoll({ playerRoll, enemyRoll, round }) {
+    showCombatRoll({ playerRoll, enemyRoll, playerDice, enemyDice, playerDiceCount, enemyDiceCount, round }) {
         const modal = document.getElementById('combat-modal');
         if (!modal) return;
 
-        console.log(`🎲 [UI] showCombatRoll - Player: ${playerRoll}, Enemy: ${enemyRoll}`);
+        // Default to single die display if not provided (backwards compatibility)
+        const pDice = playerDice || [playerRoll];
+        const eDice = enemyDice || [enemyRoll];
 
-        const playerDice = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
-        const enemyDice = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
+        console.log(`🎲 [UI] showCombatRoll - Player: ${pDice.join('+')}=${playerRoll}, Enemy: ${eDice.join('+')}=${enemyRoll}`);
+
+        const playerDiceEl = modal.querySelector('.player-dice') || modal.querySelector('#player-dice');
+        const enemyDiceEl = modal.querySelector('.enemy-dice') || modal.querySelector('#enemy-dice');
         const combatMsg = modal.querySelector('.combat-msg') || modal.querySelector('#combat-msg');
 
-        // Update main dice button to show player's roll
+        // Update main dice button to show player's roll total
         const mainDiceResult = document.getElementById('dice-last-roll');
         if (mainDiceResult) {
             mainDiceResult.textContent = playerRoll;
         }
 
-        // Update modal dice displays
-        if (playerDice) {
-            playerDice.textContent = playerRoll;
-            playerDice.classList.add('roll-animation');
+        // Helper to convert number to dice emoji
+        const diceEmoji = (n) => ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][n - 1] || '🎲';
+
+        // Format dice display: ⚄ + ⚂ = 8
+        const formatDice = (dice, total) => {
+            if (dice.length === 1) {
+                return `${diceEmoji(dice[0])} = ${total}`;
+            }
+            return dice.map(d => diceEmoji(d)).join(' + ') + ` = ${total}`;
+        };
+
+        // Update modal dice displays with formula
+        if (playerDiceEl) {
+            playerDiceEl.innerHTML = formatDice(pDice, playerRoll);
+            playerDiceEl.classList.add('roll-animation');
         }
-        if (enemyDice) {
-            enemyDice.textContent = enemyRoll;
-            enemyDice.classList.add('roll-animation');
+        if (enemyDiceEl) {
+            enemyDiceEl.innerHTML = formatDice(eDice, enemyRoll);
+            enemyDiceEl.classList.add('roll-animation');
         }
         if (combatMsg) {
-            const result = playerRoll > enemyRoll ? '✅' : playerRoll < enemyRoll ? '❌' : '🔄';
-            combatMsg.innerHTML = `<span style="font-size: 1.5rem;">${result}</span><br>Tú: ${playerRoll} vs Enemigo: ${enemyRoll}`;
+            const result = playerRoll > enemyRoll ? '✅ ¡Victoria!' : playerRoll < enemyRoll ? '❌ Derrota' : '🔄 Empate';
+            combatMsg.innerHTML = `<span style="font-size: 1.3rem;">${result}</span>`;
         }
 
         setTimeout(() => {
-            playerDice?.classList.remove('roll-animation');
-            enemyDice?.classList.remove('roll-animation');
+            playerDiceEl?.classList.remove('roll-animation');
+            enemyDiceEl?.classList.remove('roll-animation');
         }, 500);
     }
 
