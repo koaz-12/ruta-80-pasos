@@ -496,30 +496,47 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive */
+/* Responsive - Mobile: Single card view */
 @media (max-width: 480px) {
     .lobby-container h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
+    /* Hide inactive cards on mobile */
     .mode-card {
-        min-width: 120px;
-        height: 140px;
+        display: none;
+        min-width: 150px;
+        width: 150px;
+        height: 180px;
+    }
+
+    /* Only show active card on mobile */
+    .mode-card.active {
+        display: flex;
+        transform: scale(1);
     }
 
     .mode-icon {
-        font-size: 2.5rem;
+        font-size: 4rem;
     }
 
-    .btn-play-main {
-        padding: 15px 40px;
+    .mode-name {
         font-size: 1.2rem;
     }
 
+    .btn-play-main {
+        padding: 14px 35px;
+        font-size: 1.1rem;
+    }
+
     .carousel-arrow {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+
+    .mode-carousel {
+        min-height: 220px;
     }
 }
 
