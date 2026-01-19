@@ -789,21 +789,31 @@ export class UIRenderer {
         // Animate the main dice button
         const mainDice = document.getElementById('btn-action-roll');
         const diceIcon = mainDice?.querySelector('.dice-icon');
+        const modal = document.getElementById('combat-modal');
+        const playerDice = modal?.querySelector('.player-dice');
+        const enemyDice = modal?.querySelector('.enemy-dice');
+        const combatMsg = modal?.querySelector('.combat-msg');
 
+        // Show rolling animation in modal
+        if (playerDice) playerDice.textContent = '🎲';
+        if (enemyDice) enemyDice.textContent = '🎲';
+        if (combatMsg) combatMsg.textContent = '¡Tirando dados...!';
+
+        // Animate main dice with shake
         if (diceIcon) {
-            // Add shake animation to dice emoji
-            diceIcon.style.animation = 'shake 0.5s ease-in-out';
-
-            // Remove animation after it completes
-            setTimeout(() => {
-                diceIcon.style.animation = '';
-            }, 500);
+            diceIcon.style.animation = 'shake 0.3s ease-in-out infinite';
         }
 
-        // Execute the combat roll
-        import('../core/combat-manager.js').then(({ combatManager }) => {
-            combatManager.rollCombat();
-        });
+        // Wait for animation then roll
+        setTimeout(() => {
+            // Stop animation
+            if (diceIcon) diceIcon.style.animation = '';
+
+            // Execute the combat roll
+            import('../core/combat-manager.js').then(({ combatManager }) => {
+                combatManager.rollCombat();
+            });
+        }, 1000); // 1 second of animation before result
     }
 
     showCombatRoll({ playerRoll, enemyRoll, round }) {
