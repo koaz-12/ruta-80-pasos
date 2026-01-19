@@ -1,7 +1,7 @@
 // Tile Event Manager - Maneja eventos al caer en casillas
 import { bus } from './event-bus.js';
 import { store } from './game-state.js';
-import { getTileType, hasTileEvent } from '../data/tile-types.js';
+import { getTileType, hasTileEvent, getZombieLevel, isBossZombie } from '../data/tile-types.js';
 import { LUCK_CARDS, EVENT_CARDS, clampResource } from '../data/rpg-data.js';
 import { combatManager } from './combat-manager.js';
 
@@ -45,7 +45,8 @@ export class TileEventManager {
 
         switch (tileType.id) {
             case 'zombie':
-                this.handleZombieTile(player);
+            case 'zombie_boss':
+                this.handleZombieTile(player, tileId);
                 break;
             case 'event':
                 this.handleEventTile(player);
@@ -66,26 +67,32 @@ export class TileEventManager {
     }
 
     // Casilla de Zombie - Preguntar si pelear o retroceder
-    handleZombieTile(player) {
-        console.log('🧟 [TILE EVENT] Zombie encounter!');
+    handleZombieTile(player, tileId) {
+        const zombieLevel = getZombieLevel(tileId);
+        const isBoss = isBossZombie(tileId);
 
-        // 50% chance 1 zombie, 50% chance 2 zombies
-        const enemyCount = Math.random() < 0.5 ? 1 : 2;
+        console.log(`🧟 [TILE EVENT] Zombie encounter! Level ${zombieLevel}${isBoss ? ' (BOSS)' : ''}`);
 
-        // Show fight or retreat decision
+        // Enemy count based on level (level 1-2: 1-2 zombies, level 3-4: level number)
+        const enemyCount = zombieLevel >= 3 ? zombieLevel : (Math.random() < 0.5 ? 1 : 2);
+
+        // Show fight or retreat decision (Boss cannot retreat)
         bus.emit('SHOW_ZOMBIE_DECISION', {
             player,
             enemyCount,
+            zombieLevel,
+            isBoss,
             onFight: () => {
                 console.log('⚔️ [ZOMBIE] Player chose to FIGHT!');
+                const bossText = isBoss ? ' BOSS' : '';
                 bus.emit('SHOW_NOTIFICATION', {
-                    message: `¡${enemyCount} zombie${enemyCount > 1 ? 's' : ''} te atacan!`,
+                    message: `¡${enemyCount} zombie${enemyCount > 1 ? 's' : ''}${bossText} Lvl ${zombieLevel} te atacan!`,
                     type: 'danger'
                 });
 
-                // Start combat after brief delay
+                // Start combat after brief delay with zombie level
                 setTimeout(() => {
-                    combatManager.startCombat(player, enemyCount, 'zombie');
+                    combatManager.startCombat(player, enemyCount, 'zombie', zombieLevel);
                 }, 500);
 
                 // Listen for combat end

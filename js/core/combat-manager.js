@@ -10,7 +10,8 @@ export class CombatManager {
     }
 
     // Iniciar combate contra enemigo(s)
-    startCombat(player, enemyCount = 1, enemyType = 'zombie') {
+    // enemyLevel determines number of loot items: level 1 = 1 item, level 2 = 2 items, etc.
+    startCombat(player, enemyCount = 1, enemyType = 'zombie', enemyLevel = 1) {
         if (this.inCombat) {
             console.warn('⚠️ [COMBAT] Already in combat!');
             return;
@@ -22,17 +23,19 @@ export class CombatManager {
             player,
             enemyCount,
             enemyType,
+            enemyLevel: Math.max(1, Math.min(4, enemyLevel)), // Clamp to 1-4
             round: 0,
             playerRoll: null,
             enemyRoll: null
         };
 
-        console.log(`⚔️ [COMBAT] Starting combat: ${player.name} vs ${enemyCount}x ${enemyType}`);
+        console.log(`⚔️ [COMBAT] Starting combat: ${player.name} vs ${enemyCount}x ${enemyType} (Lvl ${enemyLevel})`);
 
         bus.emit('COMBAT_START', {
             player,
             enemyCount,
-            enemyType
+            enemyType,
+            enemyLevel
         });
     }
 
@@ -137,21 +140,32 @@ export class CombatManager {
 
     // Manejar victoria
     handleVictory(player, players) {
-        // Dar carta de suerte como loot
-        const lootCard = LUCK_CARDS[Math.floor(Math.random() * LUCK_CARDS.length)];
+        const enemyLevel = this.currentCombat?.enemyLevel || 1;
+        const lootCount = enemyLevel; // Level 1 = 1 item, Level 2 = 2 items, etc.
 
-        // Aplicar efecto
-        if (lootCard.effect && player.stats) {
-            lootCard.effect(player.stats);
-            store.setPlayers(players);
+        const lootCards = [];
+
+        // Give loot based on enemy level
+        for (let i = 0; i < lootCount; i++) {
+            const lootCard = LUCK_CARDS[Math.floor(Math.random() * LUCK_CARDS.length)];
+            lootCards.push(lootCard);
+
+            // Apply effect
+            if (lootCard.effect && player.stats) {
+                lootCard.effect(player.stats);
+            }
         }
+
+        store.setPlayers(players);
 
         bus.emit('COMBAT_VICTORY', {
             player,
-            loot: lootCard
+            loot: lootCards[0], // Primary loot for display
+            allLoot: lootCards,
+            lootCount
         });
 
-        console.log(`🎁 [COMBAT] Loot: ${lootCard.title}`);
+        console.log(`🎁 [COMBAT] Loot x${lootCount}: ${lootCards.map(c => c.title).join(', ')}`);
     }
 
     // Manejar derrota

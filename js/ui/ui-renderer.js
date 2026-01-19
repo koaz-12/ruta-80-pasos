@@ -1529,7 +1529,7 @@ export class UIRenderer {
 
     // ===== ZOMBIE DECISION =====
 
-    showZombieDecision({ player, enemyCount, onFight, onRetreat }) {
+    showZombieDecision({ player, enemyCount, zombieLevel = 1, isBoss = false, onFight, onRetreat }) {
         // Create modal overlay
         let modal = document.getElementById('zombie-decision-modal');
         if (!modal) {
@@ -1543,14 +1543,21 @@ export class UIRenderer {
             document.body.appendChild(modal);
         }
 
-        const zombieEmoji = enemyCount > 1 ? '🧟🧟' : '🧟';
+        const zombieEmoji = isBoss ? '💀' : (enemyCount > 1 ? '🧟🧟' : '🧟');
+        const levelColor = zombieLevel >= 4 ? '#dc2626' : zombieLevel >= 3 ? '#f97316' : zombieLevel >= 2 ? '#eab308' : '#4ade80';
+        const title = isBoss ? '💀 ¡BOSS ZOMBIE!' : '¡ENCUENTRO ZOMBIE!';
+        const bossWarning = isBoss ? `<div style="font-size: 14px; color: #dc2626; margin-bottom: 15px; font-weight: bold;">⚠️ DEBES VENCERLO PARA GANAR ⚠️</div>` : '';
 
         modal.innerHTML = `
             <div style="text-align: center; max-width: 350px; padding: 30px;">
                 <div style="font-size: 64px; margin-bottom: 20px;">${zombieEmoji}</div>
-                <div style="font-size: 24px; color: #ef4444; font-weight: bold; margin-bottom: 10px;">
-                    ¡ENCUENTRO ZOMBIE!
+                <div style="font-size: 24px; color: ${isBoss ? '#dc2626' : '#ef4444'}; font-weight: bold; margin-bottom: 10px;">
+                    ${title}
                 </div>
+                <div style="font-size: 18px; color: ${levelColor}; font-weight: bold; margin-bottom: 5px;">
+                    Nivel ${zombieLevel}
+                </div>
+                ${bossWarning}
                 <div style="font-size: 16px; color: #999; margin-bottom: 30px;">
                     ${enemyCount} zombie${enemyCount > 1 ? 's' : ''} te bloquean el paso
                 </div>
@@ -1561,12 +1568,12 @@ export class UIRenderer {
                         border: none; border-radius: 10px; color: white;
                         font-weight: bold;
                     ">⚔️ PELEAR</button>
-                    <button id="zombie-retreat-btn" style="
+                    ${!isBoss ? `<button id="zombie-retreat-btn" style="
                         padding: 15px 30px; font-size: 16px; cursor: pointer;
                         background: linear-gradient(135deg, #6b7280, #4b5563);
                         border: none; border-radius: 10px; color: white;
                         font-weight: bold;
-                    ">🏃 HUIR</button>
+                    ">🏃 HUIR</button>` : ''}
                 </div>
             </div>
         `;
@@ -1578,10 +1585,13 @@ export class UIRenderer {
             onFight();
         };
 
-        document.getElementById('zombie-retreat-btn').onclick = () => {
-            modal.style.display = 'none';
-            onRetreat();
-        };
+        // Only add retreat handler if not boss
+        if (!isBoss) {
+            document.getElementById('zombie-retreat-btn').onclick = () => {
+                modal.style.display = 'none';
+                onRetreat();
+            };
+        }
     }
 
     // ===== CHAT SYSTEM =====
