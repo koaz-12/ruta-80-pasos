@@ -71,6 +71,9 @@ export class UIRenderer {
         // Market
         bus.on('SHOW_MARKET', (data) => this.showMarket(data));
 
+        // Scientist Portal
+        bus.on('SHOW_PORTAL_CHOICE', (data) => this.showPortalChoice(data));
+
         // Move choice (advance or stay)
         bus.on('SHOW_MOVE_CHOICE', (data) => this.showMoveChoice(data));
 
@@ -1254,6 +1257,16 @@ export class UIRenderer {
         const statsDiv = document.getElementById('market-player-stats');
         const stats = player.stats;
 
+        // Check if player is Vendor class (gets discount)
+        const isVendor = player.stats?.class?.id === 'vendor' || player.stats?.class?.marketDiscount;
+        const weaponCost = isVendor ? 1 : 2;  // Normal: 2, Vendor: 1
+        const shieldCost = isVendor ? 2 : 3;  // Normal: 3, Vendor: 2
+
+        if (isVendor) {
+            console.log('🛒 [MARKET] Vendor discount applied!');
+            bus.emit('SHOW_NOTIFICATION', { message: '🛒 ¡Descuento de Vendedor activo!', type: 'success' });
+        }
+
         // Update stats display
         const updateStats = () => {
             statsDiv.innerHTML = `
@@ -1262,18 +1275,22 @@ export class UIRenderer {
                 <span>⚔️ ${stats.weapons}</span>
                 <span>🛡️ ${stats.shield}</span>
             `;
-            // Update button states
-            document.getElementById('market-buy-weapon').disabled = stats.food < 2 || stats.weapons >= 5;
+            // Update button states with dynamic prices
+            document.getElementById('market-buy-weapon').disabled = stats.food < weaponCost || stats.weapons >= 5;
             document.getElementById('market-sell-weapon').disabled = stats.weapons < 1 || stats.food >= 5;
-            document.getElementById('market-heal').disabled = stats.food < 1 || stats.life >= 3;
-            document.getElementById('market-buy-shield').disabled = stats.food < 3 || stats.shield >= 3;
+            document.getElementById('market-heal').disabled = stats.food < 1 || stats.life >= 6;
+            document.getElementById('market-buy-shield').disabled = stats.food < shieldCost || stats.shield >= 3;
+
+            // Update button labels with prices
+            document.getElementById('market-buy-weapon').textContent = `⚔️ Comprar Arma (${weaponCost}🍗)`;
+            document.getElementById('market-buy-shield').textContent = `🛡️ Comprar Escudo (${shieldCost}🍗)`;
         };
         updateStats();
 
-        // Buy weapon: 2 food -> 1 weapon
+        // Buy weapon: dynamic cost -> 1 weapon
         document.getElementById('market-buy-weapon').onclick = () => {
-            if (stats.food >= 2 && stats.weapons < 5) {
-                stats.food -= 2;
+            if (stats.food >= weaponCost && stats.weapons < 5) {
+                stats.food -= weaponCost;
                 stats.weapons++;
                 updateStats();
                 bus.emit('SHOW_NOTIFICATION', { message: '⚔️ Arma comprada!', type: 'success' });
@@ -1300,10 +1317,10 @@ export class UIRenderer {
             }
         };
 
-        // Buy shield: 3 food -> 1 shield
+        // Buy shield: dynamic cost -> 1 shield
         document.getElementById('market-buy-shield').onclick = () => {
-            if (stats.food >= 3 && stats.shield < 3) {
-                stats.food -= 3;
+            if (stats.food >= shieldCost && stats.shield < 3) {
+                stats.food -= shieldCost;
                 stats.shield++;
                 updateStats();
                 bus.emit('SHOW_NOTIFICATION', { message: '🛡️ Escudo comprado!', type: 'success' });
@@ -1322,6 +1339,63 @@ export class UIRenderer {
             modal.classList.add('hidden');
             bus.emit('UI_MARKET_CLOSED');
         };
+
+        modal.classList.remove('hidden');
+    }
+
+    // Show Scientist portal choice
+    showPortalChoice({ player }) {
+        // Reuse PvP modal for portal choice
+        const modal = document.getElementById('pvp-modal');
+        if (!modal) {
+            // If no modal, skip portal
+            bus.emit('UI_PORTAL_CHOICE', false);
+            return;
+        }
+
+        const title = document.getElementById('pvp-title');
+        const yourIcon = document.getElementById('pvp-your-icon');
+        const yourName = document.getElementById('pvp-your-name');
+        const yourStats = document.getElementById('pvp-your-stats');
+        const oppIcon = document.getElementById('pvp-opp-icon');
+        const oppName = document.getElementById('pvp-opp-name');
+        const oppStats = document.getElementById('pvp-opp-stats');
+        const message = document.getElementById('pvp-message');
+        const optionsDiv = document.getElementById('pvp-options');
+
+        title.textContent = '🔬 PORTAL DEL CIENTÍFICO';
+
+        yourIcon.textContent = player.stats?.class?.icon || '🔬';
+        yourName.textContent = player.name;
+        yourStats.textContent = `Posición: ${player.pos}`;
+
+        oppIcon.textContent = '🌀';
+        oppName.textContent = 'Portal';
+        oppStats.textContent = '+5 casillas';
+
+        message.textContent = '¿Quieres usar tu portal para saltar 5 casillas?';
+
+        optionsDiv.innerHTML = '';
+
+        // Use portal button
+        const useBtn = document.createElement('button');
+        useBtn.className = 'btn-pvp-option';
+        useBtn.innerHTML = `<span class="pvp-opt-text">🌀 Usar Portal</span><span class="pvp-opt-desc">Salta 5 casillas (solo 1 uso)</span>`;
+        useBtn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_PORTAL_CHOICE', true);
+        };
+        optionsDiv.appendChild(useBtn);
+
+        // Skip button
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'btn-pvp-option';
+        skipBtn.innerHTML = `<span class="pvp-opt-text">🎲 Tirar Dados</span><span class="pvp-opt-desc">Guardar portal para después</span>`;
+        skipBtn.onclick = () => {
+            modal.classList.add('hidden');
+            bus.emit('UI_PORTAL_CHOICE', false);
+        };
+        optionsDiv.appendChild(skipBtn);
 
         modal.classList.remove('hidden');
     }

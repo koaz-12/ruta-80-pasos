@@ -38,6 +38,7 @@ export class GameEngine {
         bus.on('UI_DECISION_MADE', (choiceId) => this.resumeTurnAfterDecision(choiceId));
         bus.on('UI_COMBAT_RESULT', (result) => this.handleCombatResult(result)); // result: {damage, win}
         bus.on('UI_CARD_CLOSED', () => this.endTurn());
+        bus.on('UI_PORTAL_CHOICE', (usePortal) => this.handlePortalChoice(usePortal));
 
         // Combat defeat - handle retreat
         bus.on('COMBAT_DEFEAT', (data) => this.handleCombatDefeat(data));
@@ -112,12 +113,14 @@ export class GameEngine {
 
         const newStats = {
             life: cls.life,
-            maxLife: 5,
+            maxLife: 6,
             food: cls.food,
             weapons: cls.weapons,
             shield: cls.shield || 0,
             turnCounter: 0, // For hunger system (consume food every 3 turns)
-            class: cls // Include full class info (icon, name, bonus)
+            class: cls, // Include full class info (icon, name, bonus)
+            hasPortal: cls.hasPortal || false, // Scientist portal ability
+            portalUsed: false // Track if portal was used
         };
 
         if (role === 'CLIENT') {
@@ -187,8 +190,53 @@ export class GameEngine {
         // Reset endTurn guard for this new turn
         this.endingTurn = false;
 
+        // Check if player has unused portal (Scientist ability)
+        const player = store.state.players[state.turnIndex];
+        if (player?.stats?.hasPortal && !player?.stats?.portalUsed) {
+            // Show portal choice UI
+            bus.emit('SHOW_PORTAL_CHOICE', { player });
+            return; // Wait for portal decision
+        }
+
         // Si soy HOST u OFFLINE, ejecuto la lógica
         this.executeTurn(state.turnIndex);
+    }
+
+    // Handle portal decision from Scientist
+    handlePortalChoice(usePortal) {
+        const state = store.state;
+        const players = [...state.players];
+        const player = players[state.turnIndex];
+
+        if (usePortal && player?.stats?.hasPortal && !player?.stats?.portalUsed) {
+            // Use portal - jump 5 tiles forward
+            console.log('🔬 [PORTAL] Scientist activating portal!');
+            player.stats.portalUsed = true;
+
+            // Calculate new position (5 tiles forward)
+            let currentPos = player.pos;
+            let newPos = currentPos;
+            for (let i = 0; i < 5; i++) {
+                const node = this.boardGraph[newPos];
+                if (!node || !node.next) break;
+                newPos = Array.isArray(node.next) ? node.next[0] : node.next;
+            }
+
+            player.pos = newPos;
+            store.setPlayers(players);
+
+            bus.emit('SHOW_NOTIFICATION', {
+                message: `🔬 ¡Portal activado! ${player.name} salta a casilla ${newPos}`,
+                type: 'success'
+            });
+            bus.emit('STATE_UPDATED', state);
+
+            // End turn after portal
+            this.endTurn();
+        } else {
+            // Normal dice roll
+            this.executeTurn(state.turnIndex);
+        }
     }
 
     async executeTurn(pIndex, remainingFromBranch = 0) {
