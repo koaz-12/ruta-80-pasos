@@ -1,0 +1,1811 @@
+<!DOCTYPE html><html><head><title></title><meta charset="utf-8"><style>* {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 100%;
+}
+
+body {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+		'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+	line-height: 1.6;
+	font-size: 0.6875em; /* 11 pt */
+	color: #111;
+	margin: 0;
+}
+
+body > :first-child {
+	padding-top: 0;
+	margin-top: 0;
+}
+
+body > :last-child {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0;
+	padding: 0.5em 0 0.25em;
+}
+
+h5,
+h6 {
+	padding: 0;
+}
+
+h5 {
+	font-size: 1em;
+}
+
+h6 {
+	font-size: 0.875em;
+	text-transform: uppercase;
+}
+
+p {
+	margin: 0.25em 0 1em;
+}
+
+blockquote {
+	margin: 0.5em 0 1em;
+	padding-left: 0.5em;
+	padding-right: 1em;
+	border-left: 4px solid gainsboro;
+	font-style: italic;
+}
+
+ul,
+ol {
+	margin: 0;
+	margin-left: 1em;
+	padding: 0 1.5em 0.5em;
+}
+
+pre {
+	white-space: pre-wrap;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code,
+p code,
+li code,
+pre code {
+	background-color: #f8f8f8;
+	padding: 0.1em 0.375em;
+	border: 1px solid #f8f8f8;
+	border-radius: 0.25em;
+	font-family: monospace;
+	font-size: 1.2em;
+}
+
+pre code {
+	display: block;
+	padding: 0.5em;
+}
+
+.page-break {
+	page-break-after: always;
+}
+
+img {
+	max-width: 100%;
+	margin: 1em 0;
+}
+
+table {
+	border-spacing: 0;
+	border-collapse: collapse;
+	display: block;
+	margin: 0 0 1em;
+	width: 100%;
+	overflow: auto;
+}
+
+table th,
+table td {
+	padding: 0.5em 1em;
+	border: 1px solid gainsboro;
+}
+
+table th {
+	font-weight: 600;
+}
+
+table tr {
+	background-color: white;
+	border-top: 1px solid gainsboro;
+}
+
+table tr:nth-child(2n) {
+	background-color: whitesmoke;
+}
+/*# sourceURL=C:\Users\Erick\AppData\Local\npm-cache\_npx\55158e48eb5c59f7\node_modules\md-to-pdf\markdown.css*/</style><style>pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em
+}
+code.hljs {
+  padding: 3px 5px
+}
+/*!
+  Theme: GitHub
+  Description: Light theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-light
+  Current colors taken from GitHub's CSS
+*/
+.hljs {
+  color: #24292e;
+  background: #ffffff
+}
+.hljs-doctag,
+.hljs-keyword,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable.language_ {
+  /* prettylights-syntax-keyword */
+  color: #d73a49
+}
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_ {
+  /* prettylights-syntax-entity */
+  color: #6f42c1
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-literal,
+.hljs-meta,
+.hljs-number,
+.hljs-operator,
+.hljs-variable,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  /* prettylights-syntax-constant */
+  color: #005cc5
+}
+.hljs-regexp,
+.hljs-string,
+.hljs-meta .hljs-string {
+  /* prettylights-syntax-string */
+  color: #032f62
+}
+.hljs-built_in,
+.hljs-symbol {
+  /* prettylights-syntax-variable */
+  color: #e36209
+}
+.hljs-comment,
+.hljs-code,
+.hljs-formula {
+  /* prettylights-syntax-comment */
+  color: #6a737d
+}
+.hljs-name,
+.hljs-quote,
+.hljs-selector-tag,
+.hljs-selector-pseudo {
+  /* prettylights-syntax-entity-tag */
+  color: #22863a
+}
+.hljs-subst {
+  /* prettylights-syntax-storage-modifier-import */
+  color: #24292e
+}
+.hljs-section {
+  /* prettylights-syntax-markup-heading */
+  color: #005cc5;
+  font-weight: bold
+}
+.hljs-bullet {
+  /* prettylights-syntax-markup-list */
+  color: #735c0f
+}
+.hljs-emphasis {
+  /* prettylights-syntax-markup-italic */
+  color: #24292e;
+  font-style: italic
+}
+.hljs-strong {
+  /* prettylights-syntax-markup-bold */
+  color: #24292e;
+  font-weight: bold
+}
+.hljs-addition {
+  /* prettylights-syntax-markup-inserted */
+  color: #22863a;
+  background-color: #f0fff4
+}
+.hljs-deletion {
+  /* prettylights-syntax-markup-deleted */
+  color: #b31d28;
+  background-color: #ffeef0
+}
+.hljs-char.escape_,
+.hljs-link,
+.hljs-params,
+.hljs-property,
+.hljs-punctuation,
+.hljs-tag {
+  /* purposely ignored */
+  
+}/*# sourceURL=C:\Users\Erick\AppData\Local\npm-cache\_npx\55158e48eb5c59f7\node_modules\highlight.js\styles\github.css*/</style></head>
+	<body class="">
+		<h1 id="📅-plan-de-producción-roadmap">📅 PLAN DE PRODUCCIÓN (ROADMAP)</h1>
+<h2 id="proyecto-la-ruta-de-los-80-pasos">Proyecto: La Ruta de los 80 Pasos</h2>
+<h3 id="documento-de-planificación-exhaustivo">Documento de Planificación Exhaustivo</h3>
+<blockquote>
+<p><strong>Versión del Documento:</strong> 2.0<br><strong>Última Actualización:</strong> 2026-01-19<br><strong>Estado del Proyecto:</strong> Alpha v7.9 (85%)</p>
+</blockquote>
+<hr>
+<h2 id="📊-índice">📊 ÍNDICE</h2>
+<ol>
+<li><a href="#1-resumen-ejecutivo">Resumen Ejecutivo</a></li>
+<li><a href="#2-estado-actual-del-proyecto">Estado Actual del Proyecto</a></li>
+<li><a href="#3-auditor%C3%ADa-t%C3%A9cnica-completa">Auditoría Técnica Completa</a></li>
+<li><a href="#4-fases-del-proyecto">Fases del Proyecto</a></li>
+<li><a href="#5-cronograma-detallado">Cronograma Detallado</a></li>
+<li><a href="#6-sprint-actual-y-backlog">Sprint Actual y Backlog</a></li>
+<li><a href="#7-estimaciones-de-tiempo-por-tarea">Estimaciones de Tiempo por Tarea</a></li>
+<li><a href="#8-an%C3%A1lisis-de-riesgos">Análisis de Riesgos</a></li>
+<li><a href="#9-recursos-necesarios">Recursos Necesarios</a></li>
+<li><a href="#10-m%C3%A9tricas-y-kpis">Métricas y KPIs</a></li>
+<li><a href="#11-checklist-de-lanzamiento">Checklist de Lanzamiento</a></li>
+</ol>
+<hr>
+<h2 id="1-resumen-ejecutivo">1. Resumen Ejecutivo</h2>
+<h3 id="🎯-objetivo-del-proyecto">🎯 Objetivo del Proyecto</h3>
+<p>Desarrollar un juego de mesa digital post-apocalíptico para web que soporte 1-4 jugadores en modo local y online, con mecánicas de supervivencia, combate por dados y gestión de recursos.</p>
+<h3 id="📈-progreso-general">📈 Progreso General</h3>
+<pre><code>████████████████████████████████░░░░░░░░░░ 85%
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Versión Actual</strong></td>
+<td>v7.9 SEQUENTIAL PATH</td>
+</tr>
+<tr>
+<td><strong>Líneas de Código</strong></td>
+<td>~5,500 JavaScript</td>
+</tr>
+<tr>
+<td><strong>Archivos JS</strong></td>
+<td>20+ módulos</td>
+</tr>
+<tr>
+<td><strong>Tiempo Invertido</strong></td>
+<td>~6-8 semanas</td>
+</tr>
+<tr>
+<td><strong>Tiempo Restante Est.</strong></td>
+<td>4-6 semanas</td>
+</tr>
+</tbody></table>
+<h3 id="🏁-hitos-clave">🏁 Hitos Clave</h3>
+<table>
+<thead>
+<tr>
+<th>Hito</th>
+<th>Fecha Estimada</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pre-Producción</td>
+<td>Semana 1-2</td>
+<td>✅ Completado</td>
+</tr>
+<tr>
+<td>Prototipo Jugable</td>
+<td>Semana 3-5</td>
+<td>✅ Completado</td>
+</tr>
+<tr>
+<td>Alpha Feature Complete</td>
+<td>Semana 11</td>
+<td>🚧 En progreso</td>
+</tr>
+<tr>
+<td>Beta Testing</td>
+<td>Semana 14</td>
+<td>⏳ Pendiente</td>
+</tr>
+<tr>
+<td>Gold / Release</td>
+<td>Semana 18</td>
+<td>⏳ Pendiente</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-estado-actual-del-proyecto">2. Estado Actual del Proyecto</h2>
+<h3 id="21-inventario-de-módulos-core">2.1 Inventario de Módulos Core</h3>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Archivo</th>
+<th>Líneas</th>
+<th>Estado</th>
+<th>Cobertura</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Motor Principal</strong></td>
+<td><code>game-engine.js</code></td>
+<td>1,023</td>
+<td>✅ Funcional</td>
+<td>90%</td>
+</tr>
+<tr>
+<td><strong>Estado Global</strong></td>
+<td><code>game-state.js</code></td>
+<td>56</td>
+<td>✅ Completo</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Bus de Eventos</strong></td>
+<td><code>event-bus.js</code></td>
+<td>~50</td>
+<td>✅ Completo</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Combate PvE</strong></td>
+<td><code>combat-manager.js</code></td>
+<td>226</td>
+<td>✅ Funcional</td>
+<td>90%</td>
+</tr>
+<tr>
+<td><strong>Combate PvP</strong></td>
+<td><code>pvp-manager.js</code></td>
+<td>336</td>
+<td>✅ Funcional</td>
+<td>85%</td>
+</tr>
+<tr>
+<td><strong>Eventos de Casillas</strong></td>
+<td><code>tile-event-manager.js</code></td>
+<td>346</td>
+<td>✅ Funcional</td>
+<td>90%</td>
+</tr>
+<tr>
+<td><strong>Red P2P</strong></td>
+<td><code>network.js</code></td>
+<td>153</td>
+<td>⚠️ Parcial</td>
+<td>70%</td>
+</tr>
+<tr>
+<td><strong>Renderizado SVG</strong></td>
+<td><code>svg-board-renderer.js</code></td>
+<td>3,000+</td>
+<td>✅ Funcional</td>
+<td>95%</td>
+</tr>
+<tr>
+<td><strong>UI Renderer</strong></td>
+<td><code>ui-renderer.js</code></td>
+<td>~400</td>
+<td>⚠️ Parcial</td>
+<td>75%</td>
+</tr>
+<tr>
+<td><strong>Datos RPG</strong></td>
+<td><code>rpg-data.js</code></td>
+<td>71</td>
+<td>✅ Completo</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Datos de Mapa</strong></td>
+<td><code>map-data.js</code></td>
+<td>199</td>
+<td>✅ Completo</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Tipos de Casillas</strong></td>
+<td><code>tile-types.js</code></td>
+<td>108</td>
+<td>✅ Completo</td>
+<td>100%</td>
+</tr>
+</tbody></table>
+<h3 id="22-features-implementados">2.2 Features Implementados</h3>
+<h4 id="✅-completados-100">✅ Completados (100%)</h4>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> Selección de clase (6 clases jugables)</li>
+<li><input checked="" disabled="" type="checkbox"> Sistema de turnos round-robin</li>
+<li><input checked="" disabled="" type="checkbox"> Movimiento por tirada de dados (1d6)</li>
+<li><input checked="" disabled="" type="checkbox"> Sistema de bifurcaciones (4 junctions en el mapa)</li>
+<li><input checked="" disabled="" type="checkbox"> Sistema de hambre (consumo cada 3 turnos)</li>
+<li><input checked="" disabled="" type="checkbox"> Combate PvE con sistema de dados multi-dice</li>
+<li><input checked="" disabled="" type="checkbox"> Sistema de escudo (absorbe diferencia = 1)</li>
+<li><input checked="" disabled="" type="checkbox"> Loot por nivel de enemigo (1-4 items)</li>
+<li><input checked="" disabled="" type="checkbox"> 8 tipos de casillas (Normal, Zombie, Boss, Bandit, Event, Luck, Safe, Market)</li>
+<li><input checked="" disabled="" type="checkbox"> 10 cartas de Suerte</li>
+<li><input checked="" disabled="" type="checkbox"> 12 cartas de Evento</li>
+<li><input checked="" disabled="" type="checkbox"> Sistema de mercado (compra/venta)</li>
+<li><input checked="" disabled="" type="checkbox"> Distribución de enemigos por nivel/zona</li>
+<li><input checked="" disabled="" type="checkbox"> Boss Zombie obligatorio en casilla 79</li>
+<li><input checked="" disabled="" type="checkbox"> Animación de movimiento de fichas</li>
+<li><input checked="" disabled="" type="checkbox"> UI responsive básica</li>
+</ul>
+<h4 id="⚠️-parcialmente-implementados-70-90">⚠️ Parcialmente Implementados (70-90%)</h4>
+<ul>
+<li><p><input disabled="" type="checkbox"> 
+<strong>Sistema PvP</strong> — Funcional pero faltan edge cases</p>
+<ul>
+<li>✅ Detección de encuentros</li>
+<li>✅ Fase defender/attacker choice</li>
+<li>✅ Combate con dados</li>
+<li>✅ Robo de recursos</li>
+<li>⚠️ Retroceso del perdedor (parcial)</li>
+<li>❌ Sincronización online no probada</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> 
+<strong>Multijugador Online</strong> — 70% funcional</p>
+<ul>
+<li>✅ Conexión P2P con PeerJS</li>
+<li>✅ Creación/unión a sala</li>
+<li>✅ Heartbeat y detección de desconexión</li>
+<li>⚠️ Sincronización de estado (inconsistencias posibles)</li>
+<li>❌ Reconexión automática</li>
+<li>❌ Testing exhaustivo 2-4 jugadores</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> 
+<strong>Pasivas de Clase</strong> — 5/6 implementadas</p>
+<ul>
+<li>✅ Curandero (+1 vida)</li>
+<li>✅ Combatiente (arma inicial)</li>
+<li>✅ Explorador (balanced)</li>
+<li>✅ Tanque (escudo inicial)</li>
+<li>✅ Científico (portal único)</li>
+<li>❌ Vendedor (descuento en mercado) — <strong>FALTA IMPLEMENTAR</strong></li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> 
+<strong>Death/Respawn System</strong> — 85%</p>
+<ul>
+<li>✅ Detección de muerte (vida = 0)</li>
+<li>✅ Emisión de evento PLAYER_DIED</li>
+<li>⚠️ Respawn en checkpoint (parcial)</li>
+<li>⚠️ Saqueo de inventario (parcial)</li>
+</ul>
+</li>
+</ul>
+<h4 id="❌-no-implementados-0">❌ No Implementados (0%)</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Sistema de audio (música + SFX)</li>
+<li><input disabled="" type="checkbox"> Tutorial interactivo</li>
+<li><input disabled="" type="checkbox"> Pantalla de victoria/derrota mejorada</li>
+<li><input disabled="" type="checkbox"> Efectos de partículas</li>
+<li><input disabled="" type="checkbox"> Animaciones de cartas (flip)</li>
+<li><input disabled="" type="checkbox"> Logros/Achievements</li>
+<li><input disabled="" type="checkbox"> Tabla de clasificación</li>
+<li><input disabled="" type="checkbox"> PWA (manifest, service worker)</li>
+<li><input disabled="" type="checkbox"> Localización multi-idioma</li>
+</ul>
+<hr>
+<h2 id="3-auditoría-técnica-completa">3. Auditoría Técnica Completa</h2>
+<h3 id="31-arquitectura-actual">3.1 Arquitectura Actual</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
+│                        ARQUITECTURA V7.9                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
+│   │   main.js   │ ──→ │  UI Layer   │ ──→ │    DOM      │       │
+│   │ (Entry Pt)  │     │ ui-renderer │     │  (Modals)   │       │
+│   └──────┬──────┘     │ ui-handlers │     └─────────────┘       │
+│          │            └─────────────┘                            │
+│          │                   ↑                                   │
+│          ↓                   │ events                            │
+│   ┌─────────────────────────────────────────────────────┐       │
+│   │                    EVENT BUS                         │       │
+│   │     (Publish/Subscribe Pattern - event-bus.js)       │       │
+│   └─────────────────────────────────────────────────────┘       │
+│          ↑                   ↓                                   │
+│          │            ┌─────────────┐                            │
+│          │            │ game-engine │ ◄─── Central Controller    │
+│          │            │  (1023 LOC) │                            │
+│          │            └──────┬──────┘                            │
+│          │                   │                                   │
+│   ┌──────┴──────┐     ┌──────┴──────┐     ┌─────────────┐       │
+│   │ game-state  │ ←── │  Managers   │ ──→ │  Data Layer │       │
+│   │   (Store)   │     │   combat    │     │  rpg-data   │       │
+│   │             │     │   pvp       │     │  map-data   │       │
+│   │             │     │   tile-evt  │     │  tile-types │       │
+│   └─────────────┘     └─────────────┘     └─────────────┘       │
+│                                                                   │
+│   ┌─────────────┐     ┌─────────────┐                            │
+│   │   network   │ ←─→ │   PeerJS    │  (P2P para multijugador)  │
+│   └─────────────┘     └─────────────┘                            │
+│                                                                   │
+│   ┌─────────────────────────────────────────────────────┐       │
+│   │               SVG Board Renderer                     │       │
+│   │  (3000+ LOC - mapa, tiles, animaciones, editor)     │       │
+│   └─────────────────────────────────────────────────────┘       │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="32-flujo-de-datos">3.2 Flujo de Datos</h3>
+<pre><code>Usuario Click → ui-handlers.js → bus.emit('UI_ACTION_X')
+                                        │
+                                        ↓
+                              game-engine.js (handleX())
+                                        │
+                              ┌─────────┴─────────┐
+                              ↓                   ↓
+                        Actualiza            Managers
+                        game-state           (combat, pvp, tile)
+                              │                   │
+                              ↓                   ↓
+                        bus.emit()           bus.emit()
+                              │                   │
+                              └─────────┬─────────┘
+                                        ↓
+                              ui-renderer.js (listener)
+                                        │
+                                        ↓
+                              Actualiza DOM/Modals
+</code></pre>
+<h3 id="33-mapa-de-dependencias">3.3 Mapa de Dependencias</h3>
+<pre><code>main.js
+├── ui-handlers.js
+│   └── event-bus.js
+├── game-engine.js
+│   ├── event-bus.js
+│   ├── game-state.js
+│   ├── network.js
+│   ├── map-data.js (buildGraph)
+│   ├── rpg-data.js
+│   ├── tile-event-manager.js
+│   │   ├── tile-types.js
+│   │   ├── rpg-data.js
+│   │   └── combat-manager.js
+│   └── pvp-manager.js
+│       ├── combat-manager.js
+│       └── game-state.js
+├── ui-renderer.js
+│   ├── game-engine.js
+│   └── event-bus.js
+├── svg-board-renderer.js
+│   └── map-data.js
+└── debug-manager.js
+    └── game-engine.js
+</code></pre>
+<h3 id="34-bugs-conocidos-y-deuda-técnica">3.4 Bugs Conocidos y Deuda Técnica</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Tipo</th>
+<th>Descripción</th>
+<th>Severidad</th>
+<th>Archivo</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BUG-001</td>
+<td>🐛 Bug</td>
+<td>Retroceso PvP no actualiza posición en mapa visual</td>
+<td>Media</td>
+<td><code>pvp-manager.js:293</code></td>
+</tr>
+<tr>
+<td>BUG-002</td>
+<td>🐛 Bug</td>
+<td>Respawn en checkpoint no implementado correctamente</td>
+<td>Alta</td>
+<td><code>game-engine.js:893-930</code></td>
+</tr>
+<tr>
+<td>BUG-003</td>
+<td>🐛 Bug</td>
+<td>Saqueo de inventario al morir no se ejecuta</td>
+<td>Media</td>
+<td><code>game-engine.js:905-907</code></td>
+</tr>
+<tr>
+<td>DEBT-001</td>
+<td>🔧 Deuda</td>
+<td><code>confirm()</code> nativo en lugar de modal custom</td>
+<td>Baja</td>
+<td><code>ui-handlers.js:14</code></td>
+</tr>
+<tr>
+<td>DEBT-002</td>
+<td>🔧 Deuda</td>
+<td>Magic numbers en varios archivos</td>
+<td>Baja</td>
+<td>Varios</td>
+</tr>
+<tr>
+<td>DEBT-003</td>
+<td>🔧 Deuda</td>
+<td>Falta validación de entrada en network</td>
+<td>Media</td>
+<td><code>network.js</code></td>
+</tr>
+<tr>
+<td>DEBT-004</td>
+<td>🔧 Deuda</td>
+<td>Sin manejo de errores en localStorage</td>
+<td>Baja</td>
+<td><code>network.js:126-139</code></td>
+</tr>
+<tr>
+<td>FEAT-001</td>
+<td>🆕 Feature</td>
+<td>Descuento del Vendedor no implementado</td>
+<td>Alta</td>
+<td><code>rpg-data.js:15</code> / tile-event</td>
+</tr>
+<tr>
+<td>FEAT-002</td>
+<td>🆕 Feature</td>
+<td>Reconexión automática online</td>
+<td>Media</td>
+<td><code>network.js</code></td>
+</tr>
+</tbody></table>
+<h3 id="35-análisis-de-código-por-complejidad">3.5 Análisis de Código por Complejidad</h3>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Líneas</th>
+<th>Complejidad Ciclomática</th>
+<th>Comentario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>game-engine.js</code></td>
+<td>1,023</td>
+<td>🔴 Alta</td>
+<td>Concentra mucha lógica, candidato a refactor</td>
+</tr>
+<tr>
+<td><code>svg-board-renderer.js</code></td>
+<td>3,000+</td>
+<td>🔴 Alta</td>
+<td>Renderizado + Editor + Animaciones</td>
+</tr>
+<tr>
+<td><code>pvp-manager.js</code></td>
+<td>336</td>
+<td>🟡 Media</td>
+<td>Bien estructurado</td>
+</tr>
+<tr>
+<td><code>tile-event-manager.js</code></td>
+<td>346</td>
+<td>🟡 Media</td>
+<td>Podría dividirse por tipo de tile</td>
+</tr>
+<tr>
+<td><code>combat-manager.js</code></td>
+<td>226</td>
+<td>🟢 Baja</td>
+<td>Limpio y enfocado</td>
+</tr>
+<tr>
+<td><code>network.js</code></td>
+<td>153</td>
+<td>🟢 Baja</td>
+<td>Simple pero falta error handling</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-fases-del-proyecto">4. Fases del Proyecto</h2>
+<h3 id="fase-1-pre-producción-✅-completada">FASE 1: Pre-Producción ✅ COMPLETADA</h3>
+<p><strong>Duración Real:</strong> 2 Semanas</p>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Definición del concepto (GDD)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Diseño de mapa y rutas</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Definición de clases y reglas</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Setup técnico (HTML/JS/CSS)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Diseño del grafo de bifurcaciones</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="fase-2-prototipo--vertical-slice-✅-completada">FASE 2: Prototipo / Vertical Slice ✅ COMPLETADA</h3>
+<p><strong>Duración Real:</strong> 3 Semanas</p>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Renderizado SVG del tablero</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Movimiento básico de fichas</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Sistema de turnos round-robin</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Tirada de dados 1d6</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Primera versión jugable</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="fase-3-alpha-🚧-en-progreso">FASE 3: Alpha 🚧 EN PROGRESO</h3>
+<p><strong>Duración Estimada:</strong> 4-6 Semanas<br><strong>Progreso Actual:</strong> 85%</p>
+<h4 id="31-sistemas-core-90">3.1 Sistemas Core (90%)</h4>
+<table>
+<thead>
+<tr>
+<th>Subtarea</th>
+<th>Estado</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sistema de combate PvE completo</td>
+<td>✅</td>
+<td>Multi-dice implementado</td>
+</tr>
+<tr>
+<td>Sistema de eventos de casillas</td>
+<td>✅</td>
+<td>8 tipos funcionales</td>
+</tr>
+<tr>
+<td>Gestión de inventario</td>
+<td>✅</td>
+<td>Vida/Comida/Armas/Escudo</td>
+</tr>
+<tr>
+<td>Sistema de hambre</td>
+<td>✅</td>
+<td>Cada 3 turnos</td>
+</tr>
+<tr>
+<td>Sistema de bifurcaciones</td>
+<td>✅</td>
+<td>4 junctions funcionales</td>
+</tr>
+<tr>
+<td>Sistema de muerte</td>
+<td>✅</td>
+<td>Funcional</td>
+</tr>
+<tr>
+<td>Sistema de respawn</td>
+<td>⚠️</td>
+<td>Parcial - revisar checkpoints</td>
+</tr>
+<tr>
+<td>Sistema PvP completo</td>
+<td>⚠️</td>
+<td>Falta retroceso visual</td>
+</tr>
+<tr>
+<td>Pasivas de clase</td>
+<td>⚠️</td>
+<td>5/6 implementadas</td>
+</tr>
+</tbody></table>
+<h4 id="32-contenido-95">3.2 Contenido (95%)</h4>
+<table>
+<thead>
+<tr>
+<th>Subtarea</th>
+<th>Estado</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>80 casillas definidas</td>
+<td>✅</td>
+<td>Con coordenadas SVG</td>
+</tr>
+<tr>
+<td>Distribución de zombies</td>
+<td>✅</td>
+<td>Niveles 1-4</td>
+</tr>
+<tr>
+<td>Distribución de bandidos</td>
+<td>✅</td>
+<td>Niveles 1-3</td>
+</tr>
+<tr>
+<td>Boss Zombie</td>
+<td>✅</td>
+<td>Casilla 79 obligatorio</td>
+</tr>
+<tr>
+<td>Cartas de Suerte (10)</td>
+<td>✅</td>
+<td>Con efectos</td>
+</tr>
+<tr>
+<td>Cartas de Evento (12)</td>
+<td>✅</td>
+<td>Con efectos</td>
+</tr>
+<tr>
+<td>6 clases jugables</td>
+<td>✅</td>
+<td>Con stats únicos</td>
+</tr>
+</tbody></table>
+<h4 id="33-uiux-75">3.3 UI/UX (75%)</h4>
+<table>
+<thead>
+<tr>
+<th>Subtarea</th>
+<th>Estado</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HUD de stats</td>
+<td>✅</td>
+<td>Footer responsive</td>
+</tr>
+<tr>
+<td>Modal selección personaje</td>
+<td>✅</td>
+<td>Grid con 6 opciones</td>
+</tr>
+<tr>
+<td>Modal de combate</td>
+<td>✅</td>
+<td>Con timer 20s</td>
+</tr>
+<tr>
+<td>Modal de mercado</td>
+<td>✅</td>
+<td>4 operaciones</td>
+</tr>
+<tr>
+<td>Modal de bifurcaciones</td>
+<td>✅</td>
+<td>Mejorado con contexto</td>
+</tr>
+<tr>
+<td>Modal PvP</td>
+<td>✅</td>
+<td>3 fases</td>
+</tr>
+<tr>
+<td>Animaciones movimiento</td>
+<td>✅</td>
+<td>Suave con easing</td>
+</tr>
+<tr>
+<td>Animaciones combate</td>
+<td>⚠️</td>
+<td>Básicas</td>
+</tr>
+<tr>
+<td>Pantalla victoria/derrota</td>
+<td>⚠️</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td>Feedback visual daño/cura</td>
+<td>❌</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>Efectos de partículas</td>
+<td>❌</td>
+<td>Pendiente</td>
+</tr>
+</tbody></table>
+<h4 id="34-multiplayer-70">3.4 Multiplayer (70%)</h4>
+<table>
+<thead>
+<tr>
+<th>Subtarea</th>
+<th>Estado</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Conexión P2P básica</td>
+<td>✅</td>
+<td>PeerJS</td>
+</tr>
+<tr>
+<td>Crear/Unir sala</td>
+<td>✅</td>
+<td>Código 6 caracteres</td>
+</tr>
+<tr>
+<td>Heartbeat</td>
+<td>✅</td>
+<td>3s ping</td>
+</tr>
+<tr>
+<td>Detección desconexión</td>
+<td>✅</td>
+<td>10s timeout</td>
+</tr>
+<tr>
+<td>Sincronización de estado</td>
+<td>⚠️</td>
+<td>Posibles race conditions</td>
+</tr>
+<tr>
+<td>Reconexión automática</td>
+<td>❌</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>Testing 2+ jugadores</td>
+<td>❌</td>
+<td>Pendiente</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="fase-4-beta-próxima">FASE 4: Beta (PRÓXIMA)</h3>
+<p><strong>Duración Estimada:</strong> 3-4 Semanas<br><strong>Inicio Objetivo:</strong> Cuando Alpha = 100%</p>
+<h4 id="objetivos-beta">Objetivos Beta</h4>
+<ol>
+<li><strong>Feature Complete</strong> — Todas las features implementadas</li>
+<li><strong>Bug-Free Critical</strong> — 0 bugs críticos</li>
+<li><strong>Playtest Exhaustivo</strong> — Mínimo 20 partidas completas</li>
+<li><strong>Balanceo</strong> — Curva de dificultad ajustada</li>
+</ol>
+<h4 id="tareas-beta">Tareas Beta</h4>
+<table>
+<thead>
+<tr>
+<th>Categoría</th>
+<th>Tarea</th>
+<th>Prioridad</th>
+<th>Estimación</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Bugs</strong></td>
+<td>Fix respawn en checkpoints</td>
+<td>🔴 Alta</td>
+<td>4h</td>
+</tr>
+<tr>
+<td><strong>Bugs</strong></td>
+<td>Fix retroceso visual PvP</td>
+<td>🔴 Alta</td>
+<td>2h</td>
+</tr>
+<tr>
+<td><strong>Bugs</strong></td>
+<td>Fix saqueo al morir</td>
+<td>🟠 Media</td>
+<td>2h</td>
+</tr>
+<tr>
+<td><strong>Features</strong></td>
+<td>Descuento Vendedor</td>
+<td>🔴 Alta</td>
+<td>2h</td>
+</tr>
+<tr>
+<td><strong>Features</strong></td>
+<td>Tutorial primer turno</td>
+<td>🟠 Media</td>
+<td>8h</td>
+</tr>
+<tr>
+<td><strong>Features</strong></td>
+<td>Reconexión online</td>
+<td>🟠 Media</td>
+<td>6h</td>
+</tr>
+<tr>
+<td><strong>Polish</strong></td>
+<td>Animaciones de cartas</td>
+<td>🟡 Baja</td>
+<td>4h</td>
+</tr>
+<tr>
+<td><strong>Polish</strong></td>
+<td>Efectos de daño/cura</td>
+<td>🟡 Baja</td>
+<td>4h</td>
+</tr>
+<tr>
+<td><strong>Polish</strong></td>
+<td>Pantalla victoria mejorada</td>
+<td>🟡 Baja</td>
+<td>3h</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>SFX básicos (10-15 sonidos)</td>
+<td>🟠 Media</td>
+<td>8h</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>Música de fondo (1 track)</td>
+<td>🟡 Baja</td>
+<td>4h</td>
+</tr>
+<tr>
+<td><strong>Balance</strong></td>
+<td>Ajuste de frecuencia loot</td>
+<td>🟠 Media</td>
+<td>4h</td>
+</tr>
+<tr>
+<td><strong>Balance</strong></td>
+<td>Ajuste de consumo hambre</td>
+<td>🟠 Media</td>
+<td>2h</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>QA multijugador 2p</td>
+<td>🔴 Alta</td>
+<td>8h</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>QA multijugador 4p</td>
+<td>🟠 Media</td>
+<td>8h</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>QA modo offline</td>
+<td>🔴 Alta</td>
+<td>4h</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="fase-5-gold--polishing-final">FASE 5: Gold / Polishing (FINAL)</h3>
+<p><strong>Duración Estimada:</strong> 2-3 Semanas</p>
+<h4 id="tareas-gold">Tareas Gold</h4>
+<table>
+<thead>
+<tr>
+<th>Categoría</th>
+<th>Tarea</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Bugs</strong></td>
+<td>Bug fixing final</td>
+<td>🔴 Alta</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Optimización mobile</td>
+<td>🔴 Alta</td>
+</tr>
+<tr>
+<td><strong>Compat</strong></td>
+<td>Testing Chrome/Firefox/Safari/Edge</td>
+<td>🔴 Alta</td>
+</tr>
+<tr>
+<td><strong>Compat</strong></td>
+<td>Testing iOS/Android</td>
+<td>🟠 Media</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>Música completa (3 zonas)</td>
+<td>🟡 Baja</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>SFX completos</td>
+<td>🟡 Baja</td>
+</tr>
+<tr>
+<td><strong>Deploy</strong></td>
+<td>PWA setup</td>
+<td>🟠 Media</td>
+</tr>
+<tr>
+<td><strong>Deploy</strong></td>
+<td>Hosting producción</td>
+<td>🔴 Alta</td>
+</tr>
+<tr>
+<td><strong>Docs</strong></td>
+<td>Créditos</td>
+<td>🟡 Baja</td>
+</tr>
+<tr>
+<td><strong>Docs</strong></td>
+<td>README final</td>
+<td>🟠 Media</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-cronograma-detallado">5. Cronograma Detallado</h2>
+<h3 id="51-vista-general-gantt-simplificado">5.1 Vista General (Gantt Simplificado)</h3>
+<pre><code>                     SEMANAS DEL PROYECTO
+                S1  S2  S3  S4  S5  S6  S7  S8  S9  S10 S11 S12 S13 S14 S15 S16 S17 S18
+                ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ─── ───
+PRE-PROD        ███ ███ 
+PROTOTIPO               ███ ███ ███ 
+ALPHA                           ███ ███ ███ ███ ███ ███ 
+  └─ Systems                    ███ ███ ███ 
+  └─ Content                            ███ ███ 
+  └─ UI/UX                                      ███ ███ 
+  └─ Multiplayer                                    ███ ███ 
+BETA                                                        ███ ███ ███ ███ 
+  └─ Bug Fixes                                              ███ 
+  └─ Tutorial                                                   ███ 
+  └─ Audio                                                          ███ 
+  └─ Testing QA                                                     ███ ███ 
+GOLD                                                                        ███ ███ ███
+  └─ Polish                                                                 ███ 
+  └─ Cross-browser                                                              ███ 
+  └─ Deploy                                                                         ███
+LANZAMIENTO                                                                             🚀
+
+LEYENDA: ███ = Trabajo activo | ─── = Semana vacía | 🚀 = Release
+</code></pre>
+<h3 id="52-estado-actual-en-el-cronograma">5.2 Estado Actual en el Cronograma</h3>
+<pre><code>           ESTAMOS AQUÍ
+                 ↓
+S1  S2  S3  S4  S5  S6  S7  S8  S9  S10 S11 ← AHORA
+███ ███ ███ ███ ███ ███ ███ ███ ███ ███ ███
+✅  ✅  ✅  ✅  ✅  ✅  ✅  ✅  ✅  ✅  🚧
+
+Alpha restante: ~1 semana
+Beta: ~4 semanas
+Gold: ~2-3 semanas
+────────────────────────────
+Total restante: 6-8 semanas
+</code></pre>
+<hr>
+<h2 id="6-sprint-actual-y-backlog">6. Sprint Actual y Backlog</h2>
+<h3 id="61-sprint-actual-s11-s12">6.1 Sprint Actual (S11-S12)</h3>
+<p><strong>Objetivo:</strong> Completar Alpha al 100%</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tarea</th>
+<th>Asignado</th>
+<th>Estado</th>
+<th>Horas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Implementar descuento Vendedor</td>
+<td>Dev</td>
+<td>⏳</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fix respawn checkpoints</td>
+<td>Dev</td>
+<td>⏳</td>
+<td>4h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fix retroceso visual PvP</td>
+<td>Dev</td>
+<td>⏳</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fix saqueo inventario muerte</td>
+<td>Dev</td>
+<td>⏳</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Testing bifurcaciones</td>
+<td>QA</td>
+<td>🔄</td>
+<td>3h</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Testing offline 1-4p</td>
+<td>QA</td>
+<td>⏳</td>
+<td>4h</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Documentar API de eventos</td>
+<td>Dev</td>
+<td>⏳</td>
+<td>2h</td>
+</tr>
+</tbody></table>
+<p><strong>Total Sprint:</strong> ~19 horas de trabajo</p>
+<h3 id="62-backlog-priorizado">6.2 Backlog Priorizado</h3>
+<h4 id="🔴-p0---crítico-bloquea-release">🔴 P0 - Crítico (Bloquea release)</h4>
+<ol>
+<li><input disabled="" type="checkbox"> Fix respawn checkpoints</li>
+<li><input disabled="" type="checkbox"> Implementar descuento Vendedor</li>
+<li><input disabled="" type="checkbox"> Testing multijugador básico</li>
+<li><input disabled="" type="checkbox"> 0 crashes en partida completa</li>
+</ol>
+<h4 id="🟠-p1---alta-prioridad">🟠 P1 - Alta Prioridad</h4>
+<ol start="5">
+<li><input disabled="" type="checkbox"> Tutorial interactivo</li>
+<li><input disabled="" type="checkbox"> Reconexión automática online</li>
+<li><input disabled="" type="checkbox"> SFX básicos (dados, combate)</li>
+<li><input disabled="" type="checkbox"> Balanceo de dificultad</li>
+</ol>
+<h4 id="🟡-p2---media-prioridad">🟡 P2 - Media Prioridad</h4>
+<ol start="9">
+<li><input disabled="" type="checkbox"> Animaciones de cartas flip</li>
+<li><input disabled="" type="checkbox"> Efectos visuales daño/cura</li>
+<li><input disabled="" type="checkbox"> Música de fondo (1 track)</li>
+<li><input disabled="" type="checkbox"> Pantalla victoria mejorada</li>
+</ol>
+<h4 id="🟢-p3---baja-prioridad-nice-to-have">🟢 P3 - Baja Prioridad (Nice to have)</h4>
+<ol start="13">
+<li><input disabled="" type="checkbox"> Logros/Achievements</li>
+<li><input disabled="" type="checkbox"> Tabla de clasificación</li>
+<li><input disabled="" type="checkbox"> Más cartas de evento</li>
+<li><input disabled="" type="checkbox"> Modo "Historia"</li>
+</ol>
+<hr>
+<h2 id="7-estimaciones-de-tiempo-por-tarea">7. Estimaciones de Tiempo por Tarea</h2>
+<h3 id="71-tareas-de-desarrollo">7.1 Tareas de Desarrollo</h3>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Complejidad</th>
+<th>Horas Est.</th>
+<th>Dependencias</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Descuento Vendedor</td>
+<td>Baja</td>
+<td>2h</td>
+<td><code>tile-event-manager.js</code></td>
+</tr>
+<tr>
+<td>Fix respawn</td>
+<td>Media</td>
+<td>4h</td>
+<td><code>game-engine.js</code>, grafo</td>
+</tr>
+<tr>
+<td>Fix PvP retroceso</td>
+<td>Baja</td>
+<td>2h</td>
+<td><code>pvp-manager.js</code>, renderer</td>
+</tr>
+<tr>
+<td>Fix saqueo muerte</td>
+<td>Baja</td>
+<td>2h</td>
+<td><code>game-engine.js</code></td>
+</tr>
+<tr>
+<td>Reconexión online</td>
+<td>Media</td>
+<td>6h</td>
+<td><code>network.js</code></td>
+</tr>
+<tr>
+<td>Tutorial básico</td>
+<td>Alta</td>
+<td>8h</td>
+<td>UI nuevo, triggers</td>
+</tr>
+<tr>
+<td>SFX integración</td>
+<td>Media</td>
+<td>8h</td>
+<td>Librería audio, assets</td>
+</tr>
+<tr>
+<td>BGM integración</td>
+<td>Baja</td>
+<td>4h</td>
+<td>Audio loop</td>
+</tr>
+<tr>
+<td>Animaciones cards</td>
+<td>Media</td>
+<td>4h</td>
+<td>CSS, ui-renderer</td>
+</tr>
+<tr>
+<td>Efectos partículas</td>
+<td>Alta</td>
+<td>6h</td>
+<td>Canvas o CSS</td>
+</tr>
+<tr>
+<td>PWA setup</td>
+<td>Media</td>
+<td>4h</td>
+<td>Manifest, SW</td>
+</tr>
+</tbody></table>
+<h3 id="72-tareas-de-qatesting">7.2 Tareas de QA/Testing</h3>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Tipo</th>
+<th>Horas Est.</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QA Offline 1p</td>
+<td>Manual</td>
+<td>2h</td>
+<td>Partida completa</td>
+</tr>
+<tr>
+<td>QA Offline 2-4p</td>
+<td>Manual</td>
+<td>4h</td>
+<td>Hot-seat</td>
+</tr>
+<tr>
+<td>QA Online 2p</td>
+<td>Manual</td>
+<td>4h</td>
+<td>Requiere 2 dispositivos</td>
+</tr>
+<tr>
+<td>QA Online 4p</td>
+<td>Manual</td>
+<td>6h</td>
+<td>Requiere 4 dispositivos</td>
+</tr>
+<tr>
+<td>QA Cross-browser</td>
+<td>Manual</td>
+<td>4h</td>
+<td>Chrome, Firefox, Safari, Edge</td>
+</tr>
+<tr>
+<td>QA Mobile</td>
+<td>Manual</td>
+<td>4h</td>
+<td>iOS Safari, Chrome Android</td>
+</tr>
+<tr>
+<td>Regression básico</td>
+<td>Automatizado</td>
+<td>2h setup</td>
+<td>Opcional</td>
+</tr>
+</tbody></table>
+<h3 id="73-total-de-horas-restantes">7.3 Total de Horas Restantes</h3>
+<table>
+<thead>
+<tr>
+<th>Fase</th>
+<th>Desarrollo</th>
+<th>QA</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Completar Alpha</td>
+<td>12h</td>
+<td>8h</td>
+<td>20h</td>
+</tr>
+<tr>
+<td>Beta Features</td>
+<td>24h</td>
+<td>16h</td>
+<td>40h</td>
+</tr>
+<tr>
+<td>Gold Polish</td>
+<td>16h</td>
+<td>12h</td>
+<td>28h</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>52h</strong></td>
+<td><strong>36h</strong></td>
+<td><strong>88h</strong></td>
+</tr>
+</tbody></table>
+<p><strong>A ritmo de 10h/semana:</strong> ~9 semanas<br><strong>A ritmo de 20h/semana:</strong> ~4-5 semanas<br><strong>A ritmo de 40h/semana:</strong> ~2 semanas</p>
+<hr>
+<h2 id="8-análisis-de-riesgos">8. Análisis de Riesgos</h2>
+<h3 id="81-matriz-de-riesgos">8.1 Matriz de Riesgos</h3>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Probabilidad</th>
+<th>Impacto</th>
+<th>Score</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bugs de sincronización P2P</td>
+<td>🟡 Media</td>
+<td>🔴 Alto</td>
+<td>🔴 <strong>8</strong></td>
+<td>Testing exhaustivo, logs</td>
+</tr>
+<tr>
+<td>Balanceo incorrecto</td>
+<td>🟡 Media</td>
+<td>🟡 Medio</td>
+<td>🟡 <strong>6</strong></td>
+<td>Playtesting interno frecuente</td>
+</tr>
+<tr>
+<td>Rendimiento bajo en mobile</td>
+<td>🟡 Media</td>
+<td>🔴 Alto</td>
+<td>🔴 <strong>8</strong></td>
+<td>Profiling temprano, optimización SVG</td>
+</tr>
+<tr>
+<td>Scope creep (nuevas features)</td>
+<td>🟢 Baja</td>
+<td>🟡 Medio</td>
+<td>🟢 <strong>4</strong></td>
+<td>Backlog estricto, MVP first</td>
+</tr>
+<tr>
+<td>Burnout / pérdida de motivación</td>
+<td>🟡 Media</td>
+<td>🔴 Alto</td>
+<td>🔴 <strong>8</strong></td>
+<td>Hitos pequeños, celebrar logros</td>
+</tr>
+<tr>
+<td>PeerJS deprecation/issues</td>
+<td>🟢 Baja</td>
+<td>🔴 Alto</td>
+<td>🟡 <strong>5</strong></td>
+<td>Fallback a WebSocket</td>
+</tr>
+<tr>
+<td>Incompatibilidad Safari iOS</td>
+<td>🟡 Media</td>
+<td>🟡 Medio</td>
+<td>🟡 <strong>6</strong></td>
+<td>Testing temprano en iOS</td>
+</tr>
+</tbody></table>
+<h3 id="82-plan-de-contingencia">8.2 Plan de Contingencia</h3>
+<table>
+<thead>
+<tr>
+<th>Escenario</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PeerJS falla</td>
+<td>Migrar a Socket.io o WebRTC directo</td>
+</tr>
+<tr>
+<td>Mobile muy lento</td>
+<td>Reducir animaciones, usar Canvas 2D</td>
+</tr>
+<tr>
+<td>Safari rompe layout</td>
+<td>Usar fallbacks CSS, evitar features nuevas</td>
+</tr>
+<tr>
+<td>No hay tiempo para audio</td>
+<td>Lanzar sin audio, agregar en v1.1</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="9-recursos-necesarios">9. Recursos Necesarios</h2>
+<h3 id="91-para-completar-alpha">9.1 Para Completar Alpha</h3>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> 1 desarrollador</li>
+<li><input checked="" disabled="" type="checkbox"> Entorno de desarrollo local</li>
+<li><input disabled="" type="checkbox"> 1-2 testers (pueden ser amigos)</li>
+</ul>
+<h3 id="92-para-beta">9.2 Para Beta</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Audio Assets</strong> (libre de derechos o creados)<ul>
+<li>10-15 SFX (dados, golpes, pasos, etc.)</li>
+<li>1-3 tracks de música ambiental</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>Dispositivos de prueba</strong><ul>
+<li>1x Android</li>
+<li>1x iOS (opcional pero recomendado)</li>
+<li>2-4 computadoras para test online</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>Beta Testers</strong><ul>
+<li>4-8 personas para testing real</li>
+</ul>
+</li>
+</ul>
+<h3 id="93-para-lanzamiento">9.3 Para Lanzamiento</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Hosting</strong><ul>
+<li>Vercel (gratis) o Netlify</li>
+<li>Dominio propio (opcional)</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>Assets de Marketing</strong><ul>
+<li>Screenshots del juego</li>
+<li>Descripción corta para compartir</li>
+<li>Icono/favicon</li>
+</ul>
+</li>
+</ul>
+<h3 id="94-presupuesto-estimado">9.4 Presupuesto Estimado</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Costo</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Desarrollo</strong></td>
+<td>$0</td>
+<td>Trabajo propio</td>
+</tr>
+<tr>
+<td><strong>Hosting (Vercel)</strong></td>
+<td>$0</td>
+<td>Tier gratuito</td>
+</tr>
+<tr>
+<td><strong>Dominio</strong></td>
+<td>$12/año</td>
+<td>Opcional</td>
+</tr>
+<tr>
+<td><strong>Audio (royalty-free)</strong></td>
+<td>$0-50</td>
+<td>opengameart.org o similar</td>
+</tr>
+<tr>
+<td><strong>Testing Devices</strong></td>
+<td>$0</td>
+<td>Usar los propios</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>$0-62</strong></td>
+<td>Proyecto muy económico</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="10-métricas-y-kpis">10. Métricas y KPIs</h2>
+<h3 id="101-kpis-de-desarrollo">10.1 KPIs de Desarrollo</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Objetivo</th>
+<th>Actual</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bugs críticos abiertos</td>
+<td>0</td>
+<td>~2</td>
+</tr>
+<tr>
+<td>Código coverage (estimado)</td>
+<td>&gt;70%</td>
+<td>~60%</td>
+</tr>
+<tr>
+<td>Tiempo de carga inicial</td>
+<td>&lt;3s</td>
+<td>~2s ✅</td>
+</tr>
+<tr>
+<td>FPS en desktop</td>
+<td>&gt;60</td>
+<td>60 ✅</td>
+</tr>
+<tr>
+<td>FPS en mobile</td>
+<td>&gt;30</td>
+<td>~45 ✅</td>
+</tr>
+<tr>
+<td>Tamaño del bundle</td>
+<td>&lt;1MB</td>
+<td>~500KB ✅</td>
+</tr>
+</tbody></table>
+<h3 id="102-kpis-de-calidad">10.2 KPIs de Calidad</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Objetivo</th>
+<th>Actual</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Partidas completadas sin crash</td>
+<td>100%</td>
+<td>~95%</td>
+</tr>
+<tr>
+<td>Tiempo promedio de partida</td>
+<td>15-30min</td>
+<td>No medido</td>
+</tr>
+<tr>
+<td>Bifurcaciones funcionando</td>
+<td>4/4</td>
+<td>4/4 ✅</td>
+</tr>
+<tr>
+<td>Clases jugables</td>
+<td>6/6</td>
+<td>6/6 ✅</td>
+</tr>
+<tr>
+<td>Casillas con eventos</td>
+<td>30+</td>
+<td>35+ ✅</td>
+</tr>
+</tbody></table>
+<h3 id="103-kpis-post-lanzamiento-objetivos">10.3 KPIs Post-Lanzamiento (Objetivos)</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Objetivo 30 días</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Usuarios únicos</td>
+<td>100+</td>
+</tr>
+<tr>
+<td>Partidas jugadas</td>
+<td>500+</td>
+</tr>
+<tr>
+<td>Sesión promedio</td>
+<td>&gt;10 min</td>
+</tr>
+<tr>
+<td>Bugs reportados críticos</td>
+<td>&lt;3</td>
+</tr>
+<tr>
+<td>Rating (si aplica)</td>
+<td>&gt;4/5</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="11-checklist-de-lanzamiento">11. Checklist de Lanzamiento</h2>
+<h3 id="pre-lanzamiento-1-semana-antes">Pre-Lanzamiento (1 semana antes)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Todas las features Alpha implementadas</li>
+<li><input disabled="" type="checkbox"> 0 bugs críticos</li>
+<li><input disabled="" type="checkbox"> Testing completo offline (1-4p)</li>
+<li><input disabled="" type="checkbox"> Testing completo online (2-4p)</li>
+<li><input disabled="" type="checkbox"> Cross-browser testing pasado</li>
+<li><input disabled="" type="checkbox"> Mobile testing pasado (Android + iOS)</li>
+<li><input disabled="" type="checkbox"> Tutorial funcional</li>
+<li><input disabled="" type="checkbox"> Audio básico integrado (mínimo SFX)</li>
+</ul>
+<h3 id="lanzamiento-día-del-release">Lanzamiento (día del release)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Deploy a producción (Vercel/Netlify)</li>
+<li><input disabled="" type="checkbox"> Verificar que funciona en producción</li>
+<li><input disabled="" type="checkbox"> Crear hilo de anuncio (si aplica)</li>
+<li><input disabled="" type="checkbox"> Compartir con beta testers</li>
+</ul>
+<h3 id="post-lanzamiento-1-semana-después">Post-Lanzamiento (1 semana después)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Monitorear feedback</li>
+<li><input disabled="" type="checkbox"> Hotfix bugs críticos reportados</li>
+<li><input disabled="" type="checkbox"> Agregar analytics (opcional)</li>
+<li><input disabled="" type="checkbox"> Planificar v1.1</li>
+</ul>
+<hr>
+<h2 id="📋-apéndices">📋 Apéndices</h2>
+<h3 id="a-glosario-de-términos">A. Glosario de Términos</h3>
+<ul>
+<li><strong>PvE:</strong> Player vs Environment (combate contra zombies/bandidos)</li>
+<li><strong>PvP:</strong> Player vs Player (combate entre jugadores)</li>
+<li><strong>Junction:</strong> Bifurcación en el mapa donde el jugador elige camino</li>
+<li><strong>Hotseat:</strong> Modo multijugador local pasando el control</li>
+<li><strong>P2P:</strong> Peer-to-Peer, conexión directa entre jugadores sin servidor</li>
+</ul>
+<h3 id="b-contacto-y-recursos">B. Contacto y Recursos</h3>
+<ul>
+<li><strong>Repositorio:</strong> Local (sin Git remoto configurado)</li>
+<li><strong>Servidor de desarrollo:</strong> <code>npx http-server -p 8080</code></li>
+<li><strong>URL de prueba:</strong> <code>http://localhost:8080</code></li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>Este documento es un documento vivo y debe actualizarse semanalmente.</strong></p>
+</blockquote>
+<hr>
+<p><em>Generado el 2026-01-19 basado en análisis exhaustivo del código fuente.</em></p>
+
+	
+
+</body></html>

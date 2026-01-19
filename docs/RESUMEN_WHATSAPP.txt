@@ -1,0 +1,90 @@
+=====================================
+🎮 LA RUTA DE LOS 80 PASOS
+📅 PLAN DE PRODUCCIÓN v2.0
+=====================================
+
+📊 ESTADO ACTUAL: v7.9 Alpha (85%)
+⏱️ Tiempo restante: 6-8 semanas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ COMPLETADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Motor de juego principal
+• Sistema de turnos y movimiento
+• Combate PvE (multi-dice)
+• Combate PvP funcional
+• 6 clases jugables
+• 80 casillas del mapa
+• 8 tipos de casillas
+• Sistema de hambre
+• Sistema de mercado
+• 10 cartas de Suerte
+• 12 cartas de Evento
+• Animaciones básicas
+• UI responsive
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚧 EN PROGRESO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Multijugador online (70%)
+• Sistema de respawn (85%)
+• Pasivas de clase (5/6)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ PENDIENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Descuento del Vendedor
+• Audio (SFX + Música)
+• Tutorial
+• Efectos visuales
+• Testing completo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 BUGS CONOCIDOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Respawn no funciona bien
+2. PvP: retroceso visual falla
+3. Saqueo al morir no se ejecuta
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📆 PRÓXIMAS TAREAS (Sprint)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ ] Implementar descuento Vendedor (2h)
+[ ] Fix respawn checkpoints (4h)
+[ ] Fix retroceso PvP (2h)
+[ ] Testing offline 1-4p (4h)
+[ ] Testing online 2p (4h)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏱️ ESTIMACIÓN TOTAL RESTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Completar Alpha: 20h
+• Beta Features: 40h
+• Polish Final: 28h
+━━━━━━━━━━━━━━
+TOTAL: ~88 horas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FASES RESTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1️⃣ Completar Alpha (~1 sem)
+2️⃣ Beta Testing (~4 sem)
+3️⃣ Polish & Launch (~2-3 sem)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ RIESGOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Bugs sincronización online
+🔴 Rendimiento en mobile
+🟡 Balanceo de dificultad
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 DOCS COMPLETOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+El plan completo con arquitectura,
+código y más detalles está en:
+/docs/PLAN_PRODUCCION_COMPLETO.md
+
+=====================================
+📅 Actualizado: 2026-01-19
+=====================================
