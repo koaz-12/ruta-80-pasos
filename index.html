@@ -110,28 +110,38 @@
             <div id="status-msg" class="status-msg"></div>
 
             <!-- Waiting Room Panel (Hidden by default) -->
-            <div id="waiting-room-panel" class="lobby-actions hidden" style="text-align:center;">
-                <h2 style="color:var(--text-secondary); font-size:1rem; margin-bottom:10px;">TU CÓDIGO DE SALA</h2>
-                <div id="room-code-display" class="room-code-box"
-                    style="font-size:3rem; font-weight:800; color:var(--accent-color); letter-spacing:5px; margin:10px 0; user-select:text;">
-                    ...</div>
-                <button id="btn-copy-code" class="btn-icon"
-                    style="margin:0 auto; width:100%; border-radius:8px; font-size:1rem; gap:10px;">Copiar Código
-                    📋</button>
-
-                <div class="divider" style="height:1px; background:rgba(255,255,255,0.1); margin:20px 0;"></div>
-
-                <h3 style="font-size:1rem; color:var(--text-secondary);">JUGADORES CONECTADOS:</h3>
-                <div id="connected-players-list" class="player-list"
-                    style="margin:15px 0; min-height:50px; display:flex; flex-direction:column; gap:10px;">
+            <div id="waiting-room-panel" class="waiting-room-panel hidden">
+                <!-- Room Code Section -->
+                <div class="room-code-section">
+                    <div class="room-label">🎮 CÓDIGO DE SALA</div>
+                    <div id="room-code-display" class="room-code-box">...</div>
+                    <button id="btn-copy-code" class="btn-copy-code">
+                        📋 Copiar Código
+                    </button>
                 </div>
 
-                <div class="divider" style="height:1px; background:rgba(255,255,255,0.1); margin:20px 0;"></div>
-                <p id="waiting-msg" class="status-msg" style="margin-bottom:20px;">Esperando jugadores...</p>
-                <button id="btn-start-host" class="btn-primary" style="width:100%; font-size:1.2rem;">¡EMPEZAR PARTIDA!
-                    🚀</button>
-                <button id="btn-cancel-wait" class="btn-lobby ghost" style="margin-top:10px; font-size: 0.9em;">Cancelar
-                    / Volver</button>
+                <!-- Players Section -->
+                <div class="players-section">
+                    <div class="players-header">
+                        <span class="players-icon">👥</span>
+                        <span class="players-title">JUGADORES</span>
+                        <span id="player-count" class="player-count">1/4</span>
+                    </div>
+                    <div id="connected-players-list" class="connected-players-list">
+                        <!-- Player badges injected here -->
+                    </div>
+                </div>
+
+                <!-- Status & Actions -->
+                <div class="waiting-actions">
+                    <p id="waiting-msg" class="waiting-status">⏳ Esperando jugadores...</p>
+                    <button id="btn-start-host" class="btn-start-game">
+                        🚀 ¡EMPEZAR PARTIDA!
+                    </button>
+                    <button id="btn-cancel-wait" class="btn-cancel">
+                        ← Volver al Menú
+                    </button>
+                </div>
             </div>
         </div>
 
