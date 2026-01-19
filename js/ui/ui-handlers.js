@@ -88,8 +88,18 @@ export function initDOMHandlers() {
         btnCopy.addEventListener('click', () => {
             const code = document.getElementById('room-code-display').textContent;
             navigator.clipboard.writeText(code);
-            btnCopy.textContent = "¡Copiado! ✅";
-            setTimeout(() => btnCopy.textContent = "Copiar Código 📋", 2000);
+            btnCopy.textContent = "✅ Copiado!";
+            setTimeout(() => btnCopy.textContent = "📋 Copiar", 2000);
+        });
+    }
+
+    const btnWhatsApp = document.getElementById('btn-share-whatsapp');
+    if (btnWhatsApp) {
+        btnWhatsApp.addEventListener('click', () => {
+            const code = document.getElementById('room-code-display').textContent;
+            const message = `🎮 ¡Únete a mi partida de La Ruta de los 80 Pasos!\n\n📍 Código de sala: *${code}*\n\n👉 Abre el juego y entra con este código`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
         });
     }
 
