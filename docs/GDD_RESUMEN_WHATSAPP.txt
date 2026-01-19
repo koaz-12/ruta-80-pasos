@@ -1,0 +1,99 @@
+=====================================
+🎮 LA RUTA DE LOS 80 PASOS
+📖 GAME DESIGN DOCUMENT (GDD)
+=====================================
+
+📋 FICHA TÉCNICA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Género: Juego de Mesa Digital / RPG
+• Plataforma: Web (Desktop/Móvil)
+• Jugadores: 1-4 (Local/Online)
+• Duración: 15-45 min por partida
+• Motor: HTML5 + JavaScript puro
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 OBJETIVO DEL JUEGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Llegar vivo a la Casilla 80 (El Refugio)
+• Derrotar al Boss Zombie en casilla 79
+• Gestionar recursos (vida, comida, armas)
+• Sobrevivir al hambre y enemigos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 CORE LOOP (Por turno)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1️⃣ Consumir comida (cada 3 turnos)
+2️⃣ Tirar dados para moverse
+3️⃣ Resolver evento de casilla
+4️⃣ Pasar turno
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 RECURSOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❤️ Vida (máx 6) - Si llega a 0, mueres
+🍗 Comida (máx 15) - Combustible
+⚔️ Armas (máx 5) - +1 dado en combate
+🛡️ Escudo (máx 5) - Absorbe 1 daño
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👥 CLASES (6)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧙 Curandero - +1 vida inicial
+⚔️ Combatiente - Empieza con arma
+🧭 Explorador - Balanceado
+🛡️ Tanque - Empieza con escudo
+🔬 Científico - Portal (salta 5 casillas)
+🛒 Vendedor - Descuento en mercado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🗺️ TIPOS DE CASILLAS (8)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⬜ Normal - Sin evento
+🧟 Zombie - Combate o retroceder
+💀 Boss - Obligatorio vencer
+🗡️ Bandido - Combate enemigo humano
+❓ Evento - Carta aleatoria
+🍀 Suerte - Loot garantizado
+🏠 Segura - Descanso (+1 vida)
+🏪 Mercado - Compra/venta
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚔️ SISTEMA DE COMBATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Jugador tira: (Armas+1) dados
+• Enemigo tira: según cantidad
+• Mayor resultado gana
+• Empate = Re-roll
+• Victoria = Loot según nivel enemigo
+• Derrota = -1 vida, retroceder
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📈 ZONAS DE DIFICULTAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Zona 1 (1-30): "El Despertar"
+→ Recursos abundantes, enemigos débiles
+
+Zona 2 (31-60): "Zona de Conflicto"
+→ Escasez, bandidos, bifurcaciones
+
+Zona 3 (61-80): "El Infierno"
+→ Hordas, Boss final, supervivencia
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🃏 CARTAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 10 cartas de Suerte (loot positivo)
+• 12 cartas de Evento (mixto)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 MERCADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 2🍗 → 1⚔️ (Comprar arma)
+• 1⚔️ → 2🍗 (Vender arma)
+• 1🍗 → 1❤️ (Curarse)
+• 3🍗 → 1🛡️ (Comprar escudo)
+
+=====================================
+📁 Doc completo: /docs/GDD_COMPLETO.md
+📅 Actualizado: 2026-01-19
+=====================================

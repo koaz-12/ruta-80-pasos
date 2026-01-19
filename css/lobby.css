@@ -114,16 +114,16 @@
     transform: scale(1.1);
 }
 
-/* Mode Carousel - Single card view */
+/* Mode Carousel - Horizontal scroll with all cards visible */
 .mode-carousel {
     display: flex;
-    gap: 0;
-    overflow-x: hidden;
+    gap: 15px;
+    overflow-x: auto;
     overflow-y: visible;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 20px 0;
+    padding: 15px 10px;
     flex: 1;
     justify-content: center;
     align-items: center;
@@ -133,71 +133,63 @@
     display: none;
 }
 
-/* Mode Cards - Larger single view */
+/* Mode Cards - All visible with active highlight */
 .mode-card {
-    min-width: 200px;
-    width: 200px;
-    height: 220px;
-    border-radius: 25px;
-    display: none;
+    min-width: 130px;
+    width: 130px;
+    height: 160px;
+    border-radius: 20px;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.3s ease;
     scroll-snap-align: center;
     flex-shrink: 0;
 
     /* Default card style */
     background: rgba(255, 255, 255, 0.08);
     border: 2px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.7;
+    transform: scale(0.95);
 }
 
-/* Only show active card */
+.mode-card:hover {
+    opacity: 0.9;
+    transform: scale(1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Active card has glow and full size */
 .mode-card.active {
-    display: flex;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%);
     border-color: #a78bfa;
-    box-shadow: 0 0 40px rgba(167, 139, 250, 0.5), 0 20px 50px rgba(0, 0, 0, 0.4);
-    transform: scale(1);
-    animation: cardEnter 0.8s ease-out;
+    box-shadow: 0 0 30px rgba(167, 139, 250, 0.5), 0 15px 40px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+    opacity: 1;
+    animation: cardPulse 0.4s ease-out;
 }
 
-@keyframes cardEnter {
+@keyframes cardPulse {
     0% {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* Fade out animation for exiting card */
-.mode-card.fading-out {
-    display: flex;
-    animation: cardExit 0.2s ease-in forwards;
-}
-
-@keyframes cardExit {
-    0% {
-        opacity: 1;
         transform: scale(1);
     }
 
+    50% {
+        transform: scale(1.15);
+    }
+
     100% {
-        opacity: 0;
-        transform: scale(0.95);
+        transform: scale(1.1);
     }
 }
 
 
 .mode-icon {
-    font-size: 5rem;
+    font-size: 3.5rem;
     line-height: 1;
 }
 
@@ -271,19 +263,20 @@
     }
 }
 
-/* Mode Options */
+/* Mode Options - Compact to avoid overlapping footer */
 .mode-options {
-    min-height: 80px;
+    min-height: 60px;
+    max-height: 120px;
     width: 100%;
-    max-width: 350px;
-    animation: fadeIn 0.5s ease-out;
+    max-width: 320px;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .mode-option-panel {
     text-align: center;
-    padding: 15px;
+    padding: 10px 15px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -293,7 +286,7 @@
 
 .option-hint {
     color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin: 0;
 }
 
