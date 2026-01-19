@@ -45,10 +45,24 @@ export function initDOMHandlers() {
 
     if (btnCreate) {
         btnCreate.addEventListener('click', () => {
-            // Switch UI to Waiting Room
-            document.getElementById('main-menu-actions').classList.add('hidden');
+            // Hide carousel lobby elements
+            const titleSection = document.querySelector('.lobby-title-section');
+            const carouselContainer = document.querySelector('.mode-carousel-container');
+            const carouselDots = document.querySelector('.carousel-dots');
+            const playBtn = document.getElementById('btn-play-mode');
+            const modeOptions = document.getElementById('mode-options');
+            const lobbyFooter = document.querySelector('.lobby-footer');
+
+            if (titleSection) titleSection.style.display = 'none';
+            if (carouselContainer) carouselContainer.style.display = 'none';
+            if (carouselDots) carouselDots.style.display = 'none';
+            if (playBtn) playBtn.style.display = 'none';
+            if (modeOptions) modeOptions.style.display = 'none';
+            if (lobbyFooter) lobbyFooter.style.display = 'none';
+
+            // Show waiting room panel
             document.getElementById('waiting-room-panel').classList.remove('hidden');
-            document.getElementById('btn-start-host').disabled = true; // Disable until ready? Or allow start solo online?
+            document.getElementById('btn-start-host').disabled = true;
 
             bus.emit('UI_CREATE_ROOM');
         });
@@ -86,9 +100,24 @@ export function initDOMHandlers() {
                 alert("¡Introduce un código válido!");
                 return;
             }
-            // Switch UI for client waiting
-            document.getElementById('main-menu-actions').classList.add('hidden');
-            document.getElementById('status-msg').innerHTML = "Buscando sala " + code + "..."; // Legacy fallback
+
+            // Hide carousel lobby elements
+            const titleSection = document.querySelector('.lobby-title-section');
+            const carouselContainer = document.querySelector('.mode-carousel-container');
+            const carouselDots = document.querySelector('.carousel-dots');
+            const playBtn = document.getElementById('btn-play-mode');
+            const modeOptions = document.getElementById('mode-options');
+            const lobbyFooter = document.querySelector('.lobby-footer');
+
+            if (titleSection) titleSection.style.display = 'none';
+            if (carouselContainer) carouselContainer.style.display = 'none';
+            if (carouselDots) carouselDots.style.display = 'none';
+            if (playBtn) playBtn.style.display = 'none';
+            if (modeOptions) modeOptions.style.display = 'none';
+            if (lobbyFooter) lobbyFooter.style.display = 'none';
+
+            // Show status
+            document.getElementById('status-msg').innerHTML = "⏳ Buscando sala " + code + "...";
 
             bus.emit('UI_JOIN_ROOM', code);
         });
