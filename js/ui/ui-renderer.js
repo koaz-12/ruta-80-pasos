@@ -57,6 +57,9 @@ export class UIRenderer {
         // Zombie fight/retreat decision
         bus.on('SHOW_ZOMBIE_DECISION', (data) => this.showZombieDecision(data));
 
+        // Bandit fight/retreat decision
+        bus.on('SHOW_BANDIT_DECISION', (data) => this.showBanditDecision(data));
+
         // PvP events
         bus.on('SHOW_PVP_DECISION', (data) => this.showPvPDecision(data));
         bus.on('PVP_COMBAT_START', (data) => this.showPvPCombat(data));
@@ -1592,6 +1595,65 @@ export class UIRenderer {
                 onRetreat();
             };
         }
+    }
+
+    // ===== BANDIT DECISION =====
+    showBanditDecision({ player, enemyCount, banditLevel = 1, onFight, onRetreat }) {
+        let modal = document.getElementById('bandit-decision-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'bandit-decision-modal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.85); z-index: 10000;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+            `;
+            document.body.appendChild(modal);
+        }
+
+        const banditEmoji = enemyCount > 1 ? '🗡️🗡️' : '🗡️';
+        const levelColor = banditLevel >= 3 ? '#f97316' : banditLevel >= 2 ? '#eab308' : '#22c55e';
+
+        modal.innerHTML = `
+            <div style="text-align: center; max-width: 350px; padding: 30px;">
+                <div style="font-size: 64px; margin-bottom: 20px;">${banditEmoji}</div>
+                <div style="font-size: 24px; color: #f59e0b; font-weight: bold; margin-bottom: 10px;">
+                    ¡EMBOSCADA DE BANDIDOS!
+                </div>
+                <div style="font-size: 18px; color: ${levelColor}; font-weight: bold; margin-bottom: 5px;">
+                    Nivel ${banditLevel}
+                </div>
+                <div style="font-size: 16px; color: #999; margin-bottom: 30px;">
+                    ${enemyCount} bandido${enemyCount > 1 ? 's' : ''} te bloquean el paso
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="bandit-fight-btn" style="
+                        padding: 15px 30px; font-size: 16px; cursor: pointer;
+                        background: linear-gradient(135deg, #f59e0b, #d97706);
+                        border: none; border-radius: 10px; color: white;
+                        font-weight: bold;
+                    ">⚔️ PELEAR</button>
+                    <button id="bandit-retreat-btn" style="
+                        padding: 15px 30px; font-size: 16px; cursor: pointer;
+                        background: linear-gradient(135deg, #6b7280, #4b5563);
+                        border: none; border-radius: 10px; color: white;
+                        font-weight: bold;
+                    ">🏃 HUIR</button>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+
+        document.getElementById('bandit-fight-btn').onclick = () => {
+            modal.style.display = 'none';
+            onFight();
+        };
+
+        document.getElementById('bandit-retreat-btn').onclick = () => {
+            modal.style.display = 'none';
+            onRetreat();
+        };
     }
 
     // ===== CHAT SYSTEM =====

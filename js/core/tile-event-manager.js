@@ -1,7 +1,7 @@
 // Tile Event Manager - Maneja eventos al caer en casillas
 import { bus } from './event-bus.js';
 import { store } from './game-state.js';
-import { getTileType, hasTileEvent, getZombieLevel, isBossZombie } from '../data/tile-types.js';
+import { getTileType, hasTileEvent, getZombieLevel, getBanditLevel, isBossZombie } from '../data/tile-types.js';
 import { LUCK_CARDS, EVENT_CARDS, clampResource } from '../data/rpg-data.js';
 import { combatManager } from './combat-manager.js';
 
@@ -47,6 +47,9 @@ export class TileEventManager {
             case 'zombie':
             case 'zombie_boss':
                 this.handleZombieTile(player, tileId);
+                break;
+            case 'bandit':
+                this.handleBanditTile(player, tileId);
                 break;
             case 'event':
                 this.handleEventTile(player);
@@ -132,6 +135,74 @@ export class TileEventManager {
                 store.setPlayers(players);
 
                 // Emit animation for retreat
+                bus.emit('PLAYER_MOVING', {
+                    playerId: playerData.id,
+                    path: [String(currentPos), String(startPos)]
+                });
+
+                this.processingEvent = false;
+                bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'retreat' });
+            }
+        });
+    }
+
+    // Casilla de Bandido - Similar a zombie pero con bandidos
+    handleBanditTile(player, tileId) {
+        const banditLevel = getBanditLevel(tileId);
+
+        console.log(`🗡️ [TILE EVENT] Bandit encounter! Level ${banditLevel}`);
+
+        // Enemy count based on level
+        const enemyCount = banditLevel >= 3 ? banditLevel : (Math.random() < 0.5 ? 1 : 2);
+
+        // Show fight or retreat decision
+        bus.emit('SHOW_BANDIT_DECISION', {
+            player,
+            enemyCount,
+            banditLevel,
+            onFight: () => {
+                console.log('⚔️ [BANDIT] Player chose to FIGHT!');
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `¡${enemyCount} bandido${enemyCount > 1 ? 's' : ''} Lvl ${banditLevel} te atacan!`,
+                    type: 'danger'
+                });
+
+                // Start combat after brief delay with bandit level
+                setTimeout(() => {
+                    combatManager.startCombat(player, enemyCount, 'bandit', banditLevel);
+                }, 500);
+
+                // Listen for combat end
+                const onCombatEnd = () => {
+                    bus.off('COMBAT_END', onCombatEnd);
+                    this.processingEvent = false;
+                    bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'combat' });
+                };
+                bus.on('COMBAT_END', onCombatEnd);
+            },
+            onRetreat: () => {
+                console.log('🏃 [BANDIT] Player chose to RETREAT!');
+
+                const players = [...store.state.players];
+                const playerData = players.find(p => p.id === player.id);
+
+                if (!playerData) {
+                    this.processingEvent = false;
+                    bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'retreat' });
+                    return;
+                }
+
+                const currentPos = playerData.pos;
+                const startPos = playerData.previousPosition || currentPos;
+
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🏃 ${player.name} huye del bandido! Retrocede a casilla ${startPos}`,
+                    type: 'warning'
+                });
+
+                playerData.pos = startPos;
+                store.setPlayers(players);
+
                 bus.emit('PLAYER_MOVING', {
                     playerId: playerData.id,
                     path: [String(currentPos), String(startPos)]

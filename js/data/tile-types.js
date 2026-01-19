@@ -5,6 +5,7 @@ export const TILE_TYPES = {
     NORMAL: { id: 'normal', icon: '', color: '#f7f5e6', description: 'Casilla normal' },
     ZOMBIE: { id: 'zombie', icon: '🧟', color: '#4ade80', description: 'Casilla de Zombie - Combate automático' },
     ZOMBIE_BOSS: { id: 'zombie_boss', icon: '💀', color: '#dc2626', description: 'BOSS ZOMBIE - Obligatorio vencer para ganar' },
+    BANDIT: { id: 'bandit', icon: '🗡️', color: '#f59e0b', description: 'Casilla de Bandido - Combate contra bandidos' },
     EVENT: { id: 'event', icon: '❓', color: '#fbbf24', description: 'Casilla de Evento - Carta aleatoria' },
     LUCK: { id: 'luck', icon: '🍀', color: '#a78bfa', description: 'Casilla de Suerte - Carta de loot' },
     SAFE: { id: 'safe', icon: '🏠', color: '#60a5fa', description: 'Casilla Segura - Descanso' },
@@ -12,27 +13,30 @@ export const TILE_TYPES = {
 };
 
 // Distribución de tipos por defecto
-// Zombies distribuidos por nivel según posición en tablero
+// Zombies y Bandidos distribuidos por nivel según posición en tablero
 export const TILE_TYPE_MAP = {
     '0': 'SAFE',      // Inicio
     '3': 'EVENT',
     '5': 'LUCK',
     // === ZONA 1-15: Zombies Nivel 1 ===
     '7': 'ZOMBIE',    // Zombie Lvl 1
-    '10': 'EVENT',    // Junction event
+    // === Bandido Nivel 1 (10-15) ===
+    '11': 'BANDIT',   // Bandido Lvl 1
     '12': 'ZOMBIE',   // Zombie Lvl 1
     '14': 'LUCK',
     '15': 'MARKET',   // First market!
     '17': 'EVENT',
     // === ZONA 20-35: Zombies Nivel 2 ===
     '22': 'LUCK',
-    '23': 'ZOMBIE',   // Zombie Lvl 2
+    // === Bandido Nivel 2 (21-25) ===
+    '24': 'BANDIT',   // Bandido Lvl 2
     '25': 'SAFE',     // Safe zone
     '27': 'EVENT',
     '30': 'ZOMBIE',   // Zombie Lvl 2
     '33': 'LUCK',
     '35': 'EVENT',
-    '38': 'LUCK',
+    // === Bandido Nivel 3 (35-40) ===
+    '37': 'BANDIT',   // Bandido Lvl 3
     '40': 'LUCK',
     '42': 'EVENT',
     '44': 'MARKET',   // Mid-game market
@@ -42,6 +46,8 @@ export const TILE_TYPE_MAP = {
     '50': 'EVENT',    // Junction event
     '52': 'ZOMBIE',   // Zombie Lvl 3
     '55': 'LUCK',
+    // === Bandido Nivel 3 (55-60) ===
+    '57': 'BANDIT',   // Bandido Lvl 3
     '58': 'EVENT',
     // === ZONA 60-70: Zombies Nivel 3 ===
     '62': 'ZOMBIE',   // Zombie Lvl 3
@@ -68,6 +74,18 @@ export function getZombieLevel(tileId) {
     if (id >= 45) return 3;
     if (id >= 20) return 2;
     return 1;
+}
+
+// Nivel de bandido según casilla
+// 10-15: Nivel 1, 21-25: Nivel 2, 35-40 y 55-60: Nivel 3
+export function getBanditLevel(tileId) {
+    const id = parseInt(String(tileId).replace(/[^\d]/g, '')) || 0;
+
+    if (id >= 55 && id <= 60) return 3;
+    if (id >= 35 && id <= 40) return 3;
+    if (id >= 21 && id <= 25) return 2;
+    if (id >= 10 && id <= 15) return 1;
+    return 1; // Default
 }
 
 // Helper para obtener tipo de casilla
