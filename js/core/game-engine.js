@@ -334,10 +334,21 @@ export class GameEngine {
 
             // Check if player has a pending direction (from branch choice)
             if (this.pendingDirection && Array.isArray(node.next)) {
-                console.log(`✅ [BRANCH MOVE] Using chosen direction: ${this.pendingDirection}`);
-                nextPos = this.pendingDirection;
-                this.pendingDirection = null; // Clear after using
-            } else if (Array.isArray(node.next)) {
+                // Validate that pendingDirection is a valid option for THIS junction
+                if (node.next.includes(this.pendingDirection)) {
+                    console.log(`✅ [BRANCH MOVE] Using chosen direction: ${this.pendingDirection}`);
+                    nextPos = this.pendingDirection;
+                    this.pendingDirection = null; // Clear after using
+                } else {
+                    // Invalid direction for this junction - clear it and show decision
+                    console.warn(`⚠️ [BRANCH] Invalid pendingDirection ${this.pendingDirection} for junction ${currentPos}. Options: ${node.next.join(', ')}`);
+                    this.pendingDirection = null;
+                    nextPos = null; // Will trigger branch decision below
+                }
+            }
+
+            // Show branch decision if we're at a branch and don't have a valid next position
+            if (!nextPos && Array.isArray(node.next)) {
                 // BRANCH CHECK: If we encounter a NEW branch, ask for choice then continue
                 // Calculate actual remaining steps: total roll - steps taken to get here
                 const stepsTaken = path.length - 1; // -1 because path includes starting position
