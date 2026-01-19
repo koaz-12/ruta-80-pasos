@@ -63,6 +63,7 @@ export class UIRenderer {
         bus.on('PVP_COMBAT_ROLL', (data) => this.showPvPRoll(data));
         bus.on('PVP_COMBAT_END', (data) => this.hidePvPCombat(data));
         bus.on('PVP_ENCOUNTER_END', () => this.hidePvPModal());
+        bus.on('PVP_WAIT_FOR_ROLL', (data) => this.enablePvPDiceRoll(data));
 
         // Approach phase
         bus.on('SHOW_APPROACH_DECISION', (data) => this.showApproachDecision(data));
@@ -1086,6 +1087,58 @@ export class UIRenderer {
 
         document.getElementById('pvp-modal')?.classList.add('hidden');
         modal.classList.remove('hidden');
+    }
+
+    // Enable main dice button for PvP combat roll
+    enablePvPDiceRoll({ player1, player2, isBetray }) {
+        const msg = document.getElementById('pvp-combat-msg');
+        if (msg) {
+            msg.innerHTML = `<span style="color: #fbbf24;">¡Usa tu dado para atacar!</span>`;
+        }
+
+        // Enable main dice button
+        const mainDiceBtn = document.getElementById('btn-action-roll');
+        if (mainDiceBtn) {
+            mainDiceBtn.disabled = false;
+            mainDiceBtn.classList.add('combat-mode');
+            mainDiceBtn.style.animation = 'pulse 1s infinite';
+        }
+
+        // Add click handler for PvP roll
+        const handlePvPDiceClick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            mainDiceBtn?.removeEventListener('click', handlePvPDiceClick);
+
+            // Animate dice
+            const diceIcon = mainDiceBtn?.querySelector('.dice-icon');
+            if (diceIcon) {
+                diceIcon.style.animation = 'shake 0.3s ease-in-out infinite';
+            }
+
+            // Show rolling in modal
+            const dice1 = document.getElementById('pvp-c1-dice');
+            const dice2 = document.getElementById('pvp-c2-dice');
+            if (dice1) dice1.textContent = '🎲';
+            if (dice2) dice2.textContent = '🎲';
+            if (msg) msg.textContent = '¡Tirando dados...!';
+
+            // Execute PvP roll after animation
+            setTimeout(() => {
+                if (diceIcon) diceIcon.style.animation = '';
+                if (mainDiceBtn) {
+                    mainDiceBtn.classList.remove('combat-mode');
+                    mainDiceBtn.style.animation = '';
+                }
+
+                // Call PvP roll
+                import('../core/pvp-manager.js').then(({ pvpManager }) => {
+                    pvpManager.executePvPRoll();
+                });
+            }, 1000);
+        };
+
+        mainDiceBtn?.addEventListener('click', handlePvPDiceClick, { once: true });
     }
 
     showPvPRoll({ player1, roll1, diceCount1, player2, roll2, diceCount2 }) {

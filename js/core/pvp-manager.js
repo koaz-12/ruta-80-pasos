@@ -174,6 +174,9 @@ export class PvPManager {
         console.log(`⚔️ [PVP COMBAT] ${initiator.name} vs ${target.name}${isBetray ? ' (BETRAYAL!)' : ''}`);
 
         this.pendingEncounter.inCombat = true;
+        this.pendingEncounter.initiator = initiator;
+        this.pendingEncounter.target = target;
+        this.pendingEncounter.isBetray = isBetray;
 
         // Use existing combat manager but mark as PvP
         bus.emit('PVP_COMBAT_START', {
@@ -182,8 +185,16 @@ export class PvPManager {
             isBetray: isBetray
         });
 
-        // Roll dice for both players
-        setTimeout(() => this.rollPvPCombat(initiator, target, isBetray), 1000);
+        // Wait for player to click the dice (like zombie combat)
+        bus.emit('PVP_WAIT_FOR_ROLL', { player1: initiator, player2: target, isBetray });
+    }
+
+    // Called when player clicks the dice to roll PvP combat
+    executePvPRoll() {
+        if (!this.pendingEncounter?.inCombat) return;
+
+        const { initiator, target, isBetray } = this.pendingEncounter;
+        this.rollPvPCombat(initiator, target, isBetray);
     }
 
     // PvP combat roll - Uses WEAPONS as dice count!
