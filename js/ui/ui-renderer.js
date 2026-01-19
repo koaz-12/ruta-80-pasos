@@ -80,6 +80,9 @@ export class UIRenderer {
                 const players = store.state.players;
                 const player = players[turnIndex];
                 if (player) {
+                    // Update bottom bar immediately to show current player
+                    this.updateBoard(store.state);
+
                     this.showTurnTransition({
                         player,
                         playerIndex: turnIndex,
