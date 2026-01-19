@@ -17,14 +17,22 @@ export class TileEventManager {
             this.processingEvent = false; // Force reset to prevent stuck state
         }
 
-        // Check for retreat immunity
-        if (player.immuneToTileEffect) {
-            console.log(`🛡️ [TILE EVENT] Player ${player.name} is immune (retreat protection)`);
+        const tileType = getTileType(tileId);
+
+        // Check for retreat immunity - only blocks ZOMBIE tiles
+        if (player.immuneToTileEffect && tileType.id === 'zombie') {
+            console.log(`🛡️ [TILE EVENT] Player ${player.name} is immune to zombie (retreat protection)`);
+            // Clear immunity after skipping the zombie
+            const players = [...store.state.players];
+            const playerData = players.find(p => p.id === player.id);
+            if (playerData) {
+                playerData.immuneToTileEffect = false;
+                store.setPlayers(players);
+            }
             bus.emit('TILE_EVENT_COMPLETE', { hasEvent: false, immune: true });
             return;
         }
 
-        const tileType = getTileType(tileId);
         console.log(`📍 [TILE EVENT] Player ${player.name} landed on tile ${tileId} (${tileType.id})`);
 
         if (!hasTileEvent(tileId)) {
