@@ -9,7 +9,8 @@ export const TILE_TYPES = {
     EVENT: { id: 'event', icon: '❓', color: '#fbbf24', description: 'Casilla de Evento - Carta aleatoria' },
     LUCK: { id: 'luck', icon: '🍀', color: '#a78bfa', description: 'Casilla de Suerte - Carta de loot' },
     SAFE: { id: 'safe', icon: '🏠', color: '#60a5fa', description: 'Casilla Segura - Descanso' },
-    MARKET: { id: 'market', icon: '🏪', color: '#f472b6', description: 'Mercado - Comprar/Vender recursos' }
+    MARKET: { id: 'market', icon: '🏪', color: '#f472b6', description: 'Mercado - Comprar/Vender recursos' },
+    FOOD: { id: 'food', icon: '🍗', color: '#84cc16', description: 'Casilla de Comida - Obtén 4 🍗' }
 };
 
 // Distribución de tipos por defecto
@@ -20,6 +21,7 @@ export const TILE_TYPE_MAP = {
     '5': 'LUCK',
     // === ZONA 1-15: Zombies Nivel 1 ===
     '7': 'ZOMBIE',    // Zombie Lvl 1
+    '9': 'FOOD',      // Comida +4 🍗
     // === Bandido Nivel 1 (10-15) ===
     '11': 'BANDIT',   // Bandido Lvl 1
     '12': 'ZOMBIE',   // Zombie Lvl 1
@@ -32,6 +34,7 @@ export const TILE_TYPE_MAP = {
     '24': 'BANDIT',   // Bandido Lvl 2
     '25': 'SAFE',     // Safe zone
     '27': 'EVENT',
+    '29': 'FOOD',     // Comida +4 🍗
     '30': 'ZOMBIE',   // Zombie Lvl 2
     '33': 'LUCK',
     '35': 'EVENT',
@@ -41,6 +44,7 @@ export const TILE_TYPE_MAP = {
     '42': 'EVENT',
     '44': 'MARKET',   // Mid-game market
     // === ZONA 45-55: Zombies Nivel 3 ===
+    '46': 'FOOD',     // Comida +4 🍗
     '47': 'ZOMBIE',   // Zombie Lvl 3
     '48': 'SAFE',     // Safe zone
     '50': 'EVENT',    // Junction event
@@ -55,9 +59,11 @@ export const TILE_TYPE_MAP = {
     '65': 'EVENT',
     '68': 'ZOMBIE',   // Zombie Lvl 3
     '70': 'LUCK',
+    '71': 'FOOD',     // Comida +4 🍗
     '72': 'EVENT',
     '73': 'MARKET',   // Last market before finale
     '75': 'LUCK',
+    '77': 'FOOD',     // Comida +4 🍗 (última antes del boss)
     '78': 'LUCK',     // Last loot chance
     // === CASILLA 79: BOSS ZOMBIE Nivel 4 (obligatorio) ===
     '79': 'ZOMBIE_BOSS',

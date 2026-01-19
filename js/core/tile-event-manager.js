@@ -63,6 +63,9 @@ export class TileEventManager {
             case 'safe':
                 this.handleSafeTile(player);
                 break;
+            case 'food':
+                this.handleFoodTile(player);
+                break;
             default:
                 this.processingEvent = false;
                 bus.emit('TILE_EVENT_COMPLETE', { hasEvent: false });
@@ -339,6 +342,40 @@ export class TileEventManager {
 
         this.processingEvent = false;
         bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'safe' });
+    }
+
+    // Casilla de Comida - Dar 4 comida al jugador
+    handleFoodTile(player) {
+        console.log('🍗 [TILE EVENT] Food tile!');
+
+        const players = [...store.state.players];
+        const playerData = players.find(p => p.id === player.id);
+
+        if (playerData && playerData.stats) {
+            const previousFood = playerData.stats.food;
+            playerData.stats.food = clampResource(playerData.stats.food + 4, 0, 12);
+            const gained = playerData.stats.food - previousFood;
+
+            store.setPlayers(players);
+
+            bus.emit('SHOW_NOTIFICATION', {
+                message: `🍗 ¡${player.name} encontró comida! +${gained} 🍗`,
+                type: 'success'
+            });
+
+            // Show card effect
+            bus.emit('SHOW_CARD', {
+                type: 'FOOD',
+                card: {
+                    title: '¡Provisiones!',
+                    description: `Encontraste un alijo de comida. +4 🍗`,
+                    icon: '🍗'
+                }
+            });
+        }
+
+        this.processingEvent = false;
+        bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'food' });
     }
 }
 
