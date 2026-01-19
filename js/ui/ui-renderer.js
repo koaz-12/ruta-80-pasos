@@ -74,7 +74,20 @@ export class UIRenderer {
         bus.on('SHOW_MOVE_CHOICE', (data) => this.showMoveChoice(data));
 
         // Hotseat turn transition
-        bus.on('TURN_CHANGED', (data) => this.showTurnTransition(data));
+        bus.on('TURN_CHANGED', ({ turnIndex, isMyTurn }) => {
+            // Import store to get player data
+            import('../core/game-state.js').then(({ store }) => {
+                const players = store.state.players;
+                const player = players[turnIndex];
+                if (player) {
+                    this.showTurnTransition({
+                        player,
+                        playerIndex: turnIndex,
+                        totalPlayers: players.length
+                    });
+                }
+            });
+        });
 
         bus.on('PLAYER_MOVING', (data) => this.handlePlayerMovement(data));
     }

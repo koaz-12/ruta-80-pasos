@@ -2270,16 +2270,28 @@ export class SVGBoardRenderer {
         // Wrapped handlers for touch support
         const handleStart = (evt) => {
             const pos = getClientPos(evt);
-            evt.clientX = pos.x;
-            evt.clientY = pos.y;
-            startDrag(evt);
+            // Create a mock event-like object with the coordinates
+            const eventWithPos = {
+                clientX: pos.x,
+                clientY: pos.y,
+                target: evt.target,
+                preventDefault: () => evt.preventDefault?.(),
+                stopPropagation: () => evt.stopPropagation?.()
+            };
+            startDrag(eventWithPos);
         };
 
         const handleMove = (evt) => {
             const pos = getClientPos(evt);
-            evt.clientX = pos.x;
-            evt.clientY = pos.y;
-            drag(evt);
+            // Create a mock event-like object with the coordinates
+            const eventWithPos = {
+                clientX: pos.x,
+                clientY: pos.y,
+                target: evt.target,
+                preventDefault: () => evt.preventDefault?.(),
+                stopPropagation: () => evt.stopPropagation?.()
+            };
+            drag(eventWithPos);
         };
 
         // Mouse events
