@@ -1091,6 +1091,8 @@ export class UIRenderer {
 
     // Enable main dice button for PvP combat roll
     enablePvPDiceRoll({ player1, player2, isBetray }) {
+        console.log('🎲 [PVP] enablePvPDiceRoll called - waiting for player dice click');
+
         const msg = document.getElementById('pvp-combat-msg');
         if (msg) {
             msg.innerHTML = `<span style="color: #fbbf24;">¡Usa tu dado para atacar!</span>`;
