@@ -10,7 +10,9 @@ export const CLASSES = [
     // Tanque (antes Escudero): Empieza con escudo
     { id: 'tank', name: 'Tanque', life: 5, food: 6, weapons: 0, shield: 1, bonus: 'Escudo', icon: '🛡️', passive: 'Empieza con escudo' },
     // Científico: Portal al inicio (salta 5 casillas, 1 sola vez)
-    { id: 'scientist', name: 'Científico', life: 5, food: 5, weapons: 0, shield: 0, bonus: 'Portal', icon: '🔬', passive: 'Portal inicial', hasPortal: true }
+    { id: 'scientist', name: 'Científico', life: 5, food: 6, weapons: 0, shield: 0, bonus: 'Portal', icon: '🔬', passive: 'Portal inicial', hasPortal: true },
+    // Vendedor: Descuento en el mercado
+    { id: 'vendor', name: 'Vendedor', life: 5, food: 6, weapons: 0, shield: 0, bonus: 'Descuento', icon: '🛒', passive: 'Descuento en mercado', marketDiscount: true }
 ];
 
 // MAX_RESOURCES: Límite máximo de cada recurso
