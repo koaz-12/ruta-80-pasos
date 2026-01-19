@@ -53,11 +53,12 @@ export class CombatManager {
         this.currentCombat.round++;
 
         // === MULTI-DICE SYSTEM ===
-        // Player rolls dice equal to weapons (minimum 1)
-        const playerWeapons = Math.max(1, this.currentCombat.player.stats?.weapons || 1);
+        // Player rolls dice = weapons + 1 (0 weapons = 1 die, 1 weapon = 2 dice, etc.)
+        const weapons = this.currentCombat.player.stats?.weapons || 0;
+        const playerDiceCount = weapons + 1;
         let playerRoll = 0;
         const playerDice = [];
-        for (let i = 0; i < playerWeapons; i++) {
+        for (let i = 0; i < playerDiceCount; i++) {
             const die = Math.floor(Math.random() * 6) + 1;
             playerDice.push(die);
             playerRoll += die;
@@ -78,14 +79,14 @@ export class CombatManager {
         this.currentCombat.playerDice = playerDice;
         this.currentCombat.enemyDice = enemyDice;
 
-        console.log(`🎲 [COMBAT] Round ${this.currentCombat.round}: Player ${playerDice.join('+')}=${playerRoll} (${playerWeapons} dice) vs Enemy ${enemyDice.join('+')}=${enemyRoll} (${enemyCount} dice)`);
+        console.log(`🎲 [COMBAT] Round ${this.currentCombat.round}: Player ${playerDice.join('+')}=${playerRoll} (${playerDiceCount} dice) vs Enemy ${enemyDice.join('+')}=${enemyRoll} (${enemyCount} dice)`);
 
         bus.emit('COMBAT_ROLL', {
             playerRoll,
             enemyRoll,
             playerDice,
             enemyDice,
-            playerDiceCount: playerWeapons,
+            playerDiceCount,
             enemyDiceCount: enemyCount,
             round: this.currentCombat.round
         });
