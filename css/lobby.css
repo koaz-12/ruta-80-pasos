@@ -119,15 +119,14 @@
 .mode-carousel {
     display: flex;
     gap: 15px;
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: visible;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 15px 10px;
-    flex: 1;
+    padding: 25px 10px;
     justify-content: center;
     align-items: center;
+    min-height: 200px;
 }
 
 .mode-carousel::-webkit-scrollbar {
