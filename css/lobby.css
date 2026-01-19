@@ -177,6 +177,23 @@
     }
 }
 
+/* Fade out animation for exiting card */
+.mode-card.fading-out {
+    display: flex;
+    animation: cardExit 0.2s ease-in forwards;
+}
+
+@keyframes cardExit {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
 
 
 .mode-icon {

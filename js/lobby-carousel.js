@@ -137,10 +137,33 @@ export class LobbyCarousel {
     }
 
     updateUI(scroll = true) {
-        // Update cards
-        this.cards.forEach((card, index) => {
-            card.classList.toggle('active', index === this.currentIndex);
-        });
+        // Get current active card
+        const currentActive = document.querySelector('.mode-card.active');
+        const newActiveCard = this.cards[this.currentIndex];
+
+        // If same card, no transition needed
+        if (currentActive === newActiveCard) {
+            return;
+        }
+
+        // Fade out current card
+        if (currentActive) {
+            currentActive.classList.add('fading-out');
+
+            setTimeout(() => {
+                // Remove old active
+                this.cards.forEach(card => {
+                    card.classList.remove('active', 'fading-out');
+                });
+
+                // Add new active with fade in
+                newActiveCard?.classList.add('active');
+            }, 200); // Wait for fade out
+        } else {
+            // No current card, just show new one
+            this.cards.forEach(card => card.classList.remove('active'));
+            newActiveCard?.classList.add('active');
+        }
 
         // Update dots
         this.dots.forEach((dot, index) => {
