@@ -26,10 +26,10 @@ export class SVGBoardRenderer {
         // }
         this.edges = this.layoutData.edges || [];   // Load Edges
 
-        // Colors
-        this.colors = ['#A0C4FF', '#FFADAD', '#FDFFB6', '#CAFFBF'];
-        this.safe = '#90EE90';
-        this.mortal = '#FF6B6B';
+        // Colors - Dark Zombie Theme
+        this.colors = ['#2d4a3e', '#3d5a4e', '#4a6b5e', '#3a5548'];  // Dark greens
+        this.safe = '#1a5a3a';     // Dark teal-green (safe zones)
+        this.mortal = '#6b2a2a';   // Dark blood red (danger zones)
 
         this.isEditorMode = false; // Default blocked
 
@@ -1715,12 +1715,11 @@ export class SVGBoardRenderer {
         });
         this.svg.appendChild(defs);
 
-        // Background - Night Terror Theme
-        const bg = document.createElementNS(this.ns, 'image');
+        // Background - Solid Dark Theme
+        const bg = document.createElementNS(this.ns, 'rect');
         bg.setAttribute('width', this.width);
         bg.setAttribute('height', this.height);
-        bg.setAttribute('href', './assets/board-bg-night.png');
-        bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        bg.setAttribute('fill', '#1a1f1a');  // Dark greenish-gray
         this.rootGroup.appendChild(bg);
 
         // CHECK FOR FULL SNAPSHOT
