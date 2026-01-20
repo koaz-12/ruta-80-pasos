@@ -1011,6 +1011,25 @@
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
+.btn-tool {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
 #debug-game-state {
     white-space: pre-wrap;
     word-wrap: break-word;
