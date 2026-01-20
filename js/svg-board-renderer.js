@@ -178,16 +178,26 @@ export class SVGBoardRenderer {
                 const x2 = toPos.x + this.ts / 2;
                 const y2 = toPos.y + this.ts / 2;
 
-                // Create line
+                // Create border line (gold, thicker)
+                const borderLine = document.createElementNS(this.ns, 'line');
+                borderLine.setAttribute('x1', x1);
+                borderLine.setAttribute('y1', y1);
+                borderLine.setAttribute('x2', x2);
+                borderLine.setAttribute('y2', y2);
+                borderLine.setAttribute('stroke', '#FFD700');
+                borderLine.setAttribute('stroke-width', '8');
+                borderLine.setAttribute('stroke-linecap', 'round');
+                linesGroup.appendChild(borderLine);
+
+                // Create main line (black, thinner on top)
                 const line = document.createElementNS(this.ns, 'line');
                 line.setAttribute('x1', x1);
                 line.setAttribute('y1', y1);
                 line.setAttribute('x2', x2);
                 line.setAttribute('y2', y2);
-                line.setAttribute('stroke', 'rgba(255, 215, 0, 0.4)');
-                line.setAttribute('stroke-width', '3');
+                line.setAttribute('stroke', '#1a1a1a');
+                line.setAttribute('stroke-width', '4');
                 line.setAttribute('stroke-linecap', 'round');
-                line.setAttribute('stroke-dasharray', '8,4');
                 linesGroup.appendChild(line);
             });
         });
