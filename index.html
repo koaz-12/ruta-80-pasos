@@ -316,6 +316,51 @@
         </div>
     </div>
 
+    <!-- Luck Card Picker Modal (Envelope + 4 Cards) -->
+    <div id="luck-picker-modal" class="modal-overlay hidden">
+        <div class="luck-picker-container">
+            <!-- Envelope that opens -->
+            <div class="luck-envelope" id="luck-envelope">
+                <div class="envelope-flap"></div>
+                <div class="envelope-body">
+                    <span class="envelope-icon">🍀</span>
+                    <span class="envelope-text">¡SUERTE!</span>
+                </div>
+            </div>
+
+            <!-- Cards that appear after envelope opens -->
+            <div class="luck-cards-container hidden" id="luck-cards-container">
+                <p class="luck-instruction">✨ ¡Elige una carta! ✨</p>
+                <div class="luck-cards-row">
+                    <div class="luck-card" data-index="0">
+                        <div class="luck-card-inner">
+                            <div class="luck-card-front">🎴</div>
+                            <div class="luck-card-back"></div>
+                        </div>
+                    </div>
+                    <div class="luck-card" data-index="1">
+                        <div class="luck-card-inner">
+                            <div class="luck-card-front">🎴</div>
+                            <div class="luck-card-back"></div>
+                        </div>
+                    </div>
+                    <div class="luck-card" data-index="2">
+                        <div class="luck-card-inner">
+                            <div class="luck-card-front">🎴</div>
+                            <div class="luck-card-back"></div>
+                        </div>
+                    </div>
+                    <div class="luck-card" data-index="3">
+                        <div class="luck-card-inner">
+                            <div class="luck-card-front">🎴</div>
+                            <div class="luck-card-back"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Combate (Manual roll with timer) -->
     <div id="combat-modal" class="modal-overlay hidden">
         <div class="modal-content combat-arena">

@@ -1531,3 +1531,237 @@
 .toggle-switch input:checked+.toggle-slider:before {
     transform: translateX(24px);
 }
+
+/* ===== LUCK PICKER MODAL ===== */
+.luck-picker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+/* Envelope */
+.luck-envelope {
+    position: relative;
+    width: 180px;
+    height: 130px;
+    cursor: pointer;
+    animation: envelopeGlow 1.5s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.luck-envelope:hover {
+    transform: scale(1.05);
+}
+
+.luck-envelope.opening {
+    animation: envelopeOpen 0.8s ease forwards;
+}
+
+.envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    z-index: 2;
+    transform-origin: top center;
+    transition: transform 0.5s ease;
+}
+
+.luck-envelope.opening .envelope-flap {
+    transform: rotateX(180deg);
+}
+
+.envelope-body {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(180deg, #f5d742, #e5b800);
+    border-radius: 0 0 10px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+}
+
+.envelope-icon {
+    font-size: 40px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.envelope-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5a4500;
+    margin-top: 5px;
+}
+
+@keyframes envelopeGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+    }
+}
+
+@keyframes envelopeOpen {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+/* Cards Container */
+.luck-cards-container {
+    text-align: center;
+}
+
+.luck-instruction {
+    font-size: 18px;
+    color: #ffd700;
+    margin-bottom: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.luck-cards-row {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Individual Card */
+.luck-card {
+    width: 80px;
+    height: 110px;
+    perspective: 1000px;
+    cursor: pointer;
+    animation: cardDeal 0.5s ease-out backwards;
+}
+
+.luck-card:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.luck-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.luck-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.luck-card:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.luck-card:hover:not(.selected):not(.disabled) {
+    transform: translateY(-10px);
+}
+
+.luck-card.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.luck-card.selected .luck-card-inner {
+    transform: rotateY(180deg);
+}
+
+.luck-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.luck-card-front,
+.luck-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.luck-card-front {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    font-size: 35px;
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.luck-card-back {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    transform: rotateY(180deg);
+    padding: 8px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.5);
+}
+
+.luck-card-back .card-prize-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.luck-card-back .card-prize-title {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.luck-card-back .card-prize-desc {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 3px;
+}
+
+@keyframes cardDeal {
+    0% {
+        transform: translateY(-100px) rotate(10deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}

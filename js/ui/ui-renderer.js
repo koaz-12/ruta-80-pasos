@@ -36,6 +36,7 @@ export class UIRenderer {
         bus.on('SHOW_CARD', (data) => this.showCardModal(data));
         bus.on('START_COMBAT', (data) => this.showCombatModal(data));
         bus.on('SHOW_NOTIFICATION', (data) => this.showNotification(data));
+        bus.on('SHOW_LUCK_PICKER', (data) => this.showLuckPicker(data));
 
         // Combat events
         bus.on('COMBAT_START', (data) => this.showCombatStart(data));
@@ -586,6 +587,94 @@ export class UIRenderer {
                 console.log('🃏 [UI] UI_CARD_CLOSED emitted');
             };
         }
+    }
+
+    // Show luck card picker with envelope and 4 cards
+    showLuckPicker({ player, cards, onCardSelected }) {
+        console.log('🍀 [UI] Showing luck picker');
+
+        const modal = document.getElementById('luck-picker-modal');
+        const envelope = document.getElementById('luck-envelope');
+        const cardsContainer = document.getElementById('luck-cards-container');
+
+        if (!modal || !envelope || !cardsContainer) {
+            console.error('❌ [UI] Luck picker elements not found!');
+            // Fallback: pick random card
+            onCardSelected(cards[0]);
+            return;
+        }
+
+        // Reset state
+        envelope.classList.remove('opening');
+        envelope.style.display = 'block';
+        cardsContainer.classList.add('hidden');
+
+        // Reset card states
+        const cardEls = cardsContainer.querySelectorAll('.luck-card');
+        cardEls.forEach((el, i) => {
+            el.classList.remove('selected', 'disabled');
+            const back = el.querySelector('.luck-card-back');
+            if (cards[i]) {
+                back.innerHTML = `
+                    <div class="card-prize-icon">🎁</div>
+                    <div class="card-prize-title">${cards[i].title}</div>
+                    <div class="card-prize-desc">${cards[i].desc}</div>
+                `;
+            }
+        });
+
+        // Show modal
+        modal.classList.remove('hidden');
+
+        // Click envelope to open
+        const openEnvelope = () => {
+            envelope.classList.add('opening');
+
+            // After envelope animation, show cards
+            setTimeout(() => {
+                envelope.style.display = 'none';
+                cardsContainer.classList.remove('hidden');
+            }, 800);
+        };
+
+        envelope.onclick = openEnvelope;
+
+        // Also auto-open after 2 seconds if not clicked
+        setTimeout(() => {
+            if (!envelope.classList.contains('opening')) {
+                openEnvelope();
+            }
+        }, 2000);
+
+        // Card selection handlers
+        cardEls.forEach((cardEl, index) => {
+            cardEl.onclick = () => {
+                if (cardEl.classList.contains('selected') || cardEl.classList.contains('disabled')) return;
+
+                console.log(`🍀 [UI] Card ${index} clicked`);
+
+                // Mark selected and disable others
+                cardEl.classList.add('selected');
+                cardEls.forEach((el, i) => {
+                    if (i !== index) el.classList.add('disabled');
+                });
+
+                // Wait for flip animation, then close and callback
+                setTimeout(() => {
+                    // Show notification
+                    bus.emit('SHOW_NOTIFICATION', {
+                        message: `🍀 ¡${cards[index].title}! ${cards[index].desc}`,
+                        type: 'success'
+                    });
+
+                    // Close modal
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        onCardSelected(cards[index]);
+                    }, 1500);
+                }, 800);
+            };
+        });
     }
 
     // Show floating resource change indicator

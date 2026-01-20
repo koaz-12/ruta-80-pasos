@@ -264,41 +264,35 @@ export class TileEventManager {
         }
     }
 
-    // Casilla de Suerte - Carta de loot
+    // Casilla de Suerte - Carta de loot con selección de 4 cartas
     handleLuckTile(player) {
-        console.log('🍀 [TILE EVENT] Luck card!');
+        console.log('🍀 [TILE EVENT] Luck tile - showing picker!');
 
-        const card = LUCK_CARDS[Math.floor(Math.random() * LUCK_CARDS.length)];
-        console.log(`  Card: ${card.title}`);
+        // Get 4 random cards for selection
+        const shuffled = [...LUCK_CARDS].sort(() => Math.random() - 0.5);
+        const cardOptions = shuffled.slice(0, 4);
 
-        const players = [...store.state.players];
-        const playerData = players.find(p => p.id === player.id);
+        // Show the luck picker modal
+        bus.emit('SHOW_LUCK_PICKER', {
+            player,
+            cards: cardOptions,
+            onCardSelected: (selectedCard) => {
+                console.log(`🍀 [TILE EVENT] Card selected: ${selectedCard.title}`);
 
-        if (card.effect && playerData.stats) {
-            card.effect(playerData.stats);
-            store.setPlayers(players);
-        }
+                // Apply card effect
+                const players = [...store.state.players];
+                const playerData = players.find(p => p.id === player.id);
 
-        bus.emit('SHOW_CARD', { type: 'LOOT', card });
+                if (selectedCard.effect && playerData.stats) {
+                    selectedCard.effect(playerData.stats);
+                    store.setPlayers(players);
+                }
 
-        let completed = false;
-        const onCardClosed = () => {
-            if (completed) return;
-            completed = true;
-            bus.off('UI_CARD_CLOSED', onCardClosed);
-            console.log('🍀 [TILE EVENT] Luck card closed');
-            this.processingEvent = false;
-            bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'loot' });
-        };
-        bus.on('UI_CARD_CLOSED', onCardClosed);
-
-        // Safety timeout: if card not closed after 10s, force complete
-        setTimeout(() => {
-            if (!completed) {
-                console.warn('⚠️ [TILE EVENT] Luck card timeout - forcing close');
-                onCardClosed();
+                // Complete the event
+                this.processingEvent = false;
+                bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'loot' });
             }
-        }, 10000);
+        });
     }
 
     // Casilla de Mercado - Intercambiar recursos
