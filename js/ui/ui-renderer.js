@@ -208,27 +208,67 @@ export class UIRenderer {
             codeDisplay.textContent = data.myId;
         }
 
-        // Ensure waiting room is visible (for Client joining late or Host)
-        document.getElementById('main-menu-actions').classList.add('hidden');
-        document.getElementById('waiting-room-panel').classList.remove('hidden');
+        // Hide carousel lobby elements (new structure)
+        const titleSection = document.querySelector('.lobby-title-section');
+        const carouselContainer = document.querySelector('.mode-carousel-container');
+        const carouselDots = document.querySelector('.carousel-dots');
+        const playBtn = document.getElementById('btn-play-mode');
+        const modeOptions = document.getElementById('mode-options');
+        const lobbyFooter = document.querySelector('.lobby-footer');
+
+        if (titleSection) titleSection.style.display = 'none';
+        if (carouselContainer) carouselContainer.style.display = 'none';
+        if (carouselDots) carouselDots.style.display = 'none';
+        if (playBtn) playBtn.style.display = 'none';
+        if (modeOptions) modeOptions.style.display = 'none';
+        if (lobbyFooter) lobbyFooter.style.display = 'none';
+
+        // Show waiting room panel
+        document.getElementById('waiting-room-panel')?.classList.remove('hidden');
 
         // Call update player list with current single player (me)
-        this.updatePlayerList([{ name: 'Yo (Host/Client)', id: data.myId }]);
+        this.updatePlayerList([{ name: 'Yo (Host)', id: data.myId, isHost: true }]);
     }
 
     updatePlayerList(players) {
         const list = document.getElementById('connected-players-list');
         if (!list) return;
 
-        list.innerHTML = players.map(p => `
-            <div class="player-badge" style="background:rgba(255,255,255,0.1); padding:10px; border-radius:8px; display:flex; justify-content:space-between;">
-                <span>👤 ${p.name || 'Jugador'}</span>
-                <span style="opacity:0.5; font-size:0.8em;">${p.id ? p.id.substr(-4) : '???'}</span>
-            </div>
-        `).join('');
+        list.innerHTML = players.map((p, index) => {
+            const isHost = index === 0 || p.isHost;
+            const avatarEmoji = ['👤', '🎮', '🎯', '⚔️'][index % 4];
 
-        const count = players.length;
-        document.getElementById('waiting-msg').textContent = `Esperando jugadores... (${count} conectados)`;
+            return `
+                <div class="player-badge ${isHost ? 'host' : ''}">
+                    <div class="player-avatar">${avatarEmoji}</div>
+                    <div class="player-info">
+                        <div class="player-name">${p.name || 'Jugador'}</div>
+                        <div class="player-role">${p.id ? p.id.substr(-4) : '???'}</div>
+                    </div>
+                    ${isHost ? '<span class="host-badge">👑 HOST</span>' : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Update player count
+        const countEl = document.getElementById('player-count');
+        if (countEl) {
+            countEl.textContent = `${players.length}/4`;
+        }
+
+        // Update waiting message
+        const waitMsg = document.getElementById('waiting-msg');
+        if (waitMsg) {
+            waitMsg.textContent = players.length >= 2
+                ? `✅ ${players.length} jugadores listos`
+                : `⏳ Esperando jugadores... (${players.length}/4)`;
+        }
+
+        // Enable start button if 2+ players
+        const startBtn = document.getElementById('btn-start-host');
+        if (startBtn) {
+            startBtn.disabled = players.length < 2;
+        }
     }
 
     showNetworkError(err) {
