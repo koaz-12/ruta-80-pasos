@@ -5,6 +5,7 @@ import { buildGraph } from '../data/map-data.js';
 import { CLASSES, LUCK_CARDS, EVENT_CARDS } from '../data/rpg-data.js';
 import { tileEventManager } from './tile-event-manager.js';
 import { pvpManager } from './pvp-manager.js';
+import { combatManager } from './combat-manager.js';
 
 export class GameEngine {
     constructor() {
@@ -173,6 +174,12 @@ export class GameEngine {
         // Si soy cliente y es mi turno, le digo al host que quiero moverme
         if (state.role === 'CLIENT') {
             network.send({ type: 'ACTION_MOVE', playerId: state.myId });
+            return;
+        }
+
+        // 🔒 PREVENT ROLL DURING ACTIVE COMBAT
+        if (combatManager.currentCombat) {
+            console.warn('⚠️ [GUARD] Cannot roll movement dice - combat is active');
             return;
         }
 
