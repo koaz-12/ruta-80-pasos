@@ -178,25 +178,25 @@ export class SVGBoardRenderer {
                 const x2 = toPos.x + this.ts / 2;
                 const y2 = toPos.y + this.ts / 2;
 
-                // Create border line (gold, thicker)
+                // Create border line (dark, thicker - visible on all backgrounds)
                 const borderLine = document.createElementNS(this.ns, 'line');
                 borderLine.setAttribute('x1', x1);
                 borderLine.setAttribute('y1', y1);
                 borderLine.setAttribute('x2', x2);
                 borderLine.setAttribute('y2', y2);
-                borderLine.setAttribute('stroke', '#FFD700');
-                borderLine.setAttribute('stroke-width', '8');
+                borderLine.setAttribute('stroke', '#2d1810');  // Dark brown
+                borderLine.setAttribute('stroke-width', '10');
                 borderLine.setAttribute('stroke-linecap', 'round');
                 linesGroup.appendChild(borderLine);
 
-                // Create main line (black, thinner on top)
+                // Create main line (lighter on top)
                 const line = document.createElementNS(this.ns, 'line');
                 line.setAttribute('x1', x1);
                 line.setAttribute('y1', y1);
                 line.setAttribute('x2', x2);
                 line.setAttribute('y2', y2);
-                line.setAttribute('stroke', '#1a1a1a');
-                line.setAttribute('stroke-width', '4');
+                line.setAttribute('stroke', '#8B4513');  // Saddle brown
+                line.setAttribute('stroke-width', '5');
                 line.setAttribute('stroke-linecap', 'round');
                 linesGroup.appendChild(line);
             });
