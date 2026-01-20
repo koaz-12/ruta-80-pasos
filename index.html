@@ -513,6 +513,26 @@
         </div>
     </div>
 
+    <!-- Confirm Modal (replaces native browser confirm) -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 350px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
+            <h2 id="confirm-title" style="margin-bottom: 10px;">¿Estás seguro?</h2>
+            <p id="confirm-message" style="color: #aaa; margin-bottom: 25px;">
+                Se perderá el progreso de la partida actual.
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-confirm-cancel" class="btn-secondary" style="flex: 1;">
+                    ❌ Cancelar
+                </button>
+                <button id="btn-confirm-ok" class="btn-primary"
+                    style="flex: 1; background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    ✅ Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Debug/Testing Panel -->
     <div id="debug-panel" class="debug-overlay hidden">
         <div class="debug-container">

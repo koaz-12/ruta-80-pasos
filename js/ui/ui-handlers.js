@@ -12,9 +12,11 @@ export function initDOMHandlers() {
     // Handlers
     if (btnBack) {
         btnBack.addEventListener('click', () => {
-            if (confirm("¿Seguro que quieres salir? Se perderá el progreso.")) {
-                window.location.reload();
-            }
+            showConfirmModal(
+                '¿Volver al Lobby?',
+                'Se perderá el progreso de la partida actual.',
+                () => window.location.reload()
+            );
         });
     }
 
@@ -148,4 +150,35 @@ export function initDOMHandlers() {
             bus.emit('UI_CARD_CLOSED');
         });
     }
+}
+
+// Custom confirm modal function (replaces native confirm)
+function showConfirmModal(title, message, onConfirm) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-title');
+    const messageEl = document.getElementById('confirm-message');
+    const btnCancel = document.getElementById('btn-confirm-cancel');
+    const btnOk = document.getElementById('btn-confirm-ok');
+
+    if (!modal) {
+        // Fallback to native if modal doesn't exist
+        if (confirm(message)) onConfirm();
+        return;
+    }
+
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+
+    modal.classList.remove('hidden');
+
+    // Cancel handler
+    btnCancel.onclick = () => {
+        modal.classList.add('hidden');
+    };
+
+    // Confirm handler
+    btnOk.onclick = () => {
+        modal.classList.add('hidden');
+        onConfirm();
+    };
 }

@@ -703,6 +703,16 @@ export class UIRenderer {
 
     // ===== NOTIFICATION SYSTEM =====
     showNotification({ message, type = 'info' }) {
+        // Prevent duplicate notifications (same message within 500ms)
+        const now = Date.now();
+        if (this.lastNotification &&
+            this.lastNotification.message === message &&
+            now - this.lastNotification.time < 500) {
+            console.log('🔔 [NOTIFICATION] Duplicate prevented:', message);
+            return;
+        }
+        this.lastNotification = { message, time: now };
+
         // Simple toast notification
         let container = document.getElementById('notification-container');
         if (!container) {
