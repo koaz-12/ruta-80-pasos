@@ -1,13 +1,12 @@
 import { initDOMHandlers } from './ui/ui-handlers.js';
 import { engine } from './core/game-engine.js';
-import { UIRenderer } from './ui/ui-renderer.js';
+import { ui } from './ui/ui-renderer.js';  // Use exported singleton!
 import { BoardEditor } from './editor.js';
 import { SVGBoardRenderer } from './svg-board-renderer.js';
 import { DebugManager } from './debug-manager.js';
 
 // --- INITIALIZATION ---
-// Use exported singleton engine (not new instance!)
-const ui = new UIRenderer(engine);
+// UIRenderer singleton is now imported from ui-renderer.js (not created here)
 
 // RENDER BOARD USING SVG
 const boardWrapper = document.getElementById('board-rotator');
