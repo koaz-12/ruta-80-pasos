@@ -63,6 +63,38 @@ export class LobbyCarousel {
 
         // Initial state
         this.updateUI();
+
+        // Check for ?join= parameter in URL (from WhatsApp link)
+        this.checkJoinParameter();
+    }
+
+    checkJoinParameter() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinCode = urlParams.get('join');
+
+        if (joinCode) {
+            console.log('🔗 [LOBBY] Join code from URL:', joinCode);
+
+            // Switch to online mode
+            this.selectMode(2); // Online is index 2
+
+            // Fill in the room code
+            const roomInput = document.getElementById('room-input');
+            if (roomInput) {
+                roomInput.value = joinCode.toUpperCase();
+            }
+
+            // Clear the URL parameter without refreshing
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            // Show notification
+            import('./core/event-bus.js').then(({ bus }) => {
+                bus.emit('SHOW_NOTIFICATION', {
+                    message: `🔗 Código ${joinCode} listo - ¡Presiona UNIRSE!`,
+                    type: 'info'
+                });
+            });
+        }
     }
 
     setupTouchSwipe() {

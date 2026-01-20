@@ -97,7 +97,9 @@ export function initDOMHandlers() {
     if (btnWhatsApp) {
         btnWhatsApp.addEventListener('click', () => {
             const code = document.getElementById('room-code-display').textContent;
-            const message = `🎮 ¡Únete a mi partida de La Ruta de los 80 Pasos!\n\n📍 Código de sala: *${code}*\n\n👉 Abre el juego y entra con este código`;
+            // Build join link with code as URL parameter
+            const gameUrl = `${window.location.origin}${window.location.pathname}?join=${code}`;
+            const message = `🎮 ¡Únete a mi partida!\n\n*La Ruta de los 80 Pasos*\n\n👉 Entra aquí: ${gameUrl}\n\n📍 Código: *${code}*`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
         });
