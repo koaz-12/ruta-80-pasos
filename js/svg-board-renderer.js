@@ -841,6 +841,33 @@ export class SVGBoardRenderer {
                 </div>
             </div>
 
+            <!-- Theme Section (NEW) -->
+            <div style="padding:15px; border-bottom:1px solid #333; background:#1e2d1e;">
+                <div style="color:#9cdcfe; font-size:13px; font-weight:bold; margin-bottom:12px;">🎨 TEMA VISUAL</div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="color:#aaa; font-size:11px; display:block; margin-bottom:6px;">Fondo del Tablero</label>
+                    <select id="theme-background" style="width:100%; background:#3c3c3c; border:1px solid #555; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">
+                        <option value="solid">🟫 Color Sólido Oscuro</option>
+                        <option value="texture" selected>🪨 Textura Sutil</option>
+                        <option value="night">🌙 Noche de Terror</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="color:#aaa; font-size:11px; display:block; margin-bottom:6px;">Color de Líneas</label>
+                    <select id="theme-lines" style="width:100%; background:#3c3c3c; border:1px solid #555; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">
+                        <option value="cyan" selected>💎 Cyan Brillante</option>
+                        <option value="black">⬛ Negro</option>
+                        <option value="gold">🟡 Dorado</option>
+                        <option value="red">🔴 Rojo Sangre</option>
+                    </select>
+                </div>
+                
+                <button id="apply-theme" style="width:100%; background:#28a745; color:#fff; border:none; padding:10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+                    ✅ Aplicar Tema
+                </button>
+            </div>
             <!-- Tools Section -->
             <div style="padding:15px; border-bottom:1px solid #333;">
                 <div style="color:#9cdcfe; font-size:13px; font-weight:bold; margin-bottom:12px;">🛠️ HERRAMIENTAS</div>
@@ -977,6 +1004,85 @@ export class SVGBoardRenderer {
             localStorage.setItem('editorGridSize', this.gridSize);
             if (this.showGrid) this.renderGrid();
         };
+
+        // === THEME CONTROL HANDLERS ===
+        document.getElementById('apply-theme').onclick = () => {
+            const bgSelect = document.getElementById('theme-background').value;
+            const lineSelect = document.getElementById('theme-lines').value;
+
+            // Apply background
+            this.applyThemeBackground(bgSelect);
+
+            // Apply line color
+            this.applyThemeLines(lineSelect);
+
+            // Save preferences
+            localStorage.setItem('boardThemeBg', bgSelect);
+            localStorage.setItem('boardThemeLines', lineSelect);
+
+            this.showEditorNotification('✅ Tema aplicado');
+        };
+    }
+
+    // Apply theme background
+    applyThemeBackground(type) {
+        const bgImage = this.rootGroup.querySelector('image');
+        const bgRect = this.rootGroup.querySelector('rect:first-of-type');
+
+        // Remove existing background
+        if (bgImage) bgImage.remove();
+        if (bgRect) bgRect.remove();
+
+        // Create new background based on type
+        let newBg;
+        switch (type) {
+            case 'solid':
+                newBg = document.createElementNS(this.ns, 'rect');
+                newBg.setAttribute('width', this.width);
+                newBg.setAttribute('height', this.height);
+                newBg.setAttribute('fill', '#1a1f1a');
+                break;
+            case 'texture':
+                newBg = document.createElementNS(this.ns, 'image');
+                newBg.setAttribute('width', this.width);
+                newBg.setAttribute('height', this.height);
+                newBg.setAttribute('href', './assets/bg-texture-subtle.png');
+                newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                break;
+            case 'night':
+                newBg = document.createElementNS(this.ns, 'image');
+                newBg.setAttribute('width', this.width);
+                newBg.setAttribute('height', this.height);
+                newBg.setAttribute('href', './assets/board-bg-night.png');
+                newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                break;
+        }
+
+        // Insert at beginning of rootGroup
+        if (newBg && this.rootGroup.firstChild) {
+            this.rootGroup.insertBefore(newBg, this.rootGroup.firstChild);
+        } else if (newBg) {
+            this.rootGroup.appendChild(newBg);
+        }
+    }
+
+    // Apply theme line colors
+    applyThemeLines(color) {
+        const linesGroup = this.rootGroup.querySelector('#connection-lines');
+        if (!linesGroup) return;
+
+        const colors = {
+            'cyan': 'rgba(0, 255, 200, 0.6)',
+            'black': '#000000',
+            'gold': '#FFD700',
+            'red': '#8B0000'
+        };
+
+        const strokeColor = colors[color] || colors['cyan'];
+        const lines = linesGroup.querySelectorAll('line');
+        lines.forEach(line => {
+            line.setAttribute('stroke', strokeColor);
+        });
     }
 
     addNewTile() {
