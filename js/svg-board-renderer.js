@@ -80,6 +80,7 @@ export class SVGBoardRenderer {
         this.svg.appendChild(this.rootGroup);
 
         this.drawBoard();
+        this.drawConnectionLines();  // Draw paths between connected tiles
         this.addInteractivity();
         // Camera init not needed for simple mode
         // this.initCamera();
@@ -137,6 +138,68 @@ export class SVGBoardRenderer {
 
         console.log('[Position Map] Built:', positionMap);
         return positionMap;
+    }
+
+    // Draw connection lines between tiles based on graph
+    drawConnectionLines() {
+        const graph = buildGraph();
+        const layout = this.layoutData.tiles;
+
+        // Create position lookup
+        const posLookup = {};
+        layout.forEach(tile => {
+            posLookup[tile.id] = { x: tile.x, y: tile.y };
+        });
+
+        // Create a group for connection lines (behind tiles)
+        const linesGroup = document.createElementNS(this.ns, 'g');
+        linesGroup.setAttribute('id', 'connection-lines');
+        linesGroup.style.pointerEvents = 'none';
+
+        // Process each node in graph
+        Object.keys(graph).forEach(fromId => {
+            const node = graph[fromId];
+            if (!node || !node.next) return;
+
+            const fromPos = posLookup[fromId];
+            if (!fromPos) return;
+
+            // Handle single or multiple next tiles
+            const nextTiles = Array.isArray(node.next) ? node.next : [node.next];
+
+            nextTiles.forEach(toId => {
+                if (!toId) return;
+                const toPos = posLookup[toId];
+                if (!toPos) return;
+
+                // Center positions (tile size is this.ts)
+                const x1 = fromPos.x + this.ts / 2;
+                const y1 = fromPos.y + this.ts / 2;
+                const x2 = toPos.x + this.ts / 2;
+                const y2 = toPos.y + this.ts / 2;
+
+                // Create line
+                const line = document.createElementNS(this.ns, 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', 'rgba(255, 215, 0, 0.4)');
+                line.setAttribute('stroke-width', '3');
+                line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('stroke-dasharray', '8,4');
+                linesGroup.appendChild(line);
+            });
+        });
+
+        // Insert lines BEFORE tiles (so tiles appear on top)
+        if (this.rootGroup.firstChild) {
+            this.rootGroup.insertBefore(linesGroup, this.rootGroup.firstChild);
+        } else {
+            this.rootGroup.appendChild(linesGroup);
+        }
+
+        console.log('🔗 [BOARD] Connection lines drawn');
     }
 
     // v6.0: Get sequential position for a tile ID
