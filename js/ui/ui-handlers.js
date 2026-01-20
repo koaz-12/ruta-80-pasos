@@ -13,7 +13,7 @@ export function initDOMHandlers() {
     if (btnBack) {
         btnBack.addEventListener('click', () => {
             if (confirm("¿Seguro que quieres salir? Se perderá el progreso.")) {
-                bus.emit('UI_RESET_GAME');
+                window.location.reload();
             }
         });
     }

@@ -36,11 +36,24 @@ class GameState {
     }
 
     updateTurn(turnIndex) {
-        // Check if a new day starts (when turnIndex wraps back to 0)
-        if (turnIndex === 0 && this.state.turnIndex !== 0) {
-            this.state.currentDay++;
-            console.log(`🌅 [DAY] New day: ${this.state.currentDay}`);
-            bus.emit('DAY_CHANGED', { day: this.state.currentDay });
+        const numPlayers = this.state.players.length;
+
+        // For 1 player: every turn is a new day (except first)
+        // For multiple players: new day when turnIndex wraps to 0
+        if (numPlayers === 1) {
+            // 1 player mode: increment day every turn (except the very first)
+            if (this.state.turnIndex !== undefined) {
+                this.state.currentDay++;
+                console.log(`🌅 [DAY] New day: ${this.state.currentDay}`);
+                bus.emit('DAY_CHANGED', { day: this.state.currentDay });
+            }
+        } else {
+            // Multi-player: new day when round completes (turnIndex wraps to 0)
+            if (turnIndex === 0 && this.state.turnIndex !== 0) {
+                this.state.currentDay++;
+                console.log(`🌅 [DAY] New day: ${this.state.currentDay}`);
+                bus.emit('DAY_CHANGED', { day: this.state.currentDay });
+            }
         }
 
         this.state.turnIndex = turnIndex;
