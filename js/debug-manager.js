@@ -123,10 +123,18 @@ export class DebugManager {
         // 🔘 FLOATING DEBUG BUTTON
         this.createFloatingDebugButton(panel);
 
-        // Copy logs button
-        const btnCopyLogs = document.getElementById('btn-copy-logs');
+        // Copy logs button (handles both old and new button IDs)
+        const btnCopyLogs = document.getElementById('btn-copy-logs') || document.getElementById('btn-copy-console');
         btnCopyLogs?.addEventListener('click', () => {
             this.copyLogsToClipboard();
+        });
+
+        // Toggle floating debug button from panel
+        const btnToggleFloating = document.getElementById('btn-toggle-floating-debug');
+        btnToggleFloating?.addEventListener('click', () => {
+            const isVisible = this.floatingBtn?.style.display !== 'none';
+            this.toggleFloatingButton(!isVisible);
+            btnToggleFloating.textContent = !isVisible ? '🔘 Ocultar Debug Flotante' : '🔘 Mostrar Debug Flotante';
         });
 
         // Dice control
@@ -319,7 +327,7 @@ ${this.logBuffer.join('\n')}
             border: none;
             font-size: 1rem;
             cursor: grab;
-            z-index: 9999;
+            z-index: 99999;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             transition: box-shadow 0.2s;
             display: ${isVisible ? 'flex' : 'none'};
