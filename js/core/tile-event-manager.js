@@ -368,14 +368,19 @@ export class TileEventManager {
                 type: 'FOOD',
                 card: {
                     title: '¡Provisiones!',
-                    description: `Encontraste un alijo de comida. +4 🍗`,
+                    description: `Encontraste un alijo de comida. +${gained} 🍗`,
                     icon: '🍗'
                 }
             });
         }
 
-        this.processingEvent = false;
-        bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'food' });
+        // Wait for card to be closed before completing
+        const onCardClosed = () => {
+            bus.off('UI_CARD_CLOSED', onCardClosed);
+            this.processingEvent = false;
+            bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'food' });
+        };
+        bus.on('UI_CARD_CLOSED', onCardClosed);
     }
 }
 
