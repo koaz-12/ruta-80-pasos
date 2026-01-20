@@ -281,12 +281,24 @@ export class TileEventManager {
 
         bus.emit('SHOW_CARD', { type: 'LOOT', card });
 
+        let completed = false;
         const onCardClosed = () => {
+            if (completed) return;
+            completed = true;
             bus.off('UI_CARD_CLOSED', onCardClosed);
+            console.log('🍀 [TILE EVENT] Luck card closed');
             this.processingEvent = false;
             bus.emit('TILE_EVENT_COMPLETE', { hasEvent: true, type: 'loot' });
         };
         bus.on('UI_CARD_CLOSED', onCardClosed);
+
+        // Safety timeout: if card not closed after 10s, force complete
+        setTimeout(() => {
+            if (!completed) {
+                console.warn('⚠️ [TILE EVENT] Luck card timeout - forcing close');
+                onCardClosed();
+            }
+        }, 10000);
     }
 
     // Casilla de Mercado - Intercambiar recursos

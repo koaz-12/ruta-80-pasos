@@ -37,7 +37,8 @@ export class GameEngine {
 
         bus.on('UI_DECISION_MADE', (choiceId) => this.resumeTurnAfterDecision(choiceId));
         bus.on('UI_COMBAT_RESULT', (result) => this.handleCombatResult(result)); // result: {damage, win}
-        bus.on('UI_CARD_CLOSED', () => this.endTurn());
+        // UI_CARD_CLOSED is handled by individual tile event handlers in tile-event-manager.js
+        // bus.on('UI_CARD_CLOSED', () => this.endTurn());
         bus.on('UI_PORTAL_CHOICE', (usePortal) => this.handlePortalChoice(usePortal));
 
         // Combat defeat - handle retreat
