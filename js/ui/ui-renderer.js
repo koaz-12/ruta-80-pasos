@@ -567,15 +567,17 @@ export class UIRenderer {
             if (cardDisplay) cardDisplay.classList.add('flipped');
         }, 600);
 
-        // Close handler
+        // Close handler - directly emit event, don't wait for animation
         if (btn) {
+            btn.disabled = false;
+            btn.textContent = '❌ CERRAR';
             btn.onclick = () => {
+                console.log('🃏 [UI] Card close button clicked');
                 if (cardDisplay) cardDisplay.classList.remove('flipped');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modal.style.display = 'none';
-                    bus.emit('UI_CARD_CLOSED');
-                }, 300);
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                bus.emit('UI_CARD_CLOSED');
+                console.log('🃏 [UI] UI_CARD_CLOSED emitted');
             };
         }
     }
