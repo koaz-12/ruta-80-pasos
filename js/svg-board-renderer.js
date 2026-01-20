@@ -178,14 +178,14 @@ export class SVGBoardRenderer {
                 const x2 = toPos.x + this.ts / 2;
                 const y2 = toPos.y + this.ts / 2;
 
-                // Create connection line (thin black)
+                // Create connection line (bright for dark theme)
                 const line = document.createElementNS(this.ns, 'line');
                 line.setAttribute('x1', x1);
                 line.setAttribute('y1', y1);
                 line.setAttribute('x2', x2);
                 line.setAttribute('y2', y2);
-                line.setAttribute('stroke', '#000000');
-                line.setAttribute('stroke-width', '3');
+                line.setAttribute('stroke', 'rgba(0, 255, 200, 0.6)');
+                line.setAttribute('stroke-width', '4');
                 line.setAttribute('stroke-linecap', 'round');
                 linesGroup.appendChild(line);
             });
@@ -1715,10 +1715,12 @@ export class SVGBoardRenderer {
         });
         this.svg.appendChild(defs);
 
-        // Background
-        const bg = document.createElementNS(this.ns, 'rect');
-        bg.setAttribute('width', '100%'); bg.setAttribute('height', '100%');
-        bg.setAttribute('fill', '#f0f2f5');
+        // Background - Night Terror Theme
+        const bg = document.createElementNS(this.ns, 'image');
+        bg.setAttribute('width', this.width);
+        bg.setAttribute('height', this.height);
+        bg.setAttribute('href', './assets/board-bg-night.png');
+        bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
         this.rootGroup.appendChild(bg);
 
         // CHECK FOR FULL SNAPSHOT
