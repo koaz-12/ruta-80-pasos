@@ -44,9 +44,31 @@
 /* Header Center */
 .header-center {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
+.day-badge,
+.turn-badge {
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
+}
+
+.day-label {
+    font-size: 10px;
+    color: rgba(255, 200, 100, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.day-number {
+    font-size: 16px;
+    font-weight: 900;
+    color: #FFA500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .turn-label {
@@ -57,7 +79,7 @@
 }
 
 .turn-number {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 900;
     color: #FFD700;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);

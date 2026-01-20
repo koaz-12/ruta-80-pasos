@@ -81,7 +81,13 @@ export class UIRenderer {
         bus.on('SHOW_MOVE_CHOICE', (data) => this.showMoveChoice(data));
 
         // Hotseat turn transition
-        bus.on('TURN_CHANGED', ({ turnIndex, isMyTurn }) => {
+        bus.on('TURN_CHANGED', ({ turnIndex, isMyTurn, currentDay }) => {
+            // Update day counter in header
+            const dayEl = document.getElementById('header-day');
+            if (dayEl && currentDay !== undefined) {
+                dayEl.textContent = currentDay;
+            }
+
             // Import store to get player data
             import('../core/game-state.js').then(({ store }) => {
                 const players = store.state.players;
