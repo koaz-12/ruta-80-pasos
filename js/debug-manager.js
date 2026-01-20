@@ -124,10 +124,15 @@ export class DebugManager {
         this.createFloatingDebugButton(panel);
 
         // Copy logs button (handles both old and new button IDs)
-        const btnCopyLogs = document.getElementById('btn-copy-logs') || document.getElementById('btn-copy-console');
-        btnCopyLogs?.addEventListener('click', () => {
-            this.copyLogsToClipboard();
-        });
+        const btnCopyLogs = document.getElementById('btn-copy-console');
+        console.log('🔧 [DEBUG] Copy logs button found:', btnCopyLogs ? 'YES' : 'NO');
+        if (btnCopyLogs) {
+            btnCopyLogs.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                console.log('🔧 [DEBUG] Copy logs button CLICKED!');
+                this.copyLogsToClipboard();
+            });
+        }
 
         // Toggle floating debug button from panel
         const btnToggleFloating = document.getElementById('btn-toggle-floating-debug');
