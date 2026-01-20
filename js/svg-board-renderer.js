@@ -202,10 +202,15 @@ export class SVGBoardRenderer {
             });
         });
 
-        // Insert lines BEFORE tiles (so tiles appear on top)
-        if (this.rootGroup.firstChild) {
-            this.rootGroup.insertBefore(linesGroup, this.rootGroup.firstChild);
+        // Insert lines AFTER the background rect but BEFORE tiles
+        // The background rect is the first child added by drawBoard()
+        const bgRect = this.rootGroup.querySelector('rect');
+        if (bgRect && bgRect.nextSibling) {
+            this.rootGroup.insertBefore(linesGroup, bgRect.nextSibling);
+        } else if (bgRect) {
+            this.rootGroup.appendChild(linesGroup);
         } else {
+            // Fallback: just append
             this.rootGroup.appendChild(linesGroup);
         }
 
