@@ -263,9 +263,8 @@ export class DebugManager {
 
         console.log('📋 [DEBUG] Copy logs button clicked, buffer size:', this.logBuffer.length);
 
-        try {
-            // Prepare log text
-            const logText = `=== GAME LOGS ===
+        // Prepare log text
+        const logText = `=== GAME LOGS ===
 Fecha: ${new Date().toLocaleString()}
 Total de logs: ${this.logBuffer.length}
 
@@ -273,7 +272,8 @@ ${this.logBuffer.join('\n')}
 
 === FIN DE LOGS ===`;
 
-            // Copy to clipboard
+        try {
+            // Try clipboard API first
             await navigator.clipboard.writeText(logText);
 
             // Visual feedback
@@ -289,19 +289,71 @@ ${this.logBuffer.join('\n')}
 
             console.log(`📋 ${this.logBuffer.length} logs copiados al portapapeles`);
         } catch (err) {
-            console.error('❌ Error al copiar logs:', err);
+            console.error('❌ Clipboard API failed, using fallback:', err);
 
-            // Fallback feedback
-            if (btnCopyLogs) {
-                btnCopyLogs.textContent = '❌ Error';
-                setTimeout(() => {
-                    btnCopyLogs.textContent = originalText;
-                }, 2000);
-            }
-
-            // Fallback: show logs in alert (for older browsers)
-            alert('Error al copiar. Logs:\n\n' + this.logBuffer.slice(-20).join('\n'));
+            // Mobile fallback: show modal with selectable textarea
+            this.showLogsCopyModal(logText);
         }
+    }
+
+    showLogsCopyModal(logText) {
+        // Create modal overlay
+        const modal = document.createElement('div');
+        modal.id = 'logs-copy-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        `;
+
+        modal.innerHTML = `
+            <div style="color: white; font-size: 1.1rem; margin-bottom: 10px; text-align: center;">
+                📋 Selecciona y copia el texto (Ctrl+C o mantén presionado)
+            </div>
+            <textarea id="logs-textarea" style="
+                flex: 1;
+                width: 100%;
+                padding: 10px;
+                font-family: monospace;
+                font-size: 11px;
+                background: #1a1a2e;
+                color: #00ff00;
+                border: 1px solid #333;
+                border-radius: 8px;
+                resize: none;
+            " readonly>${logText}</textarea>
+            <button id="btn-close-logs-modal" style="
+                margin-top: 10px;
+                padding: 15px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+            ">❌ Cerrar</button>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Auto-select text
+        const textarea = document.getElementById('logs-textarea');
+        textarea.focus();
+        textarea.select();
+
+        // Close button
+        document.getElementById('btn-close-logs-modal').addEventListener('click', () => {
+            modal.remove();
+        });
     }
 
     // Create floating debug button (smaller, draggable, hidden by default)
