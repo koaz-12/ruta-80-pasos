@@ -1715,11 +1715,12 @@ export class SVGBoardRenderer {
         });
         this.svg.appendChild(defs);
 
-        // Background - Solid Dark Theme
-        const bg = document.createElementNS(this.ns, 'rect');
+        // Background - Solid Dark Theme with subtle texture
+        const bg = document.createElementNS(this.ns, 'image');
         bg.setAttribute('width', this.width);
         bg.setAttribute('height', this.height);
-        bg.setAttribute('fill', '#1a1f1a');  // Dark greenish-gray
+        bg.setAttribute('href', './assets/bg-texture-subtle.png');
+        bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
         this.rootGroup.appendChild(bg);
 
         // CHECK FOR FULL SNAPSHOT
