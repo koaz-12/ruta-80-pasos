@@ -258,8 +258,10 @@ export class DebugManager {
     }
 
     async copyLogsToClipboard() {
-        const btnCopyLogs = document.getElementById('btn-copy-logs');
+        const btnCopyLogs = document.getElementById('btn-copy-console') || document.getElementById('btn-copy-logs');
         const originalText = btnCopyLogs?.textContent;
+
+        console.log('📋 [DEBUG] Copy logs button clicked, buffer size:', this.logBuffer.length);
 
         try {
             // Prepare log text
@@ -277,7 +279,7 @@ ${this.logBuffer.join('\n')}
             // Visual feedback
             if (btnCopyLogs) {
                 btnCopyLogs.textContent = '✅ ¡Copiado!';
-                btnCopyLogs.style.background = '#10b981';
+                btnCopyLogs.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
 
                 setTimeout(() => {
                     btnCopyLogs.textContent = originalText;
