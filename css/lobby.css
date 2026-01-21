@@ -115,11 +115,11 @@
     transform: scale(1.1);
 }
 
-/* Mode Carousel - Horizontal scroll with all cards visible */
+/* Mode Carousel - Contained within viewport */
 .mode-carousel {
     display: flex;
     gap: 15px;
-    overflow: visible;
+    overflow: hidden;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -127,6 +127,7 @@
     justify-content: center;
     align-items: center;
     min-height: 200px;
+    max-width: 100%;
 }
 
 .mode-carousel::-webkit-scrollbar {

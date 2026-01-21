@@ -20,14 +20,20 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--bg-color);
 
     color: var(--text-primary);
-    height: 100vh;
-    /* Fixed viewport height */
+    height: 100dvh;
+    /* Dynamic viewport height - consistent on mobile */
     width: 100vw;
+    max-width: 100%;
+    /* Prevent horizontal overflow */
     display: flex;
     flex-direction: column;
     position: relative;
@@ -35,7 +41,8 @@ body {
     padding: 0;
     /* Remove default padding to allow edge-to-edge */
     overflow: hidden;
-    /* Prevent body scroll */
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
 }
 
 .highlight {
