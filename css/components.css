@@ -1765,3 +1765,133 @@
         opacity: 0.7;
     }
 }
+
+/* ===== COMPREHENSIVE RESPONSIVE DESIGN ===== */
+
+/* Mobile Small (320px - 480px) */
+@media (max-width: 480px) {
+
+    /* Modals */
+    .modal-content {
+        padding: 15px;
+        max-width: 95%;
+        max-height: 85vh;
+    }
+
+    .modal-content h2 {
+        font-size: 16px;
+    }
+
+    .modal-content p {
+        font-size: 12px;
+    }
+
+    /* Branch decision */
+    .decision-modal-enhanced {
+        padding: 15px;
+    }
+
+    .branch-options {
+        gap: 8px;
+    }
+
+    .branch-card {
+        padding: 12px;
+    }
+
+    /* Card modal */
+    .card-visual {
+        width: 180px;
+        height: 250px;
+    }
+
+    /* Combat modal */
+    .combat-vs {
+        gap: 15px;
+    }
+
+    .combat-fighter {
+        min-width: 80px;
+    }
+
+    /* Notifications */
+    .notification {
+        max-width: 90%;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .modal-content {
+        max-width: 500px;
+    }
+
+    .card-visual {
+        width: 240px;
+        height: 340px;
+    }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+    .modal-content {
+        max-width: 600px;
+        padding: 30px;
+    }
+
+    .modal-content h2 {
+        font-size: 22px;
+    }
+
+    /* Larger action button on desktop */
+    .btn-roll {
+        width: 70px;
+        height: 70px;
+    }
+
+    .btn-roll .dice-icon {
+        font-size: 38px;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 90vh;
+        padding: 12px;
+    }
+
+    .modal-content h2 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .card-visual {
+        width: 150px;
+        height: 210px;
+    }
+
+    .combat-vs {
+        flex-direction: row;
+        gap: 10px;
+    }
+}
+
+/* Touch devices - larger tap targets */
+@media (hover: none) and (pointer: coarse) {
+
+    .btn-option,
+    .branch-card,
+    .btn-primary,
+    .btn-lobby {
+        min-height: 48px;
+        padding: 14px 20px;
+    }
+
+    .btn-roll {
+        width: 65px;
+        height: 65px;
+    }
+}
