@@ -4,6 +4,8 @@
  */
 import { SAVED_LAYOUT, buildGraph } from './data/map-data.js';
 import { getTileType, TILE_TYPE_MAP } from './data/tile-types.js';
+import { TileRenderer } from './tile-renderer.js';
+import { CITY_TILEMAP } from './data/tilemap-data.js';
 
 export class SVGBoardRenderer {
     constructor(container) {
@@ -37,6 +39,10 @@ export class SVGBoardRenderer {
         this.showGrid = localStorage.getItem('editorShowGrid') === 'true';
         this.snapToGrid = localStorage.getItem('editorSnapToGrid') === 'true';
         this.gridSize = parseInt(localStorage.getItem('editorGridSize')) || 25;
+
+        // Tile Renderer for isometric city map
+        this.tileRenderer = null;  // Will be initialized in render()
+        this.useTilemap = true;    // Toggle for tilemap vs image background
     }
 
     render() {
@@ -1821,13 +1827,32 @@ export class SVGBoardRenderer {
         });
         this.svg.appendChild(defs);
 
-        // Background - Isometric City Map
-        const bg = document.createElementNS(this.ns, 'image');
-        bg.setAttribute('width', this.width);
-        bg.setAttribute('height', this.height);
-        bg.setAttribute('href', './assets/city-map-isometric.jpg');
-        bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-        this.rootGroup.appendChild(bg);
+        // Background - Either Tilemap or Image
+        if (this.useTilemap) {
+            // Initialize TileRenderer if not already done
+            if (!this.tileRenderer) {
+                this.tileRenderer = new TileRenderer(this.svg, this.ns);
+            }
+
+            // Render dark background first
+            const bg = document.createElementNS(this.ns, 'rect');
+            bg.setAttribute('width', this.width);
+            bg.setAttribute('height', this.height);
+            bg.setAttribute('fill', '#1a1f1a');
+            this.rootGroup.appendChild(bg);
+
+            // Render isometric city tilemap
+            console.log('🏙️ Rendering isometric city tilemap...');
+            this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
+        } else {
+            // Fallback: Isometric City Map Image
+            const bg = document.createElementNS(this.ns, 'image');
+            bg.setAttribute('width', this.width);
+            bg.setAttribute('height', this.height);
+            bg.setAttribute('href', './assets/city-map-isometric.jpg');
+            bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            this.rootGroup.appendChild(bg);
+        }
 
         // CHECK FOR FULL SNAPSHOT
         if (this.layoutData && !Array.isArray(this.layoutData) && this.layoutData.tiles) {
