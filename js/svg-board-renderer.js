@@ -26,10 +26,10 @@ export class SVGBoardRenderer {
         // }
         this.edges = this.layoutData.edges || [];   // Load Edges
 
-        // Colors - Dark Zombie Theme
-        this.colors = ['#2d4a3e', '#3d5a4e', '#4a6b5e', '#3a5548'];  // Dark greens
-        this.safe = '#1a5a3a';     // Dark teal-green (safe zones)
-        this.mortal = '#6b2a2a';   // Dark blood red (danger zones)
+        // Colors - City Street Theme (semi-transparent to show city underneath)
+        this.colors = ['rgba(60, 60, 70, 0.7)', 'rgba(70, 70, 80, 0.7)', 'rgba(50, 55, 65, 0.7)', 'rgba(65, 65, 75, 0.7)'];
+        this.safe = 'rgba(40, 120, 80, 0.8)';     // Green (safe zones)
+        this.mortal = 'rgba(150, 40, 40, 0.8)';   // Red (danger zones)
 
         this.isEditorMode = false; // Default blocked
 
@@ -178,14 +178,14 @@ export class SVGBoardRenderer {
                 const x2 = toPos.x + this.ts / 2;
                 const y2 = toPos.y + this.ts / 2;
 
-                // Create connection line (bright for dark theme)
+                // Create connection line (subtle glow for city map)
                 const line = document.createElementNS(this.ns, 'line');
                 line.setAttribute('x1', x1);
                 line.setAttribute('y1', y1);
                 line.setAttribute('x2', x2);
                 line.setAttribute('y2', y2);
-                line.setAttribute('stroke', 'rgba(0, 255, 200, 0.6)');
-                line.setAttribute('stroke-width', '4');
+                line.setAttribute('stroke', 'rgba(255, 220, 100, 0.5)');
+                line.setAttribute('stroke-width', '3');
                 line.setAttribute('stroke-linecap', 'round');
                 linesGroup.appendChild(line);
             });
@@ -1821,11 +1821,11 @@ export class SVGBoardRenderer {
         });
         this.svg.appendChild(defs);
 
-        // Background - Solid Dark Theme with subtle texture
+        // Background - Isometric City Map
         const bg = document.createElementNS(this.ns, 'image');
         bg.setAttribute('width', this.width);
         bg.setAttribute('height', this.height);
-        bg.setAttribute('href', './assets/bg-texture-subtle.png');
+        bg.setAttribute('href', './assets/city-map-isometric.jpg');
         bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
         this.rootGroup.appendChild(bg);
 
