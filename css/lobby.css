@@ -732,47 +732,61 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive - Mobile: Single card view */
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Mobile Small (320px - 480px) */
 @media (max-width: 480px) {
-    .lobby-container h1 {
-        font-size: 1.8rem;
+    .lobby-container {
+        padding: 15px 15px 90px 15px;
+        gap: 12px;
     }
 
-    /* Hide inactive cards on mobile */
+    .lobby-container h1 {
+        font-size: 1.6rem;
+        letter-spacing: 1px;
+    }
+
+    .lobby-subtitle {
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+    }
+
+    /* Single card view on mobile */
     .mode-card {
         display: none;
-        min-width: 150px;
-        width: 150px;
-        height: 180px;
+        min-width: 140px;
+        width: 140px;
+        height: 170px;
     }
 
-    /* Only show active card on mobile */
     .mode-card.active {
         display: flex;
         transform: scale(1);
     }
 
     .mode-icon {
-        font-size: 4rem;
+        font-size: 3.5rem;
     }
 
     .mode-name {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .btn-play-main {
         padding: 14px 35px;
         font-size: 1.1rem;
+        width: 100%;
+        max-width: 280px;
     }
 
     .carousel-arrow {
-        width: 45px;
-        height: 45px;
-        font-size: 1.2rem;
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
     }
 
     .mode-carousel {
-        min-height: 220px;
+        min-height: 200px;
         width: 100%;
         justify-content: center;
     }
@@ -780,13 +794,195 @@
     .mode-carousel-container {
         width: 100%;
         justify-content: center;
+        gap: 10px;
+    }
+
+    .mode-options {
+        max-width: 280px;
+    }
+
+    .lobby-footer {
+        bottom: 15px;
+        gap: 10px;
+    }
+
+    .btn-footer {
+        padding: 8px 15px;
+        font-size: 0.75rem;
+    }
+
+    /* Waiting room */
+    .waiting-room-panel {
+        width: 95%;
+        padding: 18px;
+    }
+
+    .room-code-box {
+        font-size: 2rem;
+        letter-spacing: 5px;
     }
 }
 
+/* Mobile Large (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .lobby-container h1 {
+        font-size: 2rem;
+    }
+
+    .mode-card {
+        min-width: 120px;
+        width: 120px;
+        height: 150px;
+    }
+
+    .mode-icon {
+        font-size: 3rem;
+    }
+
+    .mode-name {
+        font-size: 1.1rem;
+    }
+
+    .btn-play-main {
+        padding: 16px 50px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .lobby-container {
+        gap: 20px;
+    }
+
+    .lobby-container h1 {
+        font-size: 2.8rem;
+    }
+
+    .mode-card {
+        min-width: 140px;
+        width: 140px;
+        height: 170px;
+    }
+
+    .mode-carousel-container {
+        max-width: 600px;
+    }
+
+    .btn-play-main {
+        padding: 18px 70px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+    .lobby-container {
+        gap: 25px;
+    }
+
+    .lobby-container h1 {
+        font-size: 3rem;
+    }
+
+    .mode-card {
+        min-width: 150px;
+        width: 150px;
+        height: 180px;
+    }
+
+    .mode-icon {
+        font-size: 4rem;
+    }
+
+    .mode-name {
+        font-size: 1.4rem;
+    }
+
+    .mode-carousel-container {
+        max-width: 700px;
+    }
+
+    .carousel-arrow {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+
+    .btn-play-main {
+        padding: 20px 80px;
+        font-size: 1.6rem;
+    }
+}
+
+/* Short screens (height < 700px) */
 @media (max-height: 700px) {
     .lobby-container {
         justify-content: flex-start;
-        padding-top: 20px;
+        padding-top: 15px;
+        gap: 10px;
+    }
+
+    .lobby-title-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .mode-card {
+        height: 140px;
+    }
+
+    .mode-icon {
+        font-size: 2.5rem;
+    }
+
+    .btn-play-main {
+        padding: 12px 40px;
+        font-size: 1rem;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .lobby-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 10px;
         gap: 15px;
+    }
+
+    .lobby-title-section {
+        width: 100%;
+    }
+
+    .lobby-title-section h1 {
+        font-size: 1.3rem;
+    }
+
+    .mode-carousel-container {
+        max-width: 400px;
+    }
+
+    .mode-card {
+        height: 120px;
+        min-width: 100px;
+        width: 100px;
+    }
+
+    .mode-icon {
+        font-size: 2rem;
+    }
+
+    .btn-play-main {
+        padding: 10px 30px;
+        font-size: 0.9rem;
+    }
+
+    .lobby-footer {
+        position: relative;
+        bottom: auto;
+        transform: none;
+        left: auto;
     }
 }
