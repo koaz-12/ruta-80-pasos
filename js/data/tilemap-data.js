@@ -25,45 +25,52 @@ const T = {
  * Game tiles are overlaid on top of streets
  */
 export const CITY_TILEMAP = [
-    // Row 0 (top)
+    // Row 0-2: Top border
     [T.TR, T.TR, T._, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T._, T.TR, T.TR],
-    // Row 1
     [T.TR, T.BL, T.BM, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BL, T.HO, T.BM, T.SV, T.BL, T.BM, T.BH, T._, T.TR],
-    // Row 2
     [T._, T.BM, T.BL, T.SV, T.BH, T.BL, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BL, T.BH, T.SV, T.BM, T.BL, T.BM, T._, T._],
-    // Row 3
+    // Row 3: Street
     [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
-    // Row 4
     [T.BL, T.BM, T.BH, T.SV, T.PK, T.TR, T.SV, T.BL, T.BM, T.BH, T.SV, T.ST, T.BM, T.BL, T.SV, T.BH, T.BM, T.BL, T._, T._],
-    // Row 5
     [T.BH, T.BL, T.BM, T.SV, T.TR, T.PK, T.SV, T.BM, T.BH, T.BL, T.SV, T.BL, T.BH, T.BM, T.SV, T.BL, T.BH, T.BM, T.TR, T._],
-    // Row 6
+    // Row 6: Street
     [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
-    // Row 7
     [T.BM, T.RU, T.BL, T.SV, T.BH, T.BM, T.SV, T.RU, T.BL, T.BH, T.SV, T.BM, T.BL, T.BH, T.SV, T.BM, T.RU, T.BH, T._, T._],
-    // Row 8
     [T.BL, T.BH, T.BM, T.SV, T.BL, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.BH, T.BM, T.BL, T.SV, T.BH, T.BL, T.BM, T._, T.TR],
-    // Row 9
+    // Row 9: Street
     [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
-    // Row 10
     [T.BH, T.BL, T.BM, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.HO, T.SV, T.BL, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T._, T._],
-    // Row 11
     [T.BM, T.BH, T.BL, T.SV, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.ST, T.BH, T.BM, T.TR, T._],
-    // Row 12
+    // Row 12: Street
     [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
-    // Row 13
     [T.BL, T.BM, T.BH, T.SV, T.RU, T.BL, T.SV, T.BM, T.BH, T.BL, T.SV, T.RU, T.BL, T.BM, T.SV, T.BH, T.BM, T.BL, T._, T._],
-    // Row 14
     [T.BH, T.BL, T.BM, T.SV, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.BL, T.BH, T.BM, T._, T.TR],
-    // Row 15
+    // Row 15: Street
     [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
-    // Row 16
     [T._, T.BL, T.BM, T.SV, T.BH, T.BL, T.SV, T.BM, T.ST, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BL, T.BH, T._, T._],
-    // Row 17
     [T.TR, T.BM, T.BH, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BL, T.BH, T.BM, T._, T.TR],
-    // Row 18
+    // Row 18: Street
+    [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
+    [T.BL, T.BM, T.BH, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BL, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T._, T._],
+    [T.BH, T.BL, T.BM, T.SV, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.BL, T.BH, T.BM, T._, T.TR],
+    // Row 21: Street
+    [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
+    [T.BM, T.RU, T.BL, T.SV, T.BH, T.BM, T.SV, T.RU, T.BL, T.BH, T.SV, T.BM, T.BL, T.BH, T.SV, T.BM, T.RU, T.BH, T._, T._],
+    [T.BL, T.BH, T.BM, T.SV, T.BL, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.BH, T.BM, T.BL, T.SV, T.BH, T.BL, T.BM, T._, T.TR],
+    // Row 24: Street
+    [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
+    [T.BH, T.BL, T.BM, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.HO, T.SV, T.BL, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T._, T._],
+    [T.BM, T.BH, T.BL, T.SV, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.ST, T.BH, T.BM, T.TR, T._],
+    // Row 27: Street
+    [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
+    [T.BL, T.BM, T.BH, T.SV, T.RU, T.BL, T.SV, T.BM, T.BH, T.BL, T.SV, T.RU, T.BL, T.BM, T.SV, T.BH, T.BM, T.BL, T._, T._],
+    [T.BH, T.BL, T.BM, T.SV, T.BM, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BH, T.BL, T.SV, T.BL, T.BH, T.BM, T._, T.TR],
+    // Row 30: Street
+    [T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SH, T.SH],
+    [T._, T.BL, T.BM, T.SV, T.BH, T.BL, T.SV, T.BM, T.ST, T.BH, T.SV, T.BL, T.BM, T.BH, T.SV, T.BM, T.BL, T.BH, T._, T._],
+    [T.TR, T.BM, T.BH, T.SV, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BH, T.BL, T.BM, T.SV, T.BL, T.BH, T.BM, T._, T.TR],
+    // Row 33-34: Bottom border
     [T.TR, T._, T._, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T.SH, T.SC, T.SH, T.SH, T._, T.TR, T.TR],
-    // Row 19 (bottom)
     [T.TR, T.TR, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T._, T.TR, T.TR]
 ];
 
