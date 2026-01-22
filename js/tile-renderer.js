@@ -114,24 +114,31 @@ export class TileRenderer {
     }
 
     /**
-     * Get color for tile type (placeholder until real tiles loaded)
+     * Get color for tile type - Enhanced visuals
      */
     getTileColor(type) {
         const colors = {
-            0: 'rgba(50, 80, 50, 0.3)',    // Empty - transparent green
-            1: '#404040',                   // Street H - dark gray
-            2: '#404040',                   // Street V - dark gray
-            3: '#353535',                   // Cross - darker
-            10: '#8B7355',                  // Building low - brown
-            11: '#696969',                  // Building med - gray
-            12: '#4A4A4A',                  // Building high - dark
-            13: '#FFFFFF',                  // Hospital - white
-            14: '#FFD700',                  // Store - gold
-            15: '#4A3728',                  // Ruins - dark brown
-            20: '#228B22',                  // Park - green
-            21: '#006400'                   // Tree - dark green
+            // Empty/Background - subtle dark tones
+            0: 'rgba(30, 40, 30, 0.4)',
+
+            // Streets - asphalt look with subtle variation
+            1: '#3a3a3a',                   // Street H - dark asphalt
+            2: '#3a3a3a',                   // Street V - dark asphalt
+            3: '#2a2a2a',                   // Cross - darker intersection
+
+            // Buildings - varied city colors
+            10: '#6B5344',                  // Building low - warm brown
+            11: '#5C5C5C',                  // Building med - concrete gray
+            12: '#3D3D3D',                  // Building high - dark tower
+            13: '#E8E8E8',                  // Hospital - clean white
+            14: '#D4A84B',                  // Store - warm gold
+            15: '#4A3320',                  // Ruins - dark damaged
+
+            // Nature - organic greens
+            20: '#2D5A2D',                  // Park - forest green
+            21: '#1B4D1B'                   // Tree - dark green
         };
-        return colors[type] || '#808080';
+        return colors[type] || '#4a4a4a';
     }
 
     /**
