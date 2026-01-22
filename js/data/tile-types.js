@@ -13,61 +13,104 @@ export const TILE_TYPES = {
     FOOD: { id: 'food', icon: '🍗', color: '#84cc16', description: 'Casilla de Comida - Obtén 4 🍗' }
 };
 
-// Distribución de tipos por defecto
+// Distribución de tipos para las 80 casillas
 // Zombies y Bandidos distribuidos por nivel según posición en tablero
+// Balance: ~15 ZOMBIE, 5 BANDIT, 12 EVENT, 12 LUCK, 8 FOOD, 4 MARKET, 5 SAFE, 1 BOSS, resto NORMAL
 export const TILE_TYPE_MAP = {
-    '0': 'SAFE',      // Inicio
+    // === INICIO ===
+    '0': 'SAFE',      // Inicio - Zona segura
+
+    // === ZONA 1-15: Tutorial / Nivel 1 ===
+    '1': 'NORMAL',
+    '2': 'LUCK',      // Primer loot
     '3': 'EVENT',
-    '5': 'LUCK',
-    // === ZONA 1-15: Zombies Nivel 1 ===
-    '7': 'ZOMBIE',    // Zombie Lvl 1
-    '9': 'FOOD',      // Comida +4 🍗
-    // === Bandido Nivel 1 (10-15) ===
-    '11': 'BANDIT',   // Bandido Lvl 1
+    '4': 'NORMAL',
+    '5': 'FOOD',      // Primera comida
+    '6': 'NORMAL',
+    '7': 'ZOMBIE',    // Primer zombie (Lvl 1)
+    '8': 'LUCK',
+    '9': 'EVENT',
+    '10': 'NORMAL',
+    '11': 'BANDIT',   // Primer bandido (Lvl 1)
     '12': 'ZOMBIE',   // Zombie Lvl 1
-    '14': 'LUCK',
-    '15': 'MARKET',   // First market!
+    '13': 'LUCK',
+    '14': 'FOOD',
+    '15': 'MARKET',   // Primer mercado
+
+    // === ZONA 16-30: Nivel 2 ===
+    '16': 'NORMAL',
     '17': 'EVENT',
-    // === ZONA 20-35: Zombies Nivel 2 ===
-    '22': 'LUCK',
-    // === Bandido Nivel 2 (21-25) ===
+    '18': 'ZOMBIE',   // Zombie Lvl 2
+    '19': 'LUCK',
+    '20': 'SAFE',     // Checkpoint
+    '21': 'NORMAL',
+    '22': 'EVENT',
+    '23': 'ZOMBIE',   // Zombie Lvl 2
     '24': 'BANDIT',   // Bandido Lvl 2
-    '25': 'SAFE',     // Safe zone
+    '25': 'LUCK',
+    '26': 'FOOD',
     '27': 'EVENT',
-    '29': 'FOOD',     // Comida +4 🍗
-    '30': 'ZOMBIE',   // Zombie Lvl 2
-    '33': 'LUCK',
-    '35': 'EVENT',
-    // === Bandido Nivel 3 (35-40) ===
+    '28': 'NORMAL',
+    '29': 'ZOMBIE',   // Zombie Lvl 2
+    '30': 'MARKET',   // Segundo mercado
+
+    // === ZONA 31-45: Nivel 2-3 Transición ===
+    '31': 'LUCK',
+    '32': 'NORMAL',
+    '33': 'EVENT',
+    '34': 'ZOMBIE',   // Zombie Lvl 2
+    '35': 'FOOD',
+    '36': 'NORMAL',
     '37': 'BANDIT',   // Bandido Lvl 3
-    '40': 'LUCK',
-    '42': 'EVENT',
-    '44': 'MARKET',   // Mid-game market
-    // === ZONA 45-55: Zombies Nivel 3 ===
-    '46': 'FOOD',     // Comida +4 🍗
+    '38': 'LUCK',
+    '39': 'EVENT',
+    '40': 'SAFE',     // Checkpoint
+    '41': 'NORMAL',
+    '42': 'ZOMBIE',   // Zombie Lvl 3
+    '43': 'EVENT',
+    '44': 'LUCK',
+    '45': 'MARKET',   // Tercer mercado (mid-game)
+
+    // === ZONA 46-60: Nivel 3 ===
+    '46': 'FOOD',
     '47': 'ZOMBIE',   // Zombie Lvl 3
-    '48': 'SAFE',     // Safe zone
-    '50': 'EVENT',    // Junction event
-    '52': 'ZOMBIE',   // Zombie Lvl 3
-    '55': 'LUCK',
-    // === Bandido Nivel 3 (55-60) ===
-    '57': 'BANDIT',   // Bandido Lvl 3
+    '48': 'NORMAL',
+    '49': 'EVENT',
+    '50': 'LUCK',
+    '51': 'ZOMBIE',   // Zombie Lvl 3
+    '52': 'NORMAL',
+    '53': 'EVENT',
+    '54': 'FOOD',
+    '55': 'BANDIT',   // Bandido Lvl 3
+    '56': 'LUCK',
+    '57': 'ZOMBIE',   // Zombie Lvl 3
     '58': 'EVENT',
-    // === ZONA 60-70: Zombies Nivel 3 ===
+    '59': 'NORMAL',
+    '60': 'SAFE',     // Último checkpoint
+
+    // === ZONA 61-78: Zona Final ===
+    '61': 'LUCK',
     '62': 'ZOMBIE',   // Zombie Lvl 3
-    '63': 'LUCK',
-    '65': 'EVENT',
-    '68': 'ZOMBIE',   // Zombie Lvl 3
-    '70': 'LUCK',
-    '71': 'FOOD',     // Comida +4 🍗
-    '72': 'EVENT',
-    '73': 'MARKET',   // Last market before finale
-    '75': 'LUCK',
-    '77': 'FOOD',     // Comida +4 🍗 (última antes del boss)
-    '78': 'LUCK',     // Last loot chance
-    // === CASILLA 79: BOSS ZOMBIE Nivel 4 (obligatorio) ===
-    '79': 'ZOMBIE_BOSS',
-    '80': 'SAFE',     // Meta - Victory!
+    '63': 'EVENT',
+    '64': 'FOOD',
+    '65': 'ZOMBIE',   // Zombie Lvl 3
+    '66': 'LUCK',
+    '67': 'NORMAL',
+    '68': 'EVENT',
+    '69': 'ZOMBIE',   // Zombie Lvl 3
+    '70': 'FOOD',
+    '71': 'BANDIT',   // Último bandido (Lvl 3)
+    '72': 'LUCK',
+    '73': 'MARKET',   // Último mercado
+    '74': 'EVENT',
+    '75': 'ZOMBIE',   // Zombie Lvl 3
+    '76': 'LUCK',
+    '77': 'FOOD',     // Última comida antes del boss
+    '78': 'LUCK',     // Último loot
+
+    // === BOSS Y META ===
+    '79': 'ZOMBIE_BOSS',  // BOSS - Obligatorio vencer
+    '80': 'SAFE'          // META - Victoria!
 };
 
 // Nivel de zombie según casilla
