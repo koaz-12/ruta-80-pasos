@@ -1,12 +1,14 @@
-/* --- BOARD CONTAINER (Simple Fullscreen) --- */
+/* --- BOARD CONTAINER (Fixed positioning respecting header/footer) --- */
 .board-container {
-    position: absolute;
-    top: 50px;
-    /* Below fixed header */
-    bottom: 70px;
-    /* Above fixed footer */
-    left: 0;
-    right: 0;
+    position: fixed !important;
+    top: 50px !important;
+    /* Below fixed header (50px tall) */
+    bottom: 70px !important;
+    /* Above fixed footer (70px tall) */
+    left: 0 !important;
+    right: 0 !important;
+    height: auto !important;
+    /* Let top/bottom define height, not explicit height */
     z-index: 100;
     /* Below header (6000) and footer (5000) */
     display: flex;
