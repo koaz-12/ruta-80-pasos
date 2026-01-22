@@ -1842,7 +1842,7 @@ export class SVGBoardRenderer {
             const bg = document.createElementNS(this.ns, 'image');
             bg.setAttribute('width', this.width);
             bg.setAttribute('height', this.height);
-            bg.setAttribute('href', './assets/city-map-isometric.png');
+            bg.setAttribute('href', './assets/terrain-background.png');
             bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             this.rootGroup.appendChild(bg);
         }
