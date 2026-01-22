@@ -14,8 +14,8 @@
     --gap-size: 20px;
 
     /* Header/Footer heights for consistent spacing */
-    --header-height: 55px;
-    --footer-height: 75px;
+    --header-height: 60px;
+    --footer-height: 85px;
 }
 
 * {
