@@ -8,9 +8,9 @@ export class TileRenderer {
         this.svg = svgElement;
         this.ns = namespace;
 
-        // Tile dimensions (isometric)
-        this.tileWidth = 64;
-        this.tileHeight = 32;
+        // Tile dimensions (square grid)
+        this.tileWidth = 40;
+        this.tileHeight = 40;
 
         // Loaded tile images
         this.tiles = {};
@@ -82,37 +82,34 @@ export class TileRenderer {
      * @param {SVGElement} container - Container to append tile to
      */
     renderTile(gridX, gridY, tileType, container) {
-        const { isoX, isoY } = this.cartesianToIsometric(gridX, gridY);
+        // Simple grid positioning (no isometric conversion)
+        const offsetX = 50;   // Left padding
+        const offsetY = 50;   // Top padding
 
-        // Offset to center the map
-        const offsetX = 700;  // Center of typical board width
-        const offsetY = 100;  // Top padding
-
-        const finalX = isoX + offsetX;
-        const finalY = isoY + offsetY;
+        const finalX = (gridX * this.tileWidth) + offsetX;
+        const finalY = (gridY * this.tileHeight) + offsetY;
 
         // Create tile group
         const tileGroup = document.createElementNS(this.ns, 'g');
         tileGroup.setAttribute('transform', `translate(${finalX}, ${finalY})`);
-        tileGroup.setAttribute('class', 'iso-tile');
+        tileGroup.setAttribute('class', 'grid-tile');
         tileGroup.setAttribute('data-grid-x', gridX);
         tileGroup.setAttribute('data-grid-y', gridY);
 
-        // Create diamond shape for tile (placeholder)
-        const diamond = document.createElementNS(this.ns, 'polygon');
-        const halfW = this.tileWidth / 2;
-        const halfH = this.tileHeight / 2;
-        const points = `0,${halfH} ${halfW},0 ${this.tileWidth},${halfH} ${halfW},${this.tileHeight}`;
-        diamond.setAttribute('points', points);
-        diamond.setAttribute('transform', `translate(${-halfW}, 0)`);
+        // Create square tile
+        const square = document.createElementNS(this.ns, 'rect');
+        square.setAttribute('width', this.tileWidth);
+        square.setAttribute('height', this.tileHeight);
+        square.setAttribute('x', 0);
+        square.setAttribute('y', 0);
 
         // Color based on tile type
         const color = this.getTileColor(tileType);
-        diamond.setAttribute('fill', color);
-        diamond.setAttribute('stroke', 'rgba(0,0,0,0.3)');
-        diamond.setAttribute('stroke-width', '1');
+        square.setAttribute('fill', color);
+        square.setAttribute('stroke', 'rgba(0,0,0,0.2)');
+        square.setAttribute('stroke-width', '1');
 
-        tileGroup.appendChild(diamond);
+        tileGroup.appendChild(square);
         container.appendChild(tileGroup);
 
         return tileGroup;
