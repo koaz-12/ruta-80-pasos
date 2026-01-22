@@ -2948,38 +2948,43 @@ export class SVGBoardRenderer {
             { x: 750, y: 1080, type: 5 },
         ];
 
-        // Sprite positions in spritesheet (approximate - 2 rows of 3)
-        const spriteInfo = {
-            0: { name: 'house', clipX: 0, clipY: 0, w: 170, h: 200 },
-            1: { name: 'apartment', clipX: 170, clipY: 0, w: 170, h: 200 },
-            2: { name: 'skyscraper', clipX: 340, clipY: 0, w: 170, h: 250 },
-            3: { name: 'hospital', clipX: 0, clipY: 250, w: 170, h: 200 },
-            4: { name: 'store', clipX: 170, clipY: 250, w: 170, h: 200 },
-            5: { name: 'ruins', clipX: 340, clipY: 250, w: 170, h: 200 }
+        // Individual sprite file paths
+        const spriteFiles = {
+            0: './assets/tiles/house.png',
+            1: './assets/tiles/apartment.png',
+            2: './assets/tiles/skyscraper.png',
+            3: './assets/tiles/hospital.png',
+            4: './assets/tiles/store.png',
+            5: './assets/tiles/ruins.png'
         };
 
-        // For now, use the full spritesheet as a single image per building
-        // A more advanced version would clip individual sprites
-        buildingPlacements.forEach((b, index) => {
+        // Building sizes for each type
+        const spriteSizes = {
+            0: { w: 80, h: 90 },
+            1: { w: 70, h: 110 },
+            2: { w: 60, h: 140 },
+            3: { w: 90, h: 100 },
+            4: { w: 75, h: 70 },
+            5: { w: 85, h: 85 }
+        };
+
+        // Render each building
+        buildingPlacements.forEach((b) => {
             const building = document.createElementNS(this.ns, 'image');
-            building.setAttribute('href', './assets/tiles/building-sprites.png');
+            const size = spriteSizes[b.type];
+
+            building.setAttribute('href', spriteFiles[b.type]);
             building.setAttribute('x', b.x);
-            building.setAttribute('y', b.y);
-            building.setAttribute('width', 100);  // Scaled down
-            building.setAttribute('height', 120);
-            building.setAttribute('opacity', '0.9');
-            building.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            building.setAttribute('y', b.y - size.h + 40);
+            building.setAttribute('width', size.w);
+            building.setAttribute('height', size.h);
+            building.setAttribute('opacity', '0.95');
+            building.setAttribute('preserveAspectRatio', 'xMidYMax meet');
 
-            // Use clip-path to show only the relevant sprite (CSS approach)
-            const clipId = `building-clip-${index}`;
-            const info = spriteInfo[b.type];
-
-            // For simplicity, we'll show the whole spritesheet scaled
-            // In production, you'd use individual PNG files or proper clipping
             buildingsGroup.appendChild(building);
         });
 
         this.rootGroup.appendChild(buildingsGroup);
-        console.log('🏢 [BUILDINGS] Rendered building sprites layer');
+        console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
     }
 }
