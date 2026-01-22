@@ -31,40 +31,89 @@ export const clampResource = (value, resource) => Math.max(0, Math.min(value, MA
 
 // Helper para efectos (se pasarán stats por referencia)
 export const LUCK_CARDS = [
+    // === COMIDA ===
     { title: "Sopa en Lata", desc: "+2 Comida", type: "loot", effect: (s) => { s.food = clampResource(s.food + 2, 'food'); } },
-    { title: "Botiquín", desc: "+1 Vida", type: "loot", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
-    { title: "Munición", desc: "+1 Arma", type: "loot", effect: (s) => { s.weapons = clampResource(s.weapons + 1, 'weapons'); } },
-    { title: "Escudo Improvisado", desc: "+1 Escudo", type: "loot", effect: (s) => { s.shield = clampResource(s.shield + 1, 'shield'); } },
-    { title: "Suministros", desc: "+1 Comida, +1 Vida", type: "loot", effect: (s) => { s.food = clampResource(s.food + 1, 'food'); s.life = clampResource(s.life + 1, 'life'); } },
-    { title: "Armería Secreta", desc: "+2 Armas", type: "loot", effect: (s) => { s.weapons = clampResource(s.weapons + 2, 'weapons'); } },
     { title: "Almacén Oculto", desc: "+3 Comida", type: "loot", effect: (s) => { s.food = clampResource(s.food + 3, 'food'); } },
+    { title: "Ración de Emergencia", desc: "+4 Comida", type: "loot", effect: (s) => { s.food = clampResource(s.food + 4, 'food'); } },
+
+    // === VIDA ===
+    { title: "Botiquín", desc: "+1 Vida", type: "loot", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
     { title: "Kit Médico Militar", desc: "+2 Vida", type: "loot", effect: (s) => { s.life = clampResource(s.life + 2, 'life'); } },
+    { title: "Antídoto", desc: "+1 Vida, cura veneno", type: "loot", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
+
+    // === ARMAS ===
+    { title: "Munición", desc: "+1 Arma", type: "loot", effect: (s) => { s.weapons = clampResource(s.weapons + 1, 'weapons'); } },
+    { title: "Armería Secreta", desc: "+2 Armas", type: "loot", effect: (s) => { s.weapons = clampResource(s.weapons + 2, 'weapons'); } },
+    { title: "Cargador Extra", desc: "+1 Arma", type: "loot", effect: (s) => { s.weapons = clampResource(s.weapons + 1, 'weapons'); } },
+
+    // === ESCUDO ===
+    { title: "Escudo Improvisado", desc: "+1 Escudo", type: "loot", effect: (s) => { s.shield = clampResource(s.shield + 1, 'shield'); } },
     { title: "Armadura Táctica", desc: "+2 Escudos", type: "loot", effect: (s) => { s.shield = clampResource(s.shield + 2, 'shield'); } },
+    { title: "Chaleco Antibalas", desc: "+1 Escudo", type: "loot", effect: (s) => { s.shield = clampResource(s.shield + 1, 'shield'); } },
+
+    // === COMBINADOS ===
+    { title: "Suministros", desc: "+1 Comida, +1 Vida", type: "loot", effect: (s) => { s.food = clampResource(s.food + 1, 'food'); s.life = clampResource(s.life + 1, 'life'); } },
     {
         title: "Caja de Suministros", desc: "+1 de todo", type: "loot", effect: (s) => {
             s.food = clampResource(s.food + 1, 'food');
             s.life = clampResource(s.life + 1, 'life');
             s.weapons = clampResource(s.weapons + 1, 'weapons');
         }
+    },
+    {
+        title: "Jackpot Militar", desc: "+2 de todo", type: "loot", effect: (s) => {
+            s.food = clampResource(s.food + 2, 'food');
+            s.life = clampResource(s.life + 2, 'life');
+            s.weapons = clampResource(s.weapons + 2, 'weapons');
+            s.shield = clampResource(s.shield + 1, 'shield');
+        }
     }
 ];
 
 export const EVENT_CARDS = [
+    // === PELIGROS (Hazards) ===
     { title: "Lluvia Ácida", desc: "-1 Vida", type: "hazard", effect: (s) => { s.life = Math.max(0, s.life - 1); } },
-    { title: "Comida Podrida", desc: "-1 Comida", type: "event", effect: (s) => { s.food = Math.max(0, s.food - 1); } },
-    { title: "Mercenario", desc: "-1 Comida", type: "event", effect: (s) => { s.food = Math.max(0, s.food - 1); } },
-    { title: "Descanso", desc: "+1 Vida", type: "event", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
     { title: "Trampa", desc: "-1 Vida", type: "hazard", effect: (s) => { s.life = Math.max(0, s.life - 1); } },
-    { title: "Zombie Errante", desc: "¡Combate!", type: "combat", enemyCount: 1, enemyType: "zombie" },
-    { title: "Bandido", desc: "¡Combate!", type: "combat", enemyCount: 1, enemyType: "bandido" },
-    { title: "Horda de Zombies", desc: "¡2 Zombies!", type: "combat", enemyCount: 2, enemyType: "zombie" },
+    { title: "Mina Enterrada", desc: "-2 Vida", type: "hazard", effect: (s) => { s.life = Math.max(0, s.life - 2); } },
     { title: "Emboscada", desc: "-1 Arma", type: "hazard", effect: (s) => { s.weapons = Math.max(0, s.weapons - 1); } },
+    { title: "Escudo Roto", desc: "-1 Escudo", type: "hazard", effect: (s) => { s.shield = Math.max(0, s.shield - 1); } },
     { title: "Ladrón Silencioso", desc: "-2 Comida", type: "hazard", effect: (s) => { s.food = Math.max(0, s.food - 2); } },
+    { title: "Comida Podrida", desc: "-1 Comida", type: "event", effect: (s) => { s.food = Math.max(0, s.food - 1); } },
+    { title: "Rata Hambrienta", desc: "-1 Comida", type: "event", effect: (s) => { s.food = Math.max(0, s.food - 1); } },
+
+    // === EVENTOS POSITIVOS ===
+    { title: "Descanso", desc: "+1 Vida", type: "event", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
+    { title: "Fuente de Agua", desc: "+1 Comida", type: "event", effect: (s) => { s.food = clampResource(s.food + 1, 'food'); } },
+    { title: "Cartel de Ayuda", desc: "+1 Vida", type: "event", effect: (s) => { s.life = clampResource(s.life + 1, 'life'); } },
     {
         title: "Refugio Temporal", desc: "+1 Vida, +1 Comida", type: "event", effect: (s) => {
             s.life = clampResource(s.life + 1, 'life');
             s.food = clampResource(s.food + 1, 'food');
         }
     },
-    { title: "Escudo Roto", desc: "-1 Escudo", type: "hazard", effect: (s) => { s.shield = Math.max(0, s.shield - 1); } }
+    {
+        title: "Campamento Abandonado", desc: "+2 Comida", type: "event", effect: (s) => {
+            s.food = clampResource(s.food + 2, 'food');
+        }
+    },
+
+    // === COMBATE ===
+    { title: "Zombie Errante", desc: "¡Combate!", type: "combat", enemyCount: 1, enemyType: "zombie" },
+    { title: "Bandido", desc: "¡Combate!", type: "combat", enemyCount: 1, enemyType: "bandido" },
+    { title: "Horda de Zombies", desc: "¡2 Zombies!", type: "combat", enemyCount: 2, enemyType: "zombie" },
+    { title: "Patrulla de Bandidos", desc: "¡2 Bandidos!", type: "combat", enemyCount: 2, enemyType: "bandido" },
+
+    // === EVENTOS ESPECIALES ===
+    {
+        title: "Mercenario", desc: "Ofrece ayuda por comida", type: "choice", options: [
+            { text: "Aceptar (-2 🍗, +1 ⚔️)", effect: (s) => { s.food = Math.max(0, s.food - 2); s.weapons = clampResource(s.weapons + 1, 'weapons'); } },
+            { text: "Rechazar", effect: () => { } }
+        ]
+    },
+    {
+        title: "Superviviente Herido", desc: "Pide ayuda", type: "choice", options: [
+            { text: "Ayudar (-1 🍗, +1 ❤️)", effect: (s) => { s.food = Math.max(0, s.food - 1); s.life = clampResource(s.life + 1, 'life'); } },
+            { text: "Ignorar", effect: () => { } }
+        ]
+    }
 ];
