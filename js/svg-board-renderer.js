@@ -12,8 +12,9 @@ export class SVGBoardRenderer {
         this.container = container || document.querySelector('.board-container');
         this.ns = 'http://www.w3.org/2000/svg';
 
-        this.width = 1400;
-        this.height = 850;
+        // Board dimensions - Portrait mode (taller than wide)
+        this.width = 850;
+        this.height = 1400;
         this.ts = 52; // tile size (Increased to 52)
         this.gap = 5;
 
