@@ -58,13 +58,12 @@ export class SVGBoardRenderer {
             initialDist: 0
         };
 
-        // SVG Init - ROTATED APPROACH
-        // Original board: 1400x850 (landscape)
-        // After -90deg rotation: 850x1400 (portrait)
+        // SVG Init - DIRECT PORTRAIT MODE (no rotation needed)
+        // Board dimensions: 850x1400 (portrait - taller than wide)
         this.svg = document.createElementNS(this.ns, 'svg');
 
-        // ViewBox: After rotation, width=850, height=1400
-        this.svg.setAttribute('viewBox', `0 0 ${this.height} ${this.width}`);
+        // ViewBox matches width x height directly
+        this.svg.setAttribute('viewBox', `0 0 ${this.width} ${this.height}`);
 
         // Let browser handle aspect ratio perfectly
         this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -76,14 +75,8 @@ export class SVGBoardRenderer {
         this.container.innerHTML = '';
         this.container.appendChild(this.svg);
 
-        // Create root group with rotation transform
-        // Rotate -90deg around the center of the ORIGINAL board (700, 425)
-        // Then translate to fit in new viewBox
+        // Create root group (no rotation needed - board is directly in portrait)
         this.rootGroup = document.createElementNS(this.ns, 'g');
-        // Rotation: -90deg, then translate to position correctly in 850x1400 space
-        // After -90deg rotation around origin, point (x,y) becomes (y, -x)
-        // We need to shift by +1400 in Y to bring it back into positive space
-        this.rootGroup.setAttribute('transform', `rotate(-90, 0, 0) translate(-${this.width}, 0)`);
         this.svg.appendChild(this.rootGroup);
 
         this.drawBoard();
