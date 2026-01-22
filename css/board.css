@@ -566,11 +566,8 @@
 
 @media (max-width: 768px) {
     .board-container:not(.editor-mode-active) {
-        transform: scale(0.6);
-        transform-origin: top left;
-        width: 166%;
-        /* Compensate scale */
-        margin-bottom: -40%;
+        transform: none;
+        /* No transform needed - SVG handles scaling */
     }
 
     /* Editor mode: full screen on mobile */
@@ -579,5 +576,28 @@
         width: 100%;
         height: 100%;
         margin: 0;
+    }
+}
+
+/* Desktop/Tablet - Center board and maintain aspect ratio */
+@media (min-width: 769px) {
+    .board-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #board-rotator {
+        /* Maintain mobile-like board proportions */
+        max-width: 500px;
+        max-height: calc(100vh - 120px);
+        aspect-ratio: 850 / 1400;
+    }
+
+    #game-board-svg {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 }

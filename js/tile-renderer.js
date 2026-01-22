@@ -8,9 +8,9 @@ export class TileRenderer {
         this.svg = svgElement;
         this.ns = namespace;
 
-        // Tile dimensions (square grid)
-        this.tileWidth = 40;
-        this.tileHeight = 40;
+        // Tile dimensions - calculated to fill 850x1400 board with 20x35 grid
+        this.tileWidth = 42.5;   // 850 / 20 columns
+        this.tileHeight = 40;    // 1400 / 35 rows
 
         // Loaded tile images
         this.tiles = {};
@@ -82,12 +82,9 @@ export class TileRenderer {
      * @param {SVGElement} container - Container to append tile to
      */
     renderTile(gridX, gridY, tileType, container) {
-        // Simple grid positioning (no isometric conversion)
-        const offsetX = 50;   // Left padding
-        const offsetY = 50;   // Top padding
-
-        const finalX = (gridX * this.tileWidth) + offsetX;
-        const finalY = (gridY * this.tileHeight) + offsetY;
+        // Simple grid positioning - start from 0,0 for full coverage
+        const finalX = gridX * this.tileWidth;
+        const finalY = gridY * this.tileHeight;
 
         // Create tile group
         const tileGroup = document.createElementNS(this.ns, 'g');
