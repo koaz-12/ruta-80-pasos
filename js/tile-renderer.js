@@ -124,103 +124,146 @@ export class TileRenderer {
     }
 
     /**
-     * Add visual details to buildings
+     * Add visual details to buildings - ISOMETRIC 2.5D STYLE
      */
     addBuildingDetails(tileGroup, tileType) {
         const w = this.tileWidth;
         const h = this.tileHeight;
 
-        // Buildings with windows
+        // Buildings - Isometric 3D boxes
         if (tileType >= 10 && tileType <= 12) {
-            // Add 2x2 windows
-            const windowColor = 'rgba(255, 255, 200, 0.4)';
-            const windowSize = 6;
-            const gap = 10;
+            const heights = { 10: 10, 11: 16, 12: 22 };
+            const buildingH = heights[tileType] || 12;
 
-            for (let row = 0; row < 2; row++) {
-                for (let col = 0; col < 2; col++) {
-                    const win = document.createElementNS(this.ns, 'rect');
-                    win.setAttribute('width', windowSize);
-                    win.setAttribute('height', windowSize);
-                    win.setAttribute('x', 8 + col * gap);
-                    win.setAttribute('y', 8 + row * gap);
-                    win.setAttribute('fill', windowColor);
-                    win.setAttribute('rx', 1);
-                    tileGroup.appendChild(win);
-                }
+            const frontColor = tileType === 10 ? '#8B7355' : tileType === 11 ? '#6B6B6B' : '#4A4A4A';
+            const sideColor = tileType === 10 ? '#6B5344' : tileType === 11 ? '#5A5A5A' : '#3A3A3A';
+            const roofColor = tileType === 10 ? '#A08060' : tileType === 11 ? '#7A7A7A' : '#5A5A5A';
+
+            // Front face
+            const front = document.createElementNS(this.ns, 'polygon');
+            front.setAttribute('points', `${w * 0.15},${h - 4} ${w * 0.75},${h - 4} ${w * 0.75},${h - 4 - buildingH} ${w * 0.15},${h - 4 - buildingH}`);
+            front.setAttribute('fill', frontColor);
+            front.setAttribute('stroke', '#222');
+            front.setAttribute('stroke-width', '0.5');
+            tileGroup.appendChild(front);
+
+            // Right side (isometric)
+            const side = document.createElementNS(this.ns, 'polygon');
+            side.setAttribute('points', `${w * 0.75},${h - 4} ${w * 0.95},${h - 8} ${w * 0.95},${h - 8 - buildingH} ${w * 0.75},${h - 4 - buildingH}`);
+            side.setAttribute('fill', sideColor);
+            side.setAttribute('stroke', '#222');
+            side.setAttribute('stroke-width', '0.5');
+            tileGroup.appendChild(side);
+
+            // Roof
+            const roof = document.createElementNS(this.ns, 'polygon');
+            roof.setAttribute('points', `${w * 0.15},${h - 4 - buildingH} ${w * 0.75},${h - 4 - buildingH} ${w * 0.95},${h - 8 - buildingH} ${w * 0.35},${h - 8 - buildingH}`);
+            roof.setAttribute('fill', roofColor);
+            roof.setAttribute('stroke', '#222');
+            roof.setAttribute('stroke-width', '0.5');
+            tileGroup.appendChild(roof);
+
+            // Windows
+            const numWin = tileType - 9;
+            for (let i = 0; i < numWin; i++) {
+                const win = document.createElementNS(this.ns, 'rect');
+                win.setAttribute('x', w * 0.25);
+                win.setAttribute('y', h - buildingH + 2 + i * 6);
+                win.setAttribute('width', 6);
+                win.setAttribute('height', 4);
+                win.setAttribute('fill', 'rgba(150,200,255,0.6)');
+                tileGroup.appendChild(win);
             }
         }
 
-        // Hospital - Red cross
+        // Hospital - White building with cross
         if (tileType === 13) {
-            const cross = document.createElementNS(this.ns, 'g');
-            // Vertical bar
-            const v = document.createElementNS(this.ns, 'rect');
-            v.setAttribute('x', w / 2 - 3);
-            v.setAttribute('y', 8);
-            v.setAttribute('width', 6);
-            v.setAttribute('height', h - 16);
-            v.setAttribute('fill', '#dc2626');
-            // Horizontal bar
-            const hBar = document.createElementNS(this.ns, 'rect');
-            hBar.setAttribute('x', 8);
-            hBar.setAttribute('y', h / 2 - 3);
-            hBar.setAttribute('width', w - 16);
-            hBar.setAttribute('height', 6);
-            hBar.setAttribute('fill', '#dc2626');
-            cross.appendChild(v);
-            cross.appendChild(hBar);
-            tileGroup.appendChild(cross);
+            const body = document.createElementNS(this.ns, 'polygon');
+            body.setAttribute('points', `${w * 0.1},${h - 2} ${w * 0.8},${h - 2} ${w * 0.8},${h - 24} ${w * 0.1},${h - 24}`);
+            body.setAttribute('fill', '#f5f5f5');
+            body.setAttribute('stroke', '#ccc');
+            tileGroup.appendChild(body);
+
+            const sideH = document.createElementNS(this.ns, 'polygon');
+            sideH.setAttribute('points', `${w * 0.8},${h - 2} ${w * 0.95},${h - 6} ${w * 0.95},${h - 28} ${w * 0.8},${h - 24}`);
+            sideH.setAttribute('fill', '#ddd');
+            tileGroup.appendChild(sideH);
+
+            // Red cross
+            const cV = document.createElementNS(this.ns, 'rect');
+            cV.setAttribute('x', w * 0.4); cV.setAttribute('y', h - 20);
+            cV.setAttribute('width', 4); cV.setAttribute('height', 10);
+            cV.setAttribute('fill', '#dc2626');
+            tileGroup.appendChild(cV);
+
+            const cH = document.createElementNS(this.ns, 'rect');
+            cH.setAttribute('x', w * 0.3); cH.setAttribute('y', h - 17);
+            cH.setAttribute('width', 12); cH.setAttribute('height', 4);
+            cH.setAttribute('fill', '#dc2626');
+            tileGroup.appendChild(cH);
         }
 
-        // Store - Dollar/coin symbol
+        // Store - with awning
         if (tileType === 14) {
-            const text = document.createElementNS(this.ns, 'text');
-            text.setAttribute('x', w / 2);
-            text.setAttribute('y', h / 2 + 5);
-            text.setAttribute('text-anchor', 'middle');
-            text.setAttribute('font-size', '16');
-            text.setAttribute('fill', '#422006');
-            text.textContent = '$';
-            tileGroup.appendChild(text);
+            const body = document.createElementNS(this.ns, 'rect');
+            body.setAttribute('x', w * 0.1); body.setAttribute('y', h - 16);
+            body.setAttribute('width', w * 0.7); body.setAttribute('height', 14);
+            body.setAttribute('fill', '#D4A84B'); body.setAttribute('stroke', '#996633');
+            tileGroup.appendChild(body);
+
+            const awning = document.createElementNS(this.ns, 'polygon');
+            awning.setAttribute('points', `${w * 0.05},${h - 14} ${w * 0.85},${h - 14} ${w * 0.75},${h - 10} ${w * 0.15},${h - 10}`);
+            awning.setAttribute('fill', '#c41e3a');
+            tileGroup.appendChild(awning);
         }
 
-        // Ruins - Crack lines
+        // Ruins
         if (tileType === 15) {
-            const crack = document.createElementNS(this.ns, 'path');
-            crack.setAttribute('d', `M${w * 0.3},0 L${w * 0.5},${h * 0.4} L${w * 0.4},${h * 0.7} L${w * 0.6},${h}`);
-            crack.setAttribute('stroke', '#1a1a1a');
-            crack.setAttribute('stroke-width', '2');
-            crack.setAttribute('fill', 'none');
-            tileGroup.appendChild(crack);
+            const wall1 = document.createElementNS(this.ns, 'polygon');
+            wall1.setAttribute('points', `${w * 0.1},${h - 2} ${w * 0.4},${h - 2} ${w * 0.3},${h - 14} ${w * 0.1},${h - 10}`);
+            wall1.setAttribute('fill', '#3d3d3d');
+            tileGroup.appendChild(wall1);
+
+            const wall2 = document.createElementNS(this.ns, 'polygon');
+            wall2.setAttribute('points', `${w * 0.5},${h - 2} ${w * 0.9},${h - 2} ${w * 0.9},${h - 16} ${w * 0.6},${h - 8}`);
+            wall2.setAttribute('fill', '#4a4a4a');
+            tileGroup.appendChild(wall2);
         }
 
-        // Park - Green center dot
+        // Park
         if (tileType === 20) {
-            const dot = document.createElementNS(this.ns, 'circle');
-            dot.setAttribute('cx', w / 2);
-            dot.setAttribute('cy', h / 2);
-            dot.setAttribute('r', 8);
-            dot.setAttribute('fill', '#15803d');
-            tileGroup.appendChild(dot);
+            const grass = document.createElementNS(this.ns, 'ellipse');
+            grass.setAttribute('cx', w / 2); grass.setAttribute('cy', h / 2 + 6);
+            grass.setAttribute('rx', 14); grass.setAttribute('ry', 7);
+            grass.setAttribute('fill', '#22c55e');
+            tileGroup.appendChild(grass);
         }
 
-        // Tree - Simple tree shape
+        // Tree - 3D style
         if (tileType === 21) {
-            const tree = document.createElementNS(this.ns, 'circle');
-            tree.setAttribute('cx', w / 2);
-            tree.setAttribute('cy', h / 2);
-            tree.setAttribute('r', 12);
-            tree.setAttribute('fill', '#166534');
-            tileGroup.appendChild(tree);
-            // Trunk
+            const shadow = document.createElementNS(this.ns, 'ellipse');
+            shadow.setAttribute('cx', w / 2 + 2); shadow.setAttribute('cy', h - 4);
+            shadow.setAttribute('rx', 8); shadow.setAttribute('ry', 3);
+            shadow.setAttribute('fill', 'rgba(0,0,0,0.2)');
+            tileGroup.appendChild(shadow);
+
             const trunk = document.createElementNS(this.ns, 'rect');
-            trunk.setAttribute('x', w / 2 - 2);
-            trunk.setAttribute('y', h / 2 + 8);
-            trunk.setAttribute('width', 4);
-            trunk.setAttribute('height', 8);
+            trunk.setAttribute('x', w / 2 - 2); trunk.setAttribute('y', h - 14);
+            trunk.setAttribute('width', 4); trunk.setAttribute('height', 10);
             trunk.setAttribute('fill', '#78350f');
             tileGroup.appendChild(trunk);
+
+            const leaf1 = document.createElementNS(this.ns, 'ellipse');
+            leaf1.setAttribute('cx', w / 2); leaf1.setAttribute('cy', h - 18);
+            leaf1.setAttribute('rx', 10); leaf1.setAttribute('ry', 8);
+            leaf1.setAttribute('fill', '#166534');
+            tileGroup.appendChild(leaf1);
+
+            const leaf2 = document.createElementNS(this.ns, 'ellipse');
+            leaf2.setAttribute('cx', w / 2); leaf2.setAttribute('cy', h - 22);
+            leaf2.setAttribute('rx', 8); leaf2.setAttribute('ry', 6);
+            leaf2.setAttribute('fill', '#22c55e');
+            tileGroup.appendChild(leaf2);
         }
     }
 
