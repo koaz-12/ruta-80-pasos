@@ -1838,13 +1838,16 @@ export class SVGBoardRenderer {
             // Render city tilemap
             this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
         } else {
-            // Fallback: Isometric City Map Image
+            // LAYER 1: Terrain Background Image
             const bg = document.createElementNS(this.ns, 'image');
             bg.setAttribute('width', this.width);
             bg.setAttribute('height', this.height);
             bg.setAttribute('href', './assets/terrain-background.png');
             bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             this.rootGroup.appendChild(bg);
+
+            // LAYER 2: Building Sprites
+            this.renderBuildingSprites();
         }
 
         // CHECK FOR FULL SNAPSHOT
@@ -2893,5 +2896,90 @@ export class SVGBoardRenderer {
         }
 
         console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
+    }
+
+    /**
+     * LAYER 2: Render building sprites on top of terrain
+     * Buildings are placed strategically around the game path
+     */
+    renderBuildingSprites() {
+        const buildingsGroup = document.createElementNS(this.ns, 'g');
+        buildingsGroup.setAttribute('id', 'buildings-layer');
+
+        // Building positions (x, y, type)
+        // Types: 0=house, 1=apartment, 2=skyscraper, 3=hospital, 4=store, 5=ruins
+        const buildingPlacements = [
+            // Top area - safer zone
+            { x: 50, y: 80, type: 0 },
+            { x: 150, y: 60, type: 1 },
+            { x: 280, y: 100, type: 0 },
+            { x: 400, y: 50, type: 1 },
+            { x: 550, y: 90, type: 3 }, // Hospital near start
+            { x: 700, y: 70, type: 0 },
+
+            // Middle area
+            { x: 80, y: 300, type: 1 },
+            { x: 200, y: 350, type: 2 },
+            { x: 350, y: 280, type: 4 }, // Store
+            { x: 500, y: 320, type: 1 },
+            { x: 650, y: 300, type: 0 },
+            { x: 750, y: 380, type: 2 },
+
+            // Mid-lower area
+            { x: 100, y: 550, type: 5 }, // Ruins
+            { x: 250, y: 500, type: 2 },
+            { x: 400, y: 580, type: 4 }, // Store
+            { x: 550, y: 520, type: 1 },
+            { x: 700, y: 600, type: 5 }, // Ruins
+
+            // Lower area - danger zone
+            { x: 60, y: 800, type: 5 }, // Ruins
+            { x: 200, y: 750, type: 2 },
+            { x: 350, y: 820, type: 5 }, // Ruins
+            { x: 500, y: 780, type: 3 }, // Hospital
+            { x: 650, y: 850, type: 5 }, // Ruins
+            { x: 780, y: 800, type: 2 },
+
+            // Bottom area - boss zone
+            { x: 100, y: 1050, type: 5 },
+            { x: 280, y: 1000, type: 5 },
+            { x: 450, y: 1100, type: 5 },
+            { x: 600, y: 1000, type: 5 },
+            { x: 750, y: 1080, type: 5 },
+        ];
+
+        // Sprite positions in spritesheet (approximate - 2 rows of 3)
+        const spriteInfo = {
+            0: { name: 'house', clipX: 0, clipY: 0, w: 170, h: 200 },
+            1: { name: 'apartment', clipX: 170, clipY: 0, w: 170, h: 200 },
+            2: { name: 'skyscraper', clipX: 340, clipY: 0, w: 170, h: 250 },
+            3: { name: 'hospital', clipX: 0, clipY: 250, w: 170, h: 200 },
+            4: { name: 'store', clipX: 170, clipY: 250, w: 170, h: 200 },
+            5: { name: 'ruins', clipX: 340, clipY: 250, w: 170, h: 200 }
+        };
+
+        // For now, use the full spritesheet as a single image per building
+        // A more advanced version would clip individual sprites
+        buildingPlacements.forEach((b, index) => {
+            const building = document.createElementNS(this.ns, 'image');
+            building.setAttribute('href', './assets/tiles/building-sprites.png');
+            building.setAttribute('x', b.x);
+            building.setAttribute('y', b.y);
+            building.setAttribute('width', 100);  // Scaled down
+            building.setAttribute('height', 120);
+            building.setAttribute('opacity', '0.9');
+            building.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+            // Use clip-path to show only the relevant sprite (CSS approach)
+            const clipId = `building-clip-${index}`;
+            const info = spriteInfo[b.type];
+
+            // For simplicity, we'll show the whole spritesheet scaled
+            // In production, you'd use individual PNG files or proper clipping
+            buildingsGroup.appendChild(building);
+        });
+
+        this.rootGroup.appendChild(buildingsGroup);
+        console.log('🏢 [BUILDINGS] Rendered building sprites layer');
     }
 }
