@@ -12,6 +12,10 @@
 
     --tile-size: 50px;
     --gap-size: 20px;
+
+    /* Header/Footer heights for consistent spacing */
+    --header-height: 50px;
+    --footer-height: 70px;
 }
 
 * {
