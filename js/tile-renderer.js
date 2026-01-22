@@ -8,9 +8,10 @@ export class TileRenderer {
         this.svg = svgElement;
         this.ns = namespace;
 
-        // Tile dimensions - calculated to fill 850x1400 board with 20x35 grid
-        this.tileWidth = 42.5;   // 850 / 20 columns
-        this.tileHeight = 40;    // 1400 / 35 rows
+        // Tile dimensions - square tiles for cleaner grid
+        // Board is 850x1400 (portrait mode - taller than wide)
+        this.tileWidth = 40;    // Square tiles
+        this.tileHeight = 40;   // Square tiles
 
         // Loaded tile images
         this.tiles = {};
