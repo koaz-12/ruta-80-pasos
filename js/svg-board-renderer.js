@@ -1828,7 +1828,6 @@ export class SVGBoardRenderer {
         this.svg.appendChild(defs);
 
         // Background - Either Tilemap or Image
-        console.log('🔍 useTilemap:', this.useTilemap, 'CITY_TILEMAP:', typeof CITY_TILEMAP);
         if (this.useTilemap) {
             // Initialize TileRenderer if not already done
             if (!this.tileRenderer) {
@@ -1842,10 +1841,7 @@ export class SVGBoardRenderer {
             bg.setAttribute('fill', '#1a1f1a');
             this.rootGroup.appendChild(bg);
 
-            // Render isometric city tilemap
-            console.log('🏙️ Rendering isometric city tilemap...');
-            console.log('🏙️ CITY_TILEMAP rows:', CITY_TILEMAP.length);
-            console.log('🏙️ TileRenderer:', this.tileRenderer);
+            // Render city tilemap
             this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
         } else {
             // Fallback: Isometric City Map Image
