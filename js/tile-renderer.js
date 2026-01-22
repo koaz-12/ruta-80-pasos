@@ -109,6 +109,9 @@ export class TileRenderer {
 
         tileGroup.appendChild(square);
 
+        // Add building details (windows, icons, etc.)
+        this.addBuildingDetails(tileGroup, tileType);
+
         // Add zone overlay for atmosphere (gradient from safe to danger)
         const zoneOverlay = this.createZoneOverlay(gridY);
         if (zoneOverlay) {
@@ -118,6 +121,107 @@ export class TileRenderer {
         container.appendChild(tileGroup);
 
         return tileGroup;
+    }
+
+    /**
+     * Add visual details to buildings
+     */
+    addBuildingDetails(tileGroup, tileType) {
+        const w = this.tileWidth;
+        const h = this.tileHeight;
+
+        // Buildings with windows
+        if (tileType >= 10 && tileType <= 12) {
+            // Add 2x2 windows
+            const windowColor = 'rgba(255, 255, 200, 0.4)';
+            const windowSize = 6;
+            const gap = 10;
+
+            for (let row = 0; row < 2; row++) {
+                for (let col = 0; col < 2; col++) {
+                    const win = document.createElementNS(this.ns, 'rect');
+                    win.setAttribute('width', windowSize);
+                    win.setAttribute('height', windowSize);
+                    win.setAttribute('x', 8 + col * gap);
+                    win.setAttribute('y', 8 + row * gap);
+                    win.setAttribute('fill', windowColor);
+                    win.setAttribute('rx', 1);
+                    tileGroup.appendChild(win);
+                }
+            }
+        }
+
+        // Hospital - Red cross
+        if (tileType === 13) {
+            const cross = document.createElementNS(this.ns, 'g');
+            // Vertical bar
+            const v = document.createElementNS(this.ns, 'rect');
+            v.setAttribute('x', w / 2 - 3);
+            v.setAttribute('y', 8);
+            v.setAttribute('width', 6);
+            v.setAttribute('height', h - 16);
+            v.setAttribute('fill', '#dc2626');
+            // Horizontal bar
+            const hBar = document.createElementNS(this.ns, 'rect');
+            hBar.setAttribute('x', 8);
+            hBar.setAttribute('y', h / 2 - 3);
+            hBar.setAttribute('width', w - 16);
+            hBar.setAttribute('height', 6);
+            hBar.setAttribute('fill', '#dc2626');
+            cross.appendChild(v);
+            cross.appendChild(hBar);
+            tileGroup.appendChild(cross);
+        }
+
+        // Store - Dollar/coin symbol
+        if (tileType === 14) {
+            const text = document.createElementNS(this.ns, 'text');
+            text.setAttribute('x', w / 2);
+            text.setAttribute('y', h / 2 + 5);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '16');
+            text.setAttribute('fill', '#422006');
+            text.textContent = '$';
+            tileGroup.appendChild(text);
+        }
+
+        // Ruins - Crack lines
+        if (tileType === 15) {
+            const crack = document.createElementNS(this.ns, 'path');
+            crack.setAttribute('d', `M${w * 0.3},0 L${w * 0.5},${h * 0.4} L${w * 0.4},${h * 0.7} L${w * 0.6},${h}`);
+            crack.setAttribute('stroke', '#1a1a1a');
+            crack.setAttribute('stroke-width', '2');
+            crack.setAttribute('fill', 'none');
+            tileGroup.appendChild(crack);
+        }
+
+        // Park - Green center dot
+        if (tileType === 20) {
+            const dot = document.createElementNS(this.ns, 'circle');
+            dot.setAttribute('cx', w / 2);
+            dot.setAttribute('cy', h / 2);
+            dot.setAttribute('r', 8);
+            dot.setAttribute('fill', '#15803d');
+            tileGroup.appendChild(dot);
+        }
+
+        // Tree - Simple tree shape
+        if (tileType === 21) {
+            const tree = document.createElementNS(this.ns, 'circle');
+            tree.setAttribute('cx', w / 2);
+            tree.setAttribute('cy', h / 2);
+            tree.setAttribute('r', 12);
+            tree.setAttribute('fill', '#166534');
+            tileGroup.appendChild(tree);
+            // Trunk
+            const trunk = document.createElementNS(this.ns, 'rect');
+            trunk.setAttribute('x', w / 2 - 2);
+            trunk.setAttribute('y', h / 2 + 8);
+            trunk.setAttribute('width', 4);
+            trunk.setAttribute('height', 8);
+            trunk.setAttribute('fill', '#78350f');
+            tileGroup.appendChild(trunk);
+        }
     }
 
     /**
