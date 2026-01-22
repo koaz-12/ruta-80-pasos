@@ -43,7 +43,7 @@ export class SVGBoardRenderer {
 
         // Tile Renderer for isometric city map
         this.tileRenderer = null;  // Will be initialized in render()
-        this.useTilemap = true;    // Toggle for tilemap vs image background
+        this.useTilemap = false;   // Use AI-generated city background image
     }
 
     render() {
@@ -1842,7 +1842,7 @@ export class SVGBoardRenderer {
             const bg = document.createElementNS(this.ns, 'image');
             bg.setAttribute('width', this.width);
             bg.setAttribute('height', this.height);
-            bg.setAttribute('href', './assets/city-map-isometric.jpg');
+            bg.setAttribute('href', './assets/city-map-isometric.png');
             bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             this.rootGroup.appendChild(bg);
         }
