@@ -102,15 +102,62 @@ export class TileRenderer {
         square.setAttribute('y', 0);
 
         // Color based on tile type
-        const color = this.getTileColor(tileType);
-        square.setAttribute('fill', color);
-        square.setAttribute('stroke', 'rgba(0,0,0,0.2)');
-        square.setAttribute('stroke-width', '1');
+        const baseColor = this.getTileColor(tileType);
+        square.setAttribute('fill', baseColor);
+        square.setAttribute('stroke', 'rgba(0,0,0,0.15)');
+        square.setAttribute('stroke-width', '0.5');
 
         tileGroup.appendChild(square);
+
+        // Add zone overlay for atmosphere (gradient from safe to danger)
+        const zoneOverlay = this.createZoneOverlay(gridY);
+        if (zoneOverlay) {
+            tileGroup.appendChild(zoneOverlay);
+        }
+
         container.appendChild(tileGroup);
 
         return tileGroup;
+    }
+
+    /**
+     * Create zone-based color overlay
+     * Top = Safe (green tint), Bottom = Danger (red tint)
+     */
+    createZoneOverlay(gridY) {
+        const totalRows = 35;
+        const progress = gridY / totalRows; // 0 = top, 1 = bottom
+
+        // Define zone colors
+        let overlayColor;
+        let opacity;
+
+        if (progress < 0.2) {
+            // Zone 1: Safe start (subtle green)
+            overlayColor = 'rgba(34, 139, 34, 0.08)';
+        } else if (progress < 0.4) {
+            // Zone 2: Transition (fading to neutral)
+            overlayColor = 'rgba(100, 100, 80, 0.05)';
+        } else if (progress < 0.6) {
+            // Zone 3: Danger zone (subtle orange)
+            overlayColor = 'rgba(180, 100, 30, 0.08)';
+        } else if (progress < 0.85) {
+            // Zone 4: High danger (subtle red)
+            overlayColor = 'rgba(180, 50, 50, 0.1)';
+        } else {
+            // Zone 5: Boss area (dark red)
+            overlayColor = 'rgba(120, 20, 20, 0.15)';
+        }
+
+        const overlay = document.createElementNS(this.ns, 'rect');
+        overlay.setAttribute('width', this.tileWidth);
+        overlay.setAttribute('height', this.tileHeight);
+        overlay.setAttribute('x', 0);
+        overlay.setAttribute('y', 0);
+        overlay.setAttribute('fill', overlayColor);
+        overlay.setAttribute('pointer-events', 'none');
+
+        return overlay;
     }
 
     /**
