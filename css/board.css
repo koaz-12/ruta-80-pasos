@@ -582,15 +582,25 @@
 /* Desktop/Tablet - Center board and maintain aspect ratio */
 @media (min-width: 769px) {
     .board-container {
+        /* Ensure it stays within header/footer bounds */
+        position: absolute;
+        top: 50px;
+        /* Below header */
+        bottom: 70px;
+        /* Above footer */
+        left: 0;
+        right: 0;
         display: flex;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
     }
 
     #board-rotator {
         /* Maintain mobile-like board proportions */
-        max-width: 500px;
-        max-height: calc(100vh - 120px);
+        max-width: 450px;
+        height: 100%;
+        max-height: 100%;
         aspect-ratio: 850 / 1400;
     }
 
