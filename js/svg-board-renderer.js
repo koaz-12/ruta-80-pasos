@@ -1838,16 +1838,15 @@ export class SVGBoardRenderer {
             // Render city tilemap
             this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
         } else {
-            // LAYER 1: Terrain Background Image
-            const bg = document.createElementNS(this.ns, 'image');
+            // LAYER 1: Simple solid background (to see path clearly)
+            const bg = document.createElementNS(this.ns, 'rect');
             bg.setAttribute('width', this.width);
             bg.setAttribute('height', this.height);
-            bg.setAttribute('href', './assets/city-background.png');
-            bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            bg.setAttribute('fill', '#1a1a2e');  // Dark blue-gray
             this.rootGroup.appendChild(bg);
 
-            // LAYER 2: Building Sprites (disabled - city background already has buildings)
-            // this.renderBuildingSprites();
+            // Grid lines to help positioning
+            this.drawGridLines();
         }
 
         // CHECK FOR FULL SNAPSHOT
@@ -2986,5 +2985,44 @@ export class SVGBoardRenderer {
 
         this.rootGroup.appendChild(buildingsGroup);
         console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
+    }
+
+    /**
+     * Draw grid lines to help visualize tile positions
+     */
+    drawGridLines() {
+        const gridGroup = document.createElementNS(this.ns, 'g');
+        gridGroup.setAttribute('id', 'grid-lines');
+        gridGroup.setAttribute('opacity', '0.3');
+
+        const gridSize = 50; // 50px grid
+        const strokeColor = '#4a4a6a';
+
+        // Vertical lines
+        for (let x = 0; x <= this.width; x += gridSize) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', 0);
+            line.setAttribute('x2', x);
+            line.setAttribute('y2', this.height);
+            line.setAttribute('stroke', strokeColor);
+            line.setAttribute('stroke-width', x % 100 === 0 ? '1' : '0.5');
+            gridGroup.appendChild(line);
+        }
+
+        // Horizontal lines
+        for (let y = 0; y <= this.height; y += gridSize) {
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', 0);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', this.width);
+            line.setAttribute('y2', y);
+            line.setAttribute('stroke', strokeColor);
+            line.setAttribute('stroke-width', y % 100 === 0 ? '1' : '0.5');
+            gridGroup.appendChild(line);
+        }
+
+        this.rootGroup.appendChild(gridGroup);
+        console.log('📐 [GRID] Rendered grid lines');
     }
 }
