@@ -17,6 +17,11 @@
                 if (window.boardRenderer && window.boardRenderer.activateEditorMode) {
                     window.boardRenderer.activateEditorMode();
                     console.log('[EDITOR] Editor mode activated via SVGBoardRenderer');
+
+                    // Show the empty tiles button
+                    if (window.emptyTilesBtn) {
+                        window.emptyTilesBtn.style.display = 'block';
+                    }
                 } else {
                     console.error('[EDITOR] Board renderer not available');
                     alert('Error: El editor no está disponible. Recarga la página.');
@@ -87,7 +92,7 @@
     // === TOGGLE EMPTY TILES (for screenshots) ===
     let emptyTilesMode = false;
 
-    // Create the button dynamically
+    // Create the button dynamically (hidden by default, shown in editor mode)
     const emptyTilesBtn = document.createElement('button');
     emptyTilesBtn.id = 'toggle-empty-tiles';
     emptyTilesBtn.textContent = '📷 Casillas Vacías';
@@ -104,8 +109,12 @@
         font-size: 14px;
         z-index: 10000;
         box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        display: none;
     `;
     document.body.appendChild(emptyTilesBtn);
+
+    // Make button available globally to show/hide from editor
+    window.emptyTilesBtn = emptyTilesBtn;
 
     emptyTilesBtn.addEventListener('click', () => {
         emptyTilesMode = !emptyTilesMode;
