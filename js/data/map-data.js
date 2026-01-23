@@ -107,123 +107,92 @@ export function buildGraph() {
     return graph;
 }
 
-// LAYOUT: Recorrido de ABAJO hacia ARRIBA
-// Tablero: 850 x 1400 px
-// Inicio (0) abajo, Meta (80) arriba
 export const SAVED_LAYOUT = {
     "tiles": [
-        // === INICIO (abajo) ===
-        { "id": "0", "display": "INICIO", "x": 100, "y": 1300 },
-
-        // === TRAMO 1: Casillas 1-10 (subiendo) ===
-        { "id": "1", "display": "1", "x": 180, "y": 1300 },
-        { "id": "2", "display": "2", "x": 260, "y": 1300 },
-        { "id": "3", "display": "3", "x": 340, "y": 1300 },
-        { "id": "4", "display": "4", "x": 420, "y": 1300 },
-        { "id": "5", "display": "5", "x": 500, "y": 1300 },
-        { "id": "6", "display": "6", "x": 580, "y": 1280 },
-        { "id": "7", "display": "7", "x": 660, "y": 1260 },
-        { "id": "8", "display": "8", "x": 700, "y": 1180 },
-        { "id": "9", "display": "9", "x": 700, "y": 1100 },
-        { "id": "10", "display": "10", "x": 700, "y": 1020 },
-
-        // === BIFURCACIÓN 1 (desde 10) ===
-        // Difícil (izquierda)
-        { "id": "11", "display": "11", "x": 600, "y": 980 },
-        { "id": "12", "display": "12", "x": 520, "y": 940 },
-        { "id": "13", "display": "13", "x": 440, "y": 900 },
-        { "id": "14", "display": "14", "x": 360, "y": 860 },
-        { "id": "15", "display": "15", "x": 280, "y": 820 },
-        // Fácil (centro)
-        { "id": "10f", "display": "10f", "x": 700, "y": 940 },
-        { "id": "11f", "display": "11f", "x": 700, "y": 860 },
-        { "id": "12f", "display": "12f", "x": 700, "y": 780 },
-        // Medio (derecha)
-        { "id": "10m", "display": "10m", "x": 780, "y": 960 },
-        { "id": "11m", "display": "11m", "x": 780, "y": 900 },
-        { "id": "12m", "display": "12m", "x": 780, "y": 840 },
-        { "id": "13m", "display": "13m", "x": 780, "y": 780 },
-
-        // === Convergencia en 16 ===
-        { "id": "16", "display": "16", "x": 400, "y": 740 },
-
-        // === TRAMO 2: Casillas 17-26 ===
-        { "id": "17", "display": "17", "x": 400, "y": 680 },
-        { "id": "18", "display": "18", "x": 400, "y": 620 },
-        { "id": "19", "display": "19", "x": 400, "y": 560 },
-        { "id": "20", "display": "20", "x": 400, "y": 500 },
-        { "id": "21", "display": "21", "x": 340, "y": 460 },
-        { "id": "22", "display": "22", "x": 280, "y": 420 },
-        { "id": "23", "display": "23", "x": 220, "y": 380 },
-        { "id": "24", "display": "24", "x": 160, "y": 340 },
-        { "id": "25", "display": "25", "x": 160, "y": 280 },
-        { "id": "26", "display": "26", "x": 160, "y": 220 },
-
-        // === BIFURCACIÓN 2 (desde 26) ===
-        // Difícil (izquierda)
-        { "id": "27d", "display": "27d", "x": 100, "y": 180 },
-        { "id": "28d", "display": "28d", "x": 100, "y": 140 },
-        { "id": "29d", "display": "29d", "x": 100, "y": 100 },
-        { "id": "30d", "display": "30d", "x": 160, "y": 60 },
-        { "id": "31d", "display": "31d", "x": 220, "y": 40 },
-        // Fácil (derecha)
-        { "id": "27f", "display": "27f", "x": 220, "y": 180 },
-        { "id": "28f", "display": "28f", "x": 280, "y": 140 },
-        { "id": "29f", "display": "29f", "x": 340, "y": 100 },
-        { "id": "30f", "display": "30f", "x": 400, "y": 60 },
-
-        // === Convergencia en 32 ===
-        { "id": "32", "display": "32", "x": 320, "y": 40 },
-
-        // === TRAMO 3: Casillas 33-48 (derecha y baja) ===
-        { "id": "33", "display": "33", "x": 400, "y": 60 },
-        { "id": "34", "display": "34", "x": 480, "y": 80 },
-        { "id": "35", "display": "35", "x": 560, "y": 100 },
-        { "id": "36", "display": "36", "x": 640, "y": 120 },
-        { "id": "37", "display": "37", "x": 720, "y": 140 },
-        { "id": "38", "display": "38", "x": 780, "y": 200 },
-        { "id": "39", "display": "39", "x": 780, "y": 280 },
-        { "id": "40", "display": "40", "x": 780, "y": 360 },
-        { "id": "41", "display": "41", "x": 780, "y": 440 },
-        { "id": "42", "display": "42", "x": 720, "y": 500 },
-        { "id": "43", "display": "43", "x": 640, "y": 540 },
-        { "id": "44", "display": "44", "x": 560, "y": 580 },
-        { "id": "45", "display": "45", "x": 480, "y": 620 },
-        { "id": "46", "display": "46", "x": 480, "y": 700 },
-        { "id": "47", "display": "47", "x": 480, "y": 780 },
-        { "id": "48", "display": "48", "x": 480, "y": 860 },
-
-        // === BIFURCACIÓN 3 (desde 48) ===
-        // Camino Largo
-        { "id": "49", "display": "49", "x": 400, "y": 900 },
-        { "id": "50", "display": "50", "x": 320, "y": 940 },
-        { "id": "51", "display": "51", "x": 240, "y": 980 },
-        { "id": "52", "display": "52", "x": 160, "y": 1020 },
-        { "id": "53", "display": "53", "x": 100, "y": 1080 },
-        { "id": "54", "display": "54", "x": 100, "y": 1160 },
-        // Atajo
-        { "id": "49a", "display": "Atajo", "x": 560, "y": 920 },
-
-        // === Convergencia en 55 ===
-        { "id": "55", "display": "55", "x": 160, "y": 1200 },
-
-        // === TRAMO 4: Casillas 56-65 (sube por la izquierda hacia el centro) ===
-        { "id": "56", "display": "56", "x": 100, "y": 1140 },
-        { "id": "57", "display": "57", "x": 60, "y": 1080 },
-        { "id": "58", "display": "58", "x": 60, "y": 1000 },
-        { "id": "59", "display": "59", "x": 60, "y": 920 },
-        { "id": "60", "display": "60", "x": 60, "y": 840 },
-        { "id": "61", "display": "61", "x": 60, "y": 760 },
-        { "id": "62", "display": "62", "x": 60, "y": 680 },
-        { "id": "63", "display": "63", "x": 60, "y": 600 },
-        { "id": "64", "display": "64", "x": 60, "y": 520 },
-        { "id": "65", "display": "65", "x": 60, "y": 440 },
-
-        // === BIFURCACIÓN 4: Final o Loop ===
-        { "id": "66", "display": "66", "x": 60, "y": 360 },
-
-        // === META (arriba centro) ===
-        { "id": "80", "display": "BOSS", "x": 400, "y": 100 }
+        { "id": "0", "display": "Punto de Partida", "x": 39, "y": 698 },
+        { "id": "1", "display": "1", "x": 124, "y": 711 },
+        { "id": "2", "display": "2", "x": 186, "y": 710 },
+        { "id": "3", "display": "3", "x": 246, "y": 711 },
+        { "id": "4", "display": "4", "x": 305, "y": 710 },
+        { "id": "5", "display": "5", "x": 373, "y": 713 },
+        { "id": "6", "display": "6", "x": 435, "y": 710 },
+        { "id": "7", "display": "7", "x": 492, "y": 710 },
+        { "id": "8", "display": "8", "x": 549, "y": 710 },
+        { "id": "9", "display": "9", "x": 606, "y": 710 },
+        { "id": "10", "display": "10", "x": 663, "y": 710 },
+        { "id": "10f", "display": "10f", "x": 771, "y": 711 },
+        { "id": "10m", "display": "10m", "x": 738, "y": -27 },
+        { "id": "11", "display": "11", "x": 739, "y": 643 },
+        { "id": "11f", "display": "11f", "x": 868, "y": 711 },
+        { "id": "11m", "display": "11m", "x": 828, "y": -29 },
+        { "id": "12", "display": "12", "x": 803, "y": 641 },
+        { "id": "12f", "display": "12f", "x": 953, "y": 711 },
+        { "id": "12m", "display": "12m", "x": 918, "y": -27 },
+        { "id": "13", "display": "13", "x": 869, "y": 640 },
+        { "id": "13m", "display": "13m", "x": 1005, "y": -30 },
+        { "id": "14", "display": "14", "x": 933, "y": 641 },
+        { "id": "15", "display": "15", "x": 1000, "y": 645 },
+        { "id": "16", "display": "16", "x": 1067, "y": 714 },
+        { "id": "17", "display": "17", "x": 1125, "y": 716 },
+        { "id": "18", "display": "18", "x": 1184, "y": 716 },
+        { "id": "19", "display": "19", "x": 1243, "y": 719 },
+        { "id": "20", "display": "20", "x": 1303, "y": 721 },
+        { "id": "21", "display": "21", "x": 1305, "y": 666 },
+        { "id": "22", "display": "22", "x": 1305, "y": 612 },
+        { "id": "23", "display": "23", "x": 1308, "y": 557 },
+        { "id": "24", "display": "24", "x": 1309, "y": 500 },
+        { "id": "25", "display": "25", "x": 1311, "y": 445 },
+        { "id": "26", "display": "26", "x": 1314, "y": 387 },
+        { "id": "27d", "display": "27d", "x": 1258, "y": 314 },
+        { "id": "27f", "display": "27f", "x": 1340, "y": 306 },
+        { "id": "28d", "display": "28d", "x": 1259, "y": 247 },
+        { "id": "28f", "display": "28f", "x": 1339, "y": 230 },
+        { "id": "29d", "display": "29d", "x": 1260, "y": 185 },
+        { "id": "29f", "display": "29f", "x": 1342, "y": 159 },
+        { "id": "30d", "display": "30d", "x": 1264, "y": 125 },
+        { "id": "30f", "display": "30f", "x": 1341, "y": 85 },
+        { "id": "31d", "display": "31d", "x": 1272, "y": 67 },
+        { "id": "32", "display": "32", "x": 1301, "y": 4 },
+        { "id": "33", "display": "33", "x": 1229, "y": 6 },
+        { "id": "34", "display": "34", "x": 1179, "y": 58 },
+        { "id": "35", "display": "35", "x": 1123, "y": 104 },
+        { "id": "36", "display": "36", "x": 1069, "y": 55 },
+        { "id": "37", "display": "37", "x": 1014, "y": 5 },
+        { "id": "38", "display": "38", "x": 967, "y": 56 },
+        { "id": "39", "display": "39", "x": 916, "y": 106 },
+        { "id": "40", "display": "40", "x": 866, "y": 54 },
+        { "id": "41", "display": "41", "x": 816, "y": 3 },
+        { "id": "42", "display": "42", "x": 768, "y": 57 },
+        { "id": "43", "display": "43", "x": 718, "y": 10 },
+        { "id": "44", "display": "44", "x": 658, "y": 8 },
+        { "id": "45", "display": "45", "x": 600, "y": 9 },
+        { "id": "46", "display": "46", "x": 552, "y": 66 },
+        { "id": "47", "display": "47", "x": 506, "y": 13 },
+        { "id": "48", "display": "48", "x": 446, "y": 15 },
+        { "id": "49", "display": "49", "x": 445, "y": 71 },
+        { "id": "49a", "display": "49a", "x": 271, "y": 48 },
+        { "id": "50", "display": "50", "x": 444, "y": 127 },
+        { "id": "51", "display": "51", "x": 443, "y": 183 },
+        { "id": "52", "display": "52", "x": 386, "y": 181 },
+        { "id": "53", "display": "53", "x": 330, "y": 180 },
+        { "id": "54", "display": "54", "x": 270, "y": 180 },
+        { "id": "55", "display": "55", "x": 213, "y": 182 },
+        { "id": "56", "display": "56", "x": 155, "y": 205 },
+        { "id": "57", "display": "57", "x": 103, "y": 256 },
+        { "id": "58", "display": "58", "x": 55, "y": 310 },
+        { "id": "59", "display": "59", "x": 103, "y": 361 },
+        { "id": "60", "display": "60", "x": 155, "y": 411 },
+        { "id": "61", "display": "61", "x": 204, "y": 463 },
+        { "id": "62", "display": "62", "x": 254, "y": 515 },
+        { "id": "63", "display": "63", "x": 255, "y": 571 },
+        { "id": "64", "display": "64", "x": 254, "y": 627 },
+        { "id": "65", "display": "65", "x": 191, "y": 631 },
+        { "id": "66", "display": "66", "x": 138, "y": 580 },
+        { "id": "80", "display": "FINAL", "x": 54, "y": 568 }
     ],
-    "edges": []
+    "edges": [
+        // Edges auto-generated from buildGraph() - SAVED_LAYOUT edges disabled
+        // to avoid incorrect decorative lines
+    ]
 };
+
