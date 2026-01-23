@@ -1,5 +1,5 @@
-// Script para rotar el recorrido 90 grados y moverlo a la esquina inferior derecha
-// Intercambia X e Y, y ajusta para que quede en la posición correcta
+// Script para rotar el recorrido 90 grados correctamente
+// Mantiene todo dentro del tablero 850x1400
 
 const fs = require('fs');
 
@@ -10,30 +10,49 @@ let content = fs.readFileSync('js/data/map-data.js', 'utf8');
 const boardWidth = 850;
 const boardHeight = 1400;
 
-// Primero, extraer todos los tiles
-const tilesMatch = content.match(/"tiles": \[([\s\S]*?)\]/);
-if (!tilesMatch) {
-    console.log('Error: No se encontraron tiles');
-    process.exit(1);
+// Extraer todas las coordenadas para analizar el rango
+const coords = [];
+const regex = /"x": (\d+), "y": (\d+)/g;
+let match;
+while ((match = regex.exec(content)) !== null) {
+    coords.push({ x: parseInt(match[1]), y: parseInt(match[2]) });
 }
 
-// Rotar 90 grados: newX = oldY, newY = boardWidth - oldX
-// Luego ajustar para posicionar en la parte inferior derecha
+// Calcular rangos
+const minX = Math.min(...coords.map(c => c.x));
+const maxX = Math.max(...coords.map(c => c.x));
+const minY = Math.min(...coords.map(c => c.y));
+const maxY = Math.max(...coords.map(c => c.y));
+
+console.log(`Rango original: X=[${minX}, ${maxX}], Y=[${minY}, ${maxY}]`);
+
+const rangoX = maxX - minX;
+const rangoY = maxY - minY;
+
+// Rotar 90 grados: 
+// - El ancho original (rangoX) se convierte en altura
+// - La altura original (rangoY) se convierte en ancho
+// Escalar para que quepa
+
+const escalaX = (boardWidth - 100) / rangoY;   // Y original -> X nuevo
+const escalaY = (boardHeight - 200) / rangoX;  // X original -> Y nuevo
+
+console.log(`Escalas: X=${escalaX.toFixed(2)}, Y=${escalaY.toFixed(2)}`);
+
+// Aplicar rotación y escalado
 content = content.replace(/"x": (\d+), "y": (\d+)/g, (match, x, y) => {
     const oldX = parseInt(x);
     const oldY = parseInt(y);
 
-    // Rotar 90 grados clockwise
-    let newX = oldY;
-    let newY = boardWidth - oldX;
+    // Rotar 90 grados clockwise y escalar
+    // newX basado en oldY (invertido para que inicio quede a la derecha)
+    // newY basado en oldX (invertido para que inicio quede abajo)
+    let newX = Math.round((maxY - oldY) * escalaX) + 50;
+    let newY = Math.round((oldX - minX) * escalaY) + 100;
 
-    // Ajustar escala para que quepa verticalmente
-    // El rango original de Y era ~0-780, ahora será X
-    // Escalar para que use más del ancho del tablero
-    newX = Math.round(newX * 0.6) + 200;  // Escalar y centrar
-
-    // Ajustar Y para que esté en la parte inferior pero con espacio para subir
-    newY = Math.round(newY * 1.5) + 100;
+    // Asegurar que esté dentro del tablero
+    newX = Math.max(30, Math.min(boardWidth - 30, newX));
+    newY = Math.max(30, Math.min(boardHeight - 30, newY));
 
     return `"x": ${newX}, "y": ${newY}`;
 });
@@ -41,5 +60,5 @@ content = content.replace(/"x": (\d+), "y": (\d+)/g, (match, x, y) => {
 // Guardar el archivo
 fs.writeFileSync('js/data/map-data.js', content);
 
-console.log('✅ Recorrido rotado 90 grados y posicionado verticalmente.');
-console.log('Ahora el inicio está en la parte inferior derecha y sube hacia arriba.');
+console.log('✅ Recorrido rotado 90 grados correctamente.');
+console.log('Todo cabe dentro del tablero 850x1400.');
