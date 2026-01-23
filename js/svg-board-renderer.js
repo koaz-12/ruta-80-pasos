@@ -1846,8 +1846,8 @@ export class SVGBoardRenderer {
             bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             this.rootGroup.appendChild(bg);
 
-            // LAYER 2: Building Sprites
-            this.renderBuildingSprites();
+            // LAYER 2: Building Sprites (disabled - city background already has buildings)
+            // this.renderBuildingSprites();
         }
 
         // CHECK FOR FULL SNAPSHOT
