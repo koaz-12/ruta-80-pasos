@@ -83,4 +83,53 @@
             });
         });
     }
+
+    // === TOGGLE EMPTY TILES (for screenshots) ===
+    let emptyTilesMode = false;
+
+    // Create the button dynamically
+    const emptyTilesBtn = document.createElement('button');
+    emptyTilesBtn.id = 'toggle-empty-tiles';
+    emptyTilesBtn.textContent = '📷 Casillas Vacías';
+    emptyTilesBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 15px;
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        z-index: 10000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    `;
+    document.body.appendChild(emptyTilesBtn);
+
+    emptyTilesBtn.addEventListener('click', () => {
+        emptyTilesMode = !emptyTilesMode;
+
+        // Toggle visibility of all tile texts
+        const tileTexts = document.querySelectorAll('.tile-group text');
+        const tileIcons = document.querySelectorAll('.tile-group image');
+
+        tileTexts.forEach(text => {
+            text.style.display = emptyTilesMode ? 'none' : '';
+        });
+
+        tileIcons.forEach(icon => {
+            icon.style.display = emptyTilesMode ? 'none' : '';
+        });
+
+        if (emptyTilesMode) {
+            emptyTilesBtn.textContent = '📷 Mostrar Texto';
+            emptyTilesBtn.style.background = '#FF9800';
+        } else {
+            emptyTilesBtn.textContent = '📷 Casillas Vacías';
+            emptyTilesBtn.style.background = '#2196F3';
+        }
+
+        console.log(`[EDITOR] Empty tiles mode: ${emptyTilesMode ? 'ON' : 'OFF'}`);
+    });
 })();
