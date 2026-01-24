@@ -1838,15 +1838,13 @@ export class SVGBoardRenderer {
             // Render city tilemap
             this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
         } else {
-            // LAYER 1: Simple solid background (to see path clearly)
-            const bg = document.createElementNS(this.ns, 'rect');
+            // LAYER 1: Zombie City Background Image
+            const bg = document.createElementNS(this.ns, 'image');
             bg.setAttribute('width', this.width);
             bg.setAttribute('height', this.height);
-            bg.setAttribute('fill', '#1a1a2e');  // Dark blue-gray
+            bg.setAttribute('href', './assets/zombie-city-bg.jpg');
+            bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             this.rootGroup.appendChild(bg);
-
-            // Grid lines to help positioning
-            this.drawGridLines();
         }
 
         // CHECK FOR FULL SNAPSHOT
