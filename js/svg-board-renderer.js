@@ -82,8 +82,10 @@ export class SVGBoardRenderer {
         this.drawBoard();
         this.drawConnectionLines();  // Draw paths between connected tiles
         this.addInteractivity();
-        // Camera init not needed for simple mode
-        // this.initCamera();
+
+        // Enable camera zoom/pan for mobile
+        this.initCamera();
+        this.createZoomControls();
 
         // Initialize position map (v6.0)
         this.positionMap = this.buildPositionMap();
@@ -367,6 +369,45 @@ export class SVGBoardRenderer {
         if (newZoom < 0.3 || newZoom > 5.0) return;
         this.camera.zoom = newZoom;
         this.updateViewBox();
+    }
+
+    /**
+     * Create floating zoom control buttons for mobile
+     */
+    createZoomControls() {
+        // Check if already exists
+        if (document.querySelector('.zoom-controls')) return;
+
+        const container = document.createElement('div');
+        container.className = 'zoom-controls';
+
+        // Zoom In button
+        const zoomIn = document.createElement('button');
+        zoomIn.className = 'zoom-btn';
+        zoomIn.innerHTML = '+';
+        zoomIn.setAttribute('aria-label', 'Zoom In');
+        zoomIn.addEventListener('click', () => this.zoomCamera(1.3));
+
+        // Center button
+        const center = document.createElement('button');
+        center.className = 'zoom-btn zoom-btn-center';
+        center.innerHTML = '⌖';
+        center.setAttribute('aria-label', 'Center View');
+        center.addEventListener('click', () => this.centerCamera());
+
+        // Zoom Out button
+        const zoomOut = document.createElement('button');
+        zoomOut.className = 'zoom-btn';
+        zoomOut.innerHTML = '−';
+        zoomOut.setAttribute('aria-label', 'Zoom Out');
+        zoomOut.addEventListener('click', () => this.zoomCamera(0.7));
+
+        container.appendChild(zoomIn);
+        container.appendChild(center);
+        container.appendChild(zoomOut);
+
+        document.body.appendChild(container);
+        console.log('📱 [ZOOM] Mobile zoom controls created');
     }
 
     centerCamera() {
