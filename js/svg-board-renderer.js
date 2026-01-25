@@ -2758,527 +2758,559 @@ export class SVGBoardRenderer {
             console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
             if (!this.isEditorMode) return; // EDITOR GUARD
 
-            // --- CRITICAL FIX: Only allow drag if tool is "select" ---
-            if (this.currentTool && this.currentTool !== 'select') {
-                console.log('[DRAG] Drag blocked because tool is not SELECT (current:', this.currentTool, ')');
-                return;
+            addInteractivity() {
+                console.log('[INTERACTIVITY] addInteractivity() called, this.svg:', this.svg);
+                // DRAG AND DROP LOGIC
+                let draggedElement = null;
+                let offset = { x: 0, y: 0 };
+                let startPos = { x: 0, y: 0 }; // Track start for threshold
+                let isDragging = false;
+
+                const startDrag = (evt) => {
+                    console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
+                    if (!this.isEditorMode) return; // EDITOR GUARD
+
+                    // --- CRITICAL FIX: Only allow drag if tool is "select" ---
+                    if (this.currentTool && this.currentTool !== 'select') {
+                        console.log('[DRAG] Drag blocked because tool is not SELECT (current:', this.currentTool, ')');
+                        return;
+                    }
+
+                    const group = evt.target.closest('.draggable');
+                    console.log('[DRAG] draggable group:', group);
+                    if (group) {
+                        isDragging = false;
+                        draggedElement = group;
+                        startPos = { x: evt.clientX, y: evt.clientY };
+
+                        // Get transforms
+                        const transforms = group.transform.baseVal;
+                        let tx = 0, ty = 0;
+                        if (transforms.length > 0 && transforms.getItem(0).type === SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+                            tx = transforms.getItem(0).matrix.e;
+                            ty = transforms.getItem(0).matrix.f;
+                        }
+
+                        // Get click position in rootGroup coordinate space
+                        const pt = this.svg.createSVGPoint();
+                        pt.x = evt.clientX;
+                        pt.y = evt.clientY;
+                        const ctm = this.rootGroup.getScreenCTM().inverse();
+                        const svgPt = pt.matrixTransform(ctm);
+
+                        offset.x = svgPt.x - tx;
+                        offset.y = svgPt.y - ty;
+
+                        // Bring to front
+                        this.rootGroup.appendChild(group);
+                        console.log('[DRAG] Drag started for element:', group.getAttribute('data-id'));
+                    }
+                };
+
+                const drag = (evt) => {
+                    if (!this.isEditorMode) return; // EDITOR GUARD
+
+                    if (draggedElement) {
+                        // THRESHOLD CHECK
+                        const dx = Math.abs(evt.clientX - startPos.x);
+                        const dy = Math.abs(evt.clientY - startPos.y);
+                        if (dx < 3 && dy < 3) return; // Ignore jitter
+
+                        isDragging = true;
+                        evt.preventDefault();
+
+                        // Get point in SVG coordinate space
+                        const pt = this.svg.createSVGPoint();
+                        pt.x = evt.clientX;
+                        pt.y = evt.clientY;
+
+                        // Transform to rootGroup coordinate space (accounting for rotation)
+                        const ctm = this.rootGroup.getScreenCTM().inverse();
+                        const svgPt = pt.matrixTransform(ctm);
+
+                        let newX = Math.round(svgPt.x - offset.x);
+                        let newY = Math.round(svgPt.y - offset.y);
+
+                        // S: Snap to Grid (Fixed 50px/25px)
+                        // P: Snap to Path (Align with neighbors)
+
+                        // Allow Shift to invert "Snap to Path" preference
+                        const forceSnapPath = evt.shiftKey ? !this.snapToPath : this.snapToPath; // Shift toggles
+
+                        if (forceSnapPath && this.isEditorMode) {
+                            const snapPos = this.getSnapToPathPos(draggedElement.getAttribute('data-id'), newX, newY);
+                            newX = snapPos.x;
+                            newY = snapPos.y;
+                        } else if (this.snapToGrid && this.isEditorMode) {
+                            newX = this.snapToGridPos(newX);
+                            newY = this.snapToGridPos(newY);
+                        }
+
+                        draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
+                        draggedElement.dataset.x = newX;
+                        draggedElement.dataset.y = newY;
+                        draggedElement.style.cursor = 'grabbing';
+
+                        // Real-time edge update (Performance optimized)
+                        const id = draggedElement.getAttribute('data-id');
+                        this.updateConnectedEdges(id, newX, newY);
+                    }
+                }; // End of drag
+                const endDrag = (evt) => {
+                    if (!this.isEditorMode) return; // EDITOR GUARD
+
+                    if (draggedElement) {
+                        draggedElement.style.cursor = 'pointer';
+                        // If it wasn't a drag (just a click), open Inspector
+                        if (!isDragging && !this.isEditorMode) {
+                            this.openInspector(draggedElement);
+                        }
+                        draggedElement = null;
+                    }
+                };
+
+                console.log('[INTERACTIVITY] Attaching event listeners');
+
+                // Helper to get clientX/Y from mouse or touch event
+                const getClientPos = (evt) => {
+                    if (evt.touches && evt.touches.length > 0) {
+                        return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+                    }
+                    return { x: evt.clientX, y: evt.clientY };
+                };
+
+                // Wrapped handlers for touch support
+                const handleStart = (evt) => {
+                    const pos = getClientPos(evt);
+                    const eventWithPos = {
+                        clientX: pos.x,
+                        clientY: pos.y,
+                        target: evt.target,
+                        preventDefault: () => evt.preventDefault?.(),
+                        stopPropagation: () => evt.stopPropagation?.()
+                    };
+                    startDrag(eventWithPos);
+                };
+
+                const handleMove = (evt) => {
+                    const pos = getClientPos(evt);
+                    const eventWithPos = {
+                        clientX: pos.x,
+                        clientY: pos.y,
+                        target: evt.target,
+                        preventDefault: () => evt.preventDefault?.(),
+                        stopPropagation: () => evt.stopPropagation?.()
+                    };
+                    drag(eventWithPos);
+                };
+
+                // Mouse events
+                this.svg.addEventListener('mousedown', handleStart);
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', endDrag);
+
+                // Touch events for mobile tile dragging
+                this.svg.addEventListener('touchstart', handleStart, { passive: true });
+                document.addEventListener('touchmove', handleMove, { passive: false });
+                document.addEventListener('touchend', endDrag);
+
+                console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
             }
 
-            const group = evt.target.closest('.draggable');
-            console.log('[DRAG] draggable group:', group);
-            if (group) {
-                isDragging = false;
-                draggedElement = group;
-                startPos = { x: evt.clientX, y: evt.clientY };
+            // === SMART ID MANAGEMENT ===
 
-                // Get transforms
-                const transforms = group.transform.baseVal;
-                let tx = 0, ty = 0;
-                if (transforms.length > 0 && transforms.getItem(0).type === SVGTransform.SVG_TRANSFORM_TRANSLATE) {
-                    tx = transforms.getItem(0).matrix.e;
-                    ty = transforms.getItem(0).matrix.f;
+            updateTileId(oldId, newId) {
+                if (oldId === newId) return;
+
+                // Check conflict
+                const conflict = this.layoutData.tiles.find(t => t.id === newId);
+                if (conflict) {
+                    if (confirm(`El ID "${newId}" ya existe. ¿Quieres intercambiar las casillas?`)) {
+                        this.swapTiles(oldId, newId);
+                    }
+                    return;
                 }
 
-                // Get click position in rootGroup coordinate space
-                const pt = this.svg.createSVGPoint();
-                pt.x = evt.clientX;
-                pt.y = evt.clientY;
-                const ctm = this.rootGroup.getScreenCTM().inverse();
-                const svgPt = pt.matrixTransform(ctm);
-
-                offset.x = svgPt.x - tx;
-                offset.y = svgPt.y - ty;
-
-                // Bring to front
-                this.rootGroup.appendChild(group);
-                console.log('[DRAG] Drag started for element:', group.getAttribute('data-id'));
-            }
-        };
-
-        const drag = (evt) => {
-            if (!this.isEditorMode) return; // EDITOR GUARD
-
-            if (draggedElement) {
-                // THRESHOLD CHECK
-                const dx = Math.abs(evt.clientX - startPos.x);
-                const dy = Math.abs(evt.clientY - startPos.y);
-                if (dx < 3 && dy < 3) return; // Ignore jitter
-
-                isDragging = true;
-                evt.preventDefault();
-
-                // Get point in SVG coordinate space
-                const pt = this.svg.createSVGPoint();
-                pt.x = evt.clientX;
-                pt.y = evt.clientY;
-
-                // Transform to rootGroup coordinate space (accounting for rotation)
-                const ctm = this.rootGroup.getScreenCTM().inverse();
-                const svgPt = pt.matrixTransform(ctm);
-
-                let newX = Math.round(svgPt.x - offset.x);
-                let newY = Math.round(svgPt.y - offset.y);
-
-                // S: Snap to Grid (Fixed 50px/25px)
-                // P: Snap to Path (Align with neighbors)
-
-                // Allow Shift to invert "Snap to Path" preference
-                const forceSnapPath = evt.shiftKey ? !this.snapToPath : this.snapToPath; // Shift toggles
-
-                if (forceSnapPath && this.isEditorMode) {
-                    const snapPos = this.getSnapToPathPos(draggedElement.getAttribute('data-id'), newX, newY);
-                    newX = snapPos.x;
-                    newY = snapPos.y;
-                } else if (this.snapToGrid && this.isEditorMode) {
-                    newX = this.snapToGridPos(newX);
-                    newY = this.snapToGridPos(newY);
+                // Update Tile Data
+                const tile = this.layoutData.tiles.find(t => t.id === oldId);
+                if (tile) {
+                    tile.id = newId;
+                    tile.display = newId;
                 }
 
-                draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
-                draggedElement.dataset.x = newX;
-                draggedElement.dataset.y = newY;
-                draggedElement.style.cursor = 'grabbing';
-
-                // Real-time edge update (Performance optimized)
-                const id = draggedElement.getAttribute('data-id');
-                this.updateConnectedEdges(id, newX, newY);
-            }
-        };
-
-        // === SMART ID MANAGEMENT ===
-
-        updateTileId(oldId, newId) {
-            if (oldId === newId) return;
-
-            // Check conflict
-            const conflict = this.layoutData.tiles.find(t => t.id === newId);
-            if (conflict) {
-                if (confirm(`El ID "${newId}" ya existe. ¿Quieres intercambiar las casillas?`)) {
-                    this.swapTiles(oldId, newId);
-                }
-                return;
-            }
-
-            // Update Tile Data
-            const tile = this.layoutData.tiles.find(t => t.id === oldId);
-            if (tile) {
-                tile.id = newId;
-                tile.display = newId;
-            }
-
-            // Update Edges (References)
-            this.edges.forEach(edge => {
-                if (String(edge[0]) === String(oldId)) edge[0] = parseInt(newId); // Ensure int for edges
-                if (String(edge[1]) === String(oldId)) edge[1] = parseInt(newId);
-            });
-
-            // Update Selection
-            this.selectedTileId = newId;
-
-            // Re-render
-            this.render();
-            this.showTileInspector(newId);
-            this.showEditorNotification(`✅ Renombrado: ${oldId} -> ${newId}`);
-        }
-
-        swapTiles(id1, id2) {
-            const t1 = this.layoutData.tiles.find(t => t.id === id1);
-            const t2 = this.layoutData.tiles.find(t => t.id === id2);
-
-            if (!t1 || !t2) return;
-
-            // Swap coordinates and Type (keep ID structurally but swap content effectively)
-            // Actually, user expects IDs to stay put and content to move? 
-            // No, user changed ID "10" to "15". "15" exists.
-            // Expectation: The tile physically at "10" becomes "15", and physical "15" becomes "10".
-            // SO: We swap payloads BUT KEEP IDs? 
-            // No, we swap IDs on the objects. 
-
-            // Strategy: Swap IDs in data objects
-            // BUT we must also update all edges pointing to them!
-            // Edge 9->10 should become 9->15.
-            // Edge 14->15 should become 14->10.
-
-            // 1. Update Edges
-            this.edges.forEach(edge => {
-                const start = String(edge[0]);
-                const end = String(edge[1]);
-
-                if (start === id1) edge[0] = parseInt(id2);
-                else if (start === id2) edge[0] = parseInt(id1);
-
-                if (end === id1) edge[1] = parseInt(id2);
-                else if (end === id2) edge[1] = parseInt(id1);
-            });
-
-            // 2. Swap IDs in Object
-            // We need temp distinct ID to avoid collision search issues if using methods
-            t1.id = "TEMP_SWAP";
-            t2.id = id1;
-            t1.id = id2;
-
-            t1.display = t1.id;
-            t2.display = t2.id;
-
-            // Re-render
-            this.render();
-            this.showEditorNotification(`🔄 Intercambiados: ${id1} <-> ${id2}`);
-            this.showTileInspector(id2); // Show the one we just renamed to target
-        }
-
-        autoRenumberPath() {
-            if (!confirm('¿Renumerar TODA la ruta automáticamente desde el inicio?')) return;
-
-            // Find Start
-            const startTile = this.layoutData.tiles.find(t => t.type === 'start') || this.layoutData.tiles[0];
-            if (!startTile) {
-                alert('No se encontró casilla "Inicio"');
-                return;
-            }
-
-            // Build Graph for traversal
-            const graph = {};
-            this.edges.forEach(([a, b]) => {
-                if (!graph[a]) graph[a] = [];
-                graph[a].push(b);
-            });
-
-            // BFS/Traversal
-            // We want a linear path + logical numbering.
-            // If branching exists, we number branch A then branch B? 
-            // Simple BFS is good for "distance from start".
-
-            const queue = [parseInt(startTile.id)];
-            const visited = new Set();
-            const newIds = new Map(); // oldId -> newId
-            let counter = 1;
-
-            while (queue.length > 0) {
-                const currId = queue.shift();
-                if (visited.has(currId)) continue;
-                visited.add(currId);
-
-                newIds.set(String(currId), String(counter++));
-
-                const neighbors = graph[currId] || [];
-                neighbors.forEach(n => {
-                    if (!visited.has(n)) queue.push(n);
+                // Update Edges (References)
+                this.edges.forEach(edge => {
+                    if (String(edge[0]) === String(oldId)) edge[0] = parseInt(newId); // Ensure int for edges
+                    if (String(edge[1]) === String(oldId)) edge[1] = parseInt(newId);
                 });
+
+                // Update Selection
+                this.selectedTileId = newId;
+
+                // Re-render
+                this.render();
+                this.showTileInspector(newId);
+                this.showEditorNotification(`✅ Renombrado: ${oldId} -> ${newId}`);
             }
 
-            // Apply Changes
-            // 1. Edges
-            this.edges.forEach(edge => {
-                if (newIds.has(String(edge[0]))) edge[0] = parseInt(newIds.get(String(edge[0])));
-                if (newIds.has(String(edge[1]))) edge[1] = parseInt(newIds.get(String(edge[1])));
-            });
+            swapTiles(id1, id2) {
+                const t1 = this.layoutData.tiles.find(t => t.id === id1);
+                const t2 = this.layoutData.tiles.find(t => t.id === id2);
 
-            // 2. Tiles
-            this.layoutData.tiles.forEach(t => {
-                if (newIds.has(String(t.id))) {
-                    const nid = newIds.get(String(t.id));
-                    t.id = nid;
-                    t.display = nid;
-                }
-            });
+                if (!t1 || !t2) return;
 
-            this.render();
-            this.showEditorNotification('🔢 Ruta renumerada exitosamente');
-        }
+                // Swap coordinates and Type (keep ID structurally but swap content effectively)
+                // Actually, user expects IDs to stay put and content to move? 
+                // No, user changed ID "10" to "15". "15" exists.
+                // Expectation: The tile physically at "10" becomes "15", and physical "15" becomes "10".
+                // SO: We swap payloads BUT KEEP IDs? 
+                // No, we swap IDs on the objects. 
 
-        console.log('[INTERACTIVITY] Attaching event listeners');
+                // Strategy: Swap IDs in data objects
+                // BUT we must also update all edges pointing to them!
+                // Edge 9->10 should become 9->15.
+                // Edge 14->15 should become 14->10.
 
-        // Helper to get clientX/Y from mouse or touch event
-        const getClientPos = (evt) => {
-            if (evt.touches && evt.touches.length > 0) {
-                return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+                // 1. Update Edges
+                this.edges.forEach(edge => {
+                    const start = String(edge[0]);
+                    const end = String(edge[1]);
+
+                    if (start === id1) edge[0] = parseInt(id2);
+                    else if (start === id2) edge[0] = parseInt(id1);
+
+                    if (end === id1) edge[1] = parseInt(id2);
+                    else if (end === id2) edge[1] = parseInt(id1);
+                });
+
+                // 2. Swap IDs in Object
+                // We need temp distinct ID to avoid collision search issues if using methods
+                t1.id = "TEMP_SWAP";
+                t2.id = id1;
+                t1.id = id2;
+
+                t1.display = t1.id;
+                t2.display = t2.id;
+
+                // Re-render
+                this.render();
+                this.showEditorNotification(`🔄 Intercambiados: ${id1} <-> ${id2}`);
+                this.showTileInspector(id2); // Show the one we just renamed to target
             }
-            return { x: evt.clientX, y: evt.clientY };
-        };
 
-        // Wrapped handlers for touch support
-        const handleStart = (evt) => {
-            const pos = getClientPos(evt);
-            // Create a mock event-like object with the coordinates
-            const eventWithPos = {
-                clientX: pos.x,
-                clientY: pos.y,
-                target: evt.target,
-                preventDefault: () => evt.preventDefault?.(),
-                stopPropagation: () => evt.stopPropagation?.()
-            };
-            startDrag(eventWithPos);
-        };
+            autoRenumberPath() {
+                if (!confirm('¿Renumerar TODA la ruta automáticamente desde el inicio?')) return;
 
-        const handleMove = (evt) => {
-            const pos = getClientPos(evt);
-            // Create a mock event-like object with the coordinates
-            const eventWithPos = {
-                clientX: pos.x,
-                clientY: pos.y,
-                target: evt.target,
-                preventDefault: () => evt.preventDefault?.(),
-                stopPropagation: () => evt.stopPropagation?.()
-            };
-            drag(eventWithPos);
-        };
-
-        // Mouse events
-        this.svg.addEventListener('mousedown', handleStart);
-        document.addEventListener('mousemove', handleMove);
-        document.addEventListener('mouseup', endDrag);
-
-        // Touch events for mobile tile dragging
-        this.svg.addEventListener('touchstart', handleStart, { passive: true });
-        document.addEventListener('touchmove', handleMove, { passive: false });
-        document.addEventListener('touchend', endDrag);
-
-        console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
-    }
-
-    getSVGPoint(evt) {
-        const pt = this.svg.createSVGPoint();
-        pt.x = evt.clientX;
-        pt.y = evt.clientY;
-        return pt.matrixTransform(this.svg.getScreenCTM().inverse());
-    }
-
-    // REMOVED DUPLICATE openInspector/closeInspector
-    // modifyEdge IS NEEDED if not defined earlier.
-    // Let's check if modifyEdge was defined earlier. 
-    // It was likely at the end. I should Keep modifyEdge.
-
-    modifyEdge(id1, id2, action) {
-        if (action === 'add') {
-            const exists = this.edges.some(e =>
-                (e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1)
-            );
-            if (!exists) {
-                this.edges.push([id1, id2]);
-            }
-        } else if (action === 'remove') {
-            this.edges = this.edges.filter(e =>
-                !((e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1))
-            );
-        }
-        this.drawEdges();
-    }
-
-    drawPlayers(players) {
-        // Clear existing tokens
-        const oldTokens = this.svg.querySelectorAll('.player-token');
-        oldTokens.forEach(t => {
-            if (!t.classList.contains('animating')) t.remove();
-        });
-
-        if (!players || players.length === 0) return;
-
-        // 1. Pre-Count players per tile to decide layout mode
-        const tileTotals = {};
-        players.forEach(p => {
-            const tileId = String(p.pos || '1');
-            tileTotals[tileId] = (tileTotals[tileId] || 0) + 1;
-        });
-
-        // 2. Render
-        const tileCurrentCount = {}; // Track how many we've drawn per tile
-
-        players.forEach((p, index) => {
-            // SKIP IF ANIMATING
-            const existing = this.svg.querySelector(`.player-token[data-player-id="${p.id}"]`);
-            if (existing && existing.classList.contains('animating')) return;
-            if (existing) existing.remove(); // Remove old static if exists
-
-            const tileId = String(p.pos || '1');
-
-            // Find Position in DATA, not DOM
-            const tileData = this.layoutData.tiles.find(t => String(t.id) === tileId);
-
-            if (tileData) {
-                // Base Center
-                let x = tileData.x + (this.ts / 2);
-                let y = tileData.y + (this.ts / 2);
-
-                const totalOnTile = tileTotals[tileId];
-                tileCurrentCount[tileId] = (tileCurrentCount[tileId] || 0) + 1;
-                const idx = tileCurrentCount[tileId] - 1; // 0-based index
-
-                // Stacking Logic: Grid Distribution if > 1 player
-                if (totalOnTile > 1) {
-                    const offset = 9; // Displace 9px from center
-                    // 2x2 Grid Pattern:
-                    // 0: Top-Left, 1: Top-Right, 2: Bot-Left, 3: Bot-Right
-                    if (idx === 0) { x -= offset; y -= offset; }
-                    else if (idx === 1) { x += offset; y -= offset; }
-                    else if (idx === 2) { x -= offset; y += offset; }
-                    else if (idx === 3) { x += offset; y += offset; }
+                // Find Start
+                const startTile = this.layoutData.tiles.find(t => t.type === 'start') || this.layoutData.tiles[0];
+                if (!startTile) {
+                    alert('No se encontró casilla "Inicio"');
+                    return;
                 }
 
-                // Create Token Group
-                const tokenGroup = document.createElementNS(this.ns, 'g');
-                tokenGroup.setAttribute('class', 'player-token');
-                tokenGroup.setAttribute('transform', `translate(${x}, ${y})`);
-                tokenGroup.setAttribute('data-player-id', p.id);
+                // Build Graph for traversal
+                const graph = {};
+                this.edges.forEach(([a, b]) => {
+                    if (!graph[a]) graph[a] = [];
+                    graph[a].push(b);
+                });
 
-                const circle = document.createElementNS(this.ns, 'circle');
-                circle.setAttribute('r', '14'); // Slightly smaller (28px)
-                circle.setAttribute('fill', p.color || this.colors[index % this.colors.length]);
-                circle.setAttribute('stroke', '#fff');
-                circle.setAttribute('stroke-width', '2');
-                circle.setAttribute('filter', 'drop-shadow(0px 2px 2px rgba(0,0,0,0.5))');
-                circle.classList.add('token-body');
+                // BFS/Traversal
+                // We want a linear path + logical numbering.
+                // If branching exists, we number branch A then branch B? 
+                // Simple BFS is good for "distance from start".
 
-                const text = document.createElementNS(this.ns, 'text');
-                text.textContent = (p.name || `P${index + 1}`).substring(0, 1).toUpperCase();
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('dominant-baseline', 'central');
-                text.setAttribute('fill', '#fff');
-                text.setAttribute('font-size', '13px');
-                text.setAttribute('font-weight', 'bold');
-                text.setAttribute('transform', 'rotate(90)'); // Rotate upright for vertical board
+                const queue = [parseInt(startTile.id)];
+                const visited = new Set();
+                const newIds = new Map(); // oldId -> newId
+                let counter = 1;
 
-                tokenGroup.appendChild(circle);
-                tokenGroup.appendChild(text);
-                this.rootGroup.appendChild(tokenGroup);
-            }
-        });
-    }
+                while (queue.length > 0) {
+                    const currId = queue.shift();
+                    if (visited.has(currId)) continue;
+                    visited.add(currId);
 
-    animateMove(playerId, path, callback) {
-        // path is Array of Tile IDs ['1', '2', '3']
-        if (!path || path.length < 2) {
-            if (callback) callback();
-            return;
-        }
+                    newIds.set(String(currId), String(counter++));
 
-        const token = this.svg.querySelector(`.player-token[data-player-id="${playerId}"]`);
-        if (!token) {
-            console.error("Token not found for animation:", playerId);
-            if (callback) callback();
-            return;
-        }
+                    const neighbors = graph[currId] || [];
+                    neighbors.forEach(n => {
+                        if (!visited.has(n)) queue.push(n);
+                    });
+                }
 
-        // Cancel any ongoing animation for this token
-        if (this.currentTimeout) {
-            clearTimeout(this.currentTimeout);
-            this.currentTimeout = null;
-        }
+                // Apply Changes
+                // 1. Edges
+                this.edges.forEach(edge => {
+                    if (newIds.has(String(edge[0]))) edge[0] = parseInt(newIds.get(String(edge[0])));
+                    if (newIds.has(String(edge[1]))) edge[1] = parseInt(newIds.get(String(edge[1])));
+                });
 
-        // ✨ ADAPTIVE SPEED: Faster for longer paths
-        const pathLength = path.length - 1;
-        let baseSpeed = 400;
+                // 2. Tiles
+                this.layoutData.tiles.forEach(t => {
+                    if (newIds.has(String(t.id))) {
+                        const nid = newIds.get(String(t.id));
+                        t.id = nid;
+                        t.display = nid;
+                    }
+                });
 
-        if (pathLength >= 6) {
-            baseSpeed = 250; // Fast for long distances
-        } else if (pathLength >= 3) {
-            baseSpeed = 350; // Medium
-        }
-
-        console.log(`🎬 [ANIMATION] ${pathLength} steps, speed: ${baseSpeed}ms/step`);
-
-        // ✨ PATH PREVIEW
-        this.highlightPath && this.highlightPath(path);
-        this.highlightDestination && this.highlightDestination(path[path.length - 1]);
-
-        token.classList.add('animating');
-
-        let pathIdx = 0;
-        const animationId = Date.now();
-        this.currentAnimationId = animationId;
-
-        const hop = () => {
-            if (this.currentAnimationId !== animationId) {
-                console.log('[MOVE] Animation cancelled');
-                this.clearPathHighlight && this.clearPathHighlight();
-                this.clearDestinationHighlight && this.clearDestinationHighlight();
-                return;
+                this.render();
+                this.showEditorNotification('🔢 Ruta renumerada exitosamente');
             }
 
-            if (pathIdx >= path.length - 1) {
-                // Finished
-                token.classList.remove('animating');
-                this.currentAnimationId = null;
-                this.currentTimeout = null;
+
+
+            // Touch events for mobile tile dragging
+            this.svg.addEventListener('touchstart', handleStart, { passive: true });
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('touchend', endDrag);
+
+            console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
+        }
+
+        getSVGPoint(evt) {
+            const pt = this.svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+            return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+        }
+
+        // REMOVED DUPLICATE openInspector/closeInspector
+        // modifyEdge IS NEEDED if not defined earlier.
+        // Let's check if modifyEdge was defined earlier. 
+        // It was likely at the end. I should Keep modifyEdge.
+
+        modifyEdge(id1, id2, action) {
+            if (action === 'add') {
+                const exists = this.edges.some(e =>
+                    (e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1)
+                );
+                if (!exists) {
+                    this.edges.push([id1, id2]);
+                }
+            } else if (action === 'remove') {
+                this.edges = this.edges.filter(e =>
+                    !((e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1))
+                );
+            }
+            this.drawEdges();
+        }
+
+        drawPlayers(players) {
+            // Clear existing tokens
+            const oldTokens = this.svg.querySelectorAll('.player-token');
+            oldTokens.forEach(t => {
+                if (!t.classList.contains('animating')) t.remove();
+            });
+
+            if (!players || players.length === 0) return;
+
+            // 1. Pre-Count players per tile to decide layout mode
+            const tileTotals = {};
+            players.forEach(p => {
+                const tileId = String(p.pos || '1');
+                tileTotals[tileId] = (tileTotals[tileId] || 0) + 1;
+            });
+
+            // 2. Render
+            const tileCurrentCount = {}; // Track how many we've drawn per tile
+
+            players.forEach((p, index) => {
+                // SKIP IF ANIMATING
+                const existing = this.svg.querySelector(`.player-token[data-player-id="${p.id}"]`);
+                if (existing && existing.classList.contains('animating')) return;
+                if (existing) existing.remove(); // Remove old static if exists
+
+                const tileId = String(p.pos || '1');
+
+                // Find Position in DATA, not DOM
+                const tileData = this.layoutData.tiles.find(t => String(t.id) === tileId);
+
+                if (tileData) {
+                    // Base Center
+                    let x = tileData.x + (this.ts / 2);
+                    let y = tileData.y + (this.ts / 2);
+
+                    const totalOnTile = tileTotals[tileId];
+                    tileCurrentCount[tileId] = (tileCurrentCount[tileId] || 0) + 1;
+                    const idx = tileCurrentCount[tileId] - 1; // 0-based index
+
+                    // Stacking Logic: Grid Distribution if > 1 player
+                    if (totalOnTile > 1) {
+                        const offset = 9; // Displace 9px from center
+                        // 2x2 Grid Pattern:
+                        // 0: Top-Left, 1: Top-Right, 2: Bot-Left, 3: Bot-Right
+                        if (idx === 0) { x -= offset; y -= offset; }
+                        else if (idx === 1) { x += offset; y -= offset; }
+                        else if (idx === 2) { x -= offset; y += offset; }
+                        else if (idx === 3) { x += offset; y += offset; }
+                    }
+
+                    // Create Token Group
+                    const tokenGroup = document.createElementNS(this.ns, 'g');
+                    tokenGroup.setAttribute('class', 'player-token');
+                    tokenGroup.setAttribute('transform', `translate(${x}, ${y})`);
+                    tokenGroup.setAttribute('data-player-id', p.id);
+
+                    const circle = document.createElementNS(this.ns, 'circle');
+                    circle.setAttribute('r', '14'); // Slightly smaller (28px)
+                    circle.setAttribute('fill', p.color || this.colors[index % this.colors.length]);
+                    circle.setAttribute('stroke', '#fff');
+                    circle.setAttribute('stroke-width', '2');
+                    circle.setAttribute('filter', 'drop-shadow(0px 2px 2px rgba(0,0,0,0.5))');
+                    circle.classList.add('token-body');
+
+                    const text = document.createElementNS(this.ns, 'text');
+                    text.textContent = (p.name || `P${index + 1}`).substring(0, 1).toUpperCase();
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('dominant-baseline', 'central');
+                    text.setAttribute('fill', '#fff');
+                    text.setAttribute('font-size', '13px');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('transform', 'rotate(90)'); // Rotate upright for vertical board
+
+                    tokenGroup.appendChild(circle);
+                    tokenGroup.appendChild(text);
+                    this.rootGroup.appendChild(tokenGroup);
+                }
+            });
+        }
+
+        animateMove(playerId, path, callback) {
+            // path is Array of Tile IDs ['1', '2', '3']
+            if (!path || path.length < 2) {
                 if (callback) callback();
                 return;
             }
 
-            const nextId = String(path[pathIdx + 1]);
-            pathIdx++;
-
-            // Lookup Data
-            const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
-
-            console.log(`[MOVE] Step ${pathIdx}/${path.length - 1}: Tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
-
-            if (!nextTileData) {
-                console.warn(`[MOVE] Tile "${nextId}" NOT in layout! Skipping...`);
-                hop(); return;
+            const token = this.svg.querySelector(`.player-token[data-player-id="${playerId}"]`);
+            if (!token) {
+                console.error("Token not found for animation:", playerId);
+                if (callback) callback();
+                return;
             }
 
-            // Get target coords
-            const tx = nextTileData.x + (this.ts / 2);
-            const ty = nextTileData.y + (this.ts / 2);
-
-            // ✨ SMOOTH EASING
-            token.style.transition = `transform ${baseSpeed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
-            token.setAttribute('transform', `translate(${tx}, ${ty})`);
-
-            this.currentTimeout = setTimeout(() => {
-                hop();
-            }, baseSpeed + 50);
-        };
-
-        // Start after brief delay to show preview
-        setTimeout(() => hop(), 300);
-    }
-
-    // v7.6: Tile Inspector - Full editor inspector
-    enableTileInspector() {
-        console.log('%c🔧 Editor Inspector Enabled', 'color: cyan; font-weight: bold');
-        console.log('Click cualquier casilla para editar sus propiedades');
-
-        this.svg.addEventListener('click', (evt) => {
-            // Only show inspector in editor mode
-            if (!this.isEditorMode) return;
-
-            // Find tile element (look for tile-group class)
-            let target = evt.target;
-            while (target && !target.classList.contains('tile-group')) {
-                target = target.parentElement;
-                if (target === this.svg) return;
+            // Cancel any ongoing animation for this token
+            if (this.currentTimeout) {
+                clearTimeout(this.currentTimeout);
+                this.currentTimeout = null;
             }
 
-            if (!target) return;
+            // ✨ ADAPTIVE SPEED: Faster for longer paths
+            const pathLength = path.length - 1;
+            let baseSpeed = 400;
 
-            // Show full editor inspector with type dropdown
-            this.openInspector(target);
-        });
-    }
+            if (pathLength >= 6) {
+                baseSpeed = 250; // Fast for long distances
+            } else if (pathLength >= 3) {
+                baseSpeed = 350; // Medium
+            }
 
-    // v7.6: SIMPLE Tile Info Display - Works everywhere
-    showSimpleTileInfo(tileGroup) {
-        const id = tileGroup.getAttribute('data-id');
-        const display = tileGroup.getAttribute('data-display');
-        const x = tileGroup.dataset.x || 0;
-        const y = tileGroup.dataset.y || 0;
+            console.log(`🎬 [ANIMATION] ${pathLength} steps, speed: ${baseSpeed}ms/step`);
 
-        // Crear overlay si no existe
-        let overlay = document.getElementById('simple-tile-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'simple-tile-overlay';
-            document.body.appendChild(overlay);
+            // ✨ PATH PREVIEW
+            this.highlightPath && this.highlightPath(path);
+            this.highlightDestination && this.highlightDestination(path[path.length - 1]);
+
+            token.classList.add('animating');
+
+            let pathIdx = 0;
+            const animationId = Date.now();
+            this.currentAnimationId = animationId;
+
+            const hop = () => {
+                if (this.currentAnimationId !== animationId) {
+                    console.log('[MOVE] Animation cancelled');
+                    this.clearPathHighlight && this.clearPathHighlight();
+                    this.clearDestinationHighlight && this.clearDestinationHighlight();
+                    return;
+                }
+
+                if (pathIdx >= path.length - 1) {
+                    // Finished
+                    token.classList.remove('animating');
+                    this.currentAnimationId = null;
+                    this.currentTimeout = null;
+                    if (callback) callback();
+                    return;
+                }
+
+                const nextId = String(path[pathIdx + 1]);
+                pathIdx++;
+
+                // Lookup Data
+                const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
+
+                console.log(`[MOVE] Step ${pathIdx}/${path.length - 1}: Tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
+
+                if (!nextTileData) {
+                    console.warn(`[MOVE] Tile "${nextId}" NOT in layout! Skipping...`);
+                    hop(); return;
+                }
+
+                // Get target coords
+                const tx = nextTileData.x + (this.ts / 2);
+                const ty = nextTileData.y + (this.ts / 2);
+
+                // ✨ SMOOTH EASING
+                token.style.transition = `transform ${baseSpeed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+                token.setAttribute('transform', `translate(${tx}, ${ty})`);
+
+                this.currentTimeout = setTimeout(() => {
+                    hop();
+                }, baseSpeed + 50);
+            };
+
+            // Start after brief delay to show preview
+            setTimeout(() => hop(), 300);
         }
 
-        // Obtener posición secuencial y conexión
-        const seqPos = this.getSequentialPosition ? this.getSequentialPosition(id) : '?';
-        const node = this.boardGraph?.[id];
-        const nextTile = node?.next;
-        const isJunction = Array.isArray(nextTile);
+        // v7.6: Tile Inspector - Full editor inspector
+        enableTileInspector() {
+            console.log('%c🔧 Editor Inspector Enabled', 'color: cyan; font-weight: bold');
+            console.log('Click cualquier casilla para editar sus propiedades');
 
-        // HTML simple y claro
-        overlay.innerHTML = `
+            this.svg.addEventListener('click', (evt) => {
+                // Only show inspector in editor mode
+                if (!this.isEditorMode) return;
+
+                // Find tile element (look for tile-group class)
+                let target = evt.target;
+                while (target && !target.classList.contains('tile-group')) {
+                    target = target.parentElement;
+                    if (target === this.svg) return;
+                }
+
+                if (!target) return;
+
+                // Show full editor inspector with type dropdown
+                this.openInspector(target);
+            });
+        }
+
+        // v7.6: SIMPLE Tile Info Display - Works everywhere
+        showSimpleTileInfo(tileGroup) {
+            const id = tileGroup.getAttribute('data-id');
+            const display = tileGroup.getAttribute('data-display');
+            const x = tileGroup.dataset.x || 0;
+            const y = tileGroup.dataset.y || 0;
+
+            // Crear overlay si no existe
+            let overlay = document.getElementById('simple-tile-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'simple-tile-overlay';
+                document.body.appendChild(overlay);
+            }
+
+            // Obtener posición secuencial y conexión
+            const seqPos = this.getSequentialPosition ? this.getSequentialPosition(id) : '?';
+            const node = this.boardGraph?.[id];
+            const nextTile = node?.next;
+            const isJunction = Array.isArray(nextTile);
+
+            // HTML simple y claro
+            overlay.innerHTML = `
             <div style="
                 position: fixed;
                 top: 50%;
@@ -3330,234 +3362,234 @@ export class SVGBoardRenderer {
             </div>
         `;
 
-        console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
-    }
+            console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
+        }
 
-    // ✨ Highlight path preview
-    highlightPath(path) {
-        this.clearPathHighlight();
-        const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        pathGroup.id = 'path-preview';
+        // ✨ Highlight path preview
+        highlightPath(path) {
+            this.clearPathHighlight();
+            const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            pathGroup.id = 'path-preview';
 
-        path.slice(1).forEach(tileId => {
+            path.slice(1).forEach(tileId => {
+                const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
+                if (!tileData) return;
+
+                const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                highlight.setAttribute('cx', tileData.x + this.ts / 2);
+                highlight.setAttribute('cy', tileData.y + this.ts / 2);
+                highlight.setAttribute('r', this.ts * 0.4);
+                highlight.setAttribute('fill', 'rgba(255, 215, 0, 0.3)');
+                highlight.setAttribute('stroke', '#FFD700');
+                highlight.setAttribute('stroke-width', '2');
+                pathGroup.appendChild(highlight);
+            });
+
+            this.svg.insertBefore(pathGroup, this.svg.firstChild);
+        }
+
+        clearPathHighlight() {
+            const existing = this.svg.querySelector('#path-preview');
+            if (existing) existing.remove();
+        }
+
+        highlightDestination(tileId) {
+            this.clearDestinationHighlight();
             const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
             if (!tileData) return;
 
-            const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            highlight.setAttribute('cx', tileData.x + this.ts / 2);
-            highlight.setAttribute('cy', tileData.y + this.ts / 2);
-            highlight.setAttribute('r', this.ts * 0.4);
-            highlight.setAttribute('fill', 'rgba(255, 215, 0, 0.3)');
-            highlight.setAttribute('stroke', '#FFD700');
-            highlight.setAttribute('stroke-width', '2');
-            pathGroup.appendChild(highlight);
-        });
+            const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pulse.id = 'destination-highlight';
+            pulse.setAttribute('cx', tileData.x + this.ts / 2);
+            pulse.setAttribute('cy', tileData.y + this.ts / 2);
+            pulse.setAttribute('r', this.ts * 0.5);
+            pulse.setAttribute('fill', 'none');
+            pulse.setAttribute('stroke', '#10b981');
+            pulse.setAttribute('stroke-width', '3');
+            pulse.setAttribute('opacity', '0.8');
+            pulse.style.animation = 'destination-pulse 1s ease-in-out infinite';
+            this.svg.insertBefore(pulse, this.svg.firstChild);
+        }
 
-        this.svg.insertBefore(pathGroup, this.svg.firstChild);
-    }
+        clearDestinationHighlight() {
+            const existing = this.svg.querySelector('#destination-highlight');
+            if (existing) existing.remove();
+        }
 
-    clearPathHighlight() {
-        const existing = this.svg.querySelector('#path-preview');
-        if (existing) existing.remove();
-    }
+        // v8.0: Render tile type icons on special tiles
+        renderTileTypeIcons() {
+            console.log('🎨 [TILE ICONS] Rendering tile type icons...');
 
-    highlightDestination(tileId) {
-        this.clearDestinationHighlight();
-        const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
-        if (!tileData) return;
+            const tilesRendered = [];
 
-        const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        pulse.id = 'destination-highlight';
-        pulse.setAttribute('cx', tileData.x + this.ts / 2);
-        pulse.setAttribute('cy', tileData.y + this.ts / 2);
-        pulse.setAttribute('r', this.ts * 0.5);
-        pulse.setAttribute('fill', 'none');
-        pulse.setAttribute('stroke', '#10b981');
-        pulse.setAttribute('stroke-width', '3');
-        pulse.setAttribute('opacity', '0.8');
-        pulse.style.animation = 'destination-pulse 1s ease-in-out infinite';
-        this.svg.insertBefore(pulse, this.svg.firstChild);
-    }
+            // Loop through all tiles that have special types
+            for (const [tileId, typeName] of Object.entries(TILE_TYPE_MAP)) {
+                const tileType = getTileType(tileId);
+                if (!tileType || !tileType.icon) continue;
 
-    clearDestinationHighlight() {
-        const existing = this.svg.querySelector('#destination-highlight');
-        if (existing) existing.remove();
-    }
+                // Find the tile in SVG
+                const tileGroup = this.svg.querySelector(`g[data-id="${tileId}"]`);
+                if (!tileGroup) {
+                    console.log(`  Tile ${tileId} not found in SVG`);
+                    continue;
+                }
 
-    // v8.0: Render tile type icons on special tiles
-    renderTileTypeIcons() {
-        console.log('🎨 [TILE ICONS] Rendering tile type icons...');
+                // Get tile position
+                const transform = tileGroup.getAttribute('transform');
+                const match = transform?.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                if (!match) continue;
 
-        const tilesRendered = [];
+                const x = parseFloat(match[1]);
+                const y = parseFloat(match[2]);
 
-        // Loop through all tiles that have special types
-        for (const [tileId, typeName] of Object.entries(TILE_TYPE_MAP)) {
-            const tileType = getTileType(tileId);
-            if (!tileType || !tileType.icon) continue;
+                // Create icon element - ADD TO TILE GROUP so it moves together
+                const icon = document.createElementNS(this.ns, 'text');
 
-            // Find the tile in SVG
-            const tileGroup = this.svg.querySelector(`g[data-id="${tileId}"]`);
-            if (!tileGroup) {
-                console.log(`  Tile ${tileId} not found in SVG`);
-                continue;
+                // Position relative to tile center (tile is 50x50)
+                icon.setAttribute('x', 25);  // Center of tile
+                icon.setAttribute('y', 38);  // Slightly below center
+                icon.setAttribute('text-anchor', 'middle');
+                icon.setAttribute('font-size', '20');
+                icon.setAttribute('class', 'tile-type-icon');
+                icon.setAttribute('data-tile-id', tileId);
+                icon.setAttribute('pointer-events', 'none');
+                icon.textContent = tileType.icon;
+
+                // Add to tileGroup (not rootGroup) so icon moves with tile
+                tileGroup.appendChild(icon);
+                tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
             }
 
-            // Get tile position
-            const transform = tileGroup.getAttribute('transform');
-            const match = transform?.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            if (!match) continue;
-
-            const x = parseFloat(match[1]);
-            const y = parseFloat(match[2]);
-
-            // Create icon element - ADD TO TILE GROUP so it moves together
-            const icon = document.createElementNS(this.ns, 'text');
-
-            // Position relative to tile center (tile is 50x50)
-            icon.setAttribute('x', 25);  // Center of tile
-            icon.setAttribute('y', 38);  // Slightly below center
-            icon.setAttribute('text-anchor', 'middle');
-            icon.setAttribute('font-size', '20');
-            icon.setAttribute('class', 'tile-type-icon');
-            icon.setAttribute('data-tile-id', tileId);
-            icon.setAttribute('pointer-events', 'none');
-            icon.textContent = tileType.icon;
-
-            // Add to tileGroup (not rootGroup) so icon moves with tile
-            tileGroup.appendChild(icon);
-            tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
+            console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
         }
 
-        console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
-    }
+        /**
+         * LAYER 2: Render building sprites on top of terrain
+         * Buildings are placed strategically around the game path
+         */
+        renderBuildingSprites() {
+            const buildingsGroup = document.createElementNS(this.ns, 'g');
+            buildingsGroup.setAttribute('id', 'buildings-layer');
 
-    /**
-     * LAYER 2: Render building sprites on top of terrain
-     * Buildings are placed strategically around the game path
-     */
-    renderBuildingSprites() {
-        const buildingsGroup = document.createElementNS(this.ns, 'g');
-        buildingsGroup.setAttribute('id', 'buildings-layer');
+            // Building positions (x, y, type)
+            // Types: 0=house, 1=apartment, 2=skyscraper, 3=hospital, 4=store, 5=ruins
+            const buildingPlacements = [
+                // Top area - safer zone
+                { x: 50, y: 80, type: 0 },
+                { x: 150, y: 60, type: 1 },
+                { x: 280, y: 100, type: 0 },
+                { x: 400, y: 50, type: 1 },
+                { x: 550, y: 90, type: 3 }, // Hospital near start
+                { x: 700, y: 70, type: 0 },
 
-        // Building positions (x, y, type)
-        // Types: 0=house, 1=apartment, 2=skyscraper, 3=hospital, 4=store, 5=ruins
-        const buildingPlacements = [
-            // Top area - safer zone
-            { x: 50, y: 80, type: 0 },
-            { x: 150, y: 60, type: 1 },
-            { x: 280, y: 100, type: 0 },
-            { x: 400, y: 50, type: 1 },
-            { x: 550, y: 90, type: 3 }, // Hospital near start
-            { x: 700, y: 70, type: 0 },
+                // Middle area
+                { x: 80, y: 300, type: 1 },
+                { x: 200, y: 350, type: 2 },
+                { x: 350, y: 280, type: 4 }, // Store
+                { x: 500, y: 320, type: 1 },
+                { x: 650, y: 300, type: 0 },
+                { x: 750, y: 380, type: 2 },
 
-            // Middle area
-            { x: 80, y: 300, type: 1 },
-            { x: 200, y: 350, type: 2 },
-            { x: 350, y: 280, type: 4 }, // Store
-            { x: 500, y: 320, type: 1 },
-            { x: 650, y: 300, type: 0 },
-            { x: 750, y: 380, type: 2 },
+                // Mid-lower area
+                { x: 100, y: 550, type: 5 }, // Ruins
+                { x: 250, y: 500, type: 2 },
+                { x: 400, y: 580, type: 4 }, // Store
+                { x: 550, y: 520, type: 1 },
+                { x: 700, y: 600, type: 5 }, // Ruins
 
-            // Mid-lower area
-            { x: 100, y: 550, type: 5 }, // Ruins
-            { x: 250, y: 500, type: 2 },
-            { x: 400, y: 580, type: 4 }, // Store
-            { x: 550, y: 520, type: 1 },
-            { x: 700, y: 600, type: 5 }, // Ruins
+                // Lower area - danger zone
+                { x: 60, y: 800, type: 5 }, // Ruins
+                { x: 200, y: 750, type: 2 },
+                { x: 350, y: 820, type: 5 }, // Ruins
+                { x: 500, y: 780, type: 3 }, // Hospital
+                { x: 650, y: 850, type: 5 }, // Ruins
+                { x: 780, y: 800, type: 2 },
 
-            // Lower area - danger zone
-            { x: 60, y: 800, type: 5 }, // Ruins
-            { x: 200, y: 750, type: 2 },
-            { x: 350, y: 820, type: 5 }, // Ruins
-            { x: 500, y: 780, type: 3 }, // Hospital
-            { x: 650, y: 850, type: 5 }, // Ruins
-            { x: 780, y: 800, type: 2 },
+                // Bottom area - boss zone
+                { x: 100, y: 1050, type: 5 },
+                { x: 280, y: 1000, type: 5 },
+                { x: 450, y: 1100, type: 5 },
+                { x: 600, y: 1000, type: 5 },
+                { x: 750, y: 1080, type: 5 },
+            ];
 
-            // Bottom area - boss zone
-            { x: 100, y: 1050, type: 5 },
-            { x: 280, y: 1000, type: 5 },
-            { x: 450, y: 1100, type: 5 },
-            { x: 600, y: 1000, type: 5 },
-            { x: 750, y: 1080, type: 5 },
-        ];
+            // Individual sprite file paths
+            const spriteFiles = {
+                0: './assets/tiles/house.png',
+                1: './assets/tiles/apartment.png',
+                2: './assets/tiles/skyscraper.png',
+                3: './assets/tiles/hospital.png',
+                4: './assets/tiles/store.png',
+                5: './assets/tiles/ruins.png'
+            };
 
-        // Individual sprite file paths
-        const spriteFiles = {
-            0: './assets/tiles/house.png',
-            1: './assets/tiles/apartment.png',
-            2: './assets/tiles/skyscraper.png',
-            3: './assets/tiles/hospital.png',
-            4: './assets/tiles/store.png',
-            5: './assets/tiles/ruins.png'
-        };
+            // Building sizes for each type
+            const spriteSizes = {
+                0: { w: 80, h: 90 },
+                1: { w: 70, h: 110 },
+                2: { w: 60, h: 140 },
+                3: { w: 90, h: 100 },
+                4: { w: 75, h: 70 },
+                5: { w: 85, h: 85 }
+            };
 
-        // Building sizes for each type
-        const spriteSizes = {
-            0: { w: 80, h: 90 },
-            1: { w: 70, h: 110 },
-            2: { w: 60, h: 140 },
-            3: { w: 90, h: 100 },
-            4: { w: 75, h: 70 },
-            5: { w: 85, h: 85 }
-        };
+            // Render each building
+            buildingPlacements.forEach((b) => {
+                const building = document.createElementNS(this.ns, 'image');
+                const size = spriteSizes[b.type];
 
-        // Render each building
-        buildingPlacements.forEach((b) => {
-            const building = document.createElementNS(this.ns, 'image');
-            const size = spriteSizes[b.type];
+                building.setAttribute('href', spriteFiles[b.type]);
+                building.setAttribute('x', b.x);
+                building.setAttribute('y', b.y - size.h + 40);
+                building.setAttribute('width', size.w);
+                building.setAttribute('height', size.h);
+                building.setAttribute('opacity', '0.95');
+                building.setAttribute('preserveAspectRatio', 'xMidYMax meet');
 
-            building.setAttribute('href', spriteFiles[b.type]);
-            building.setAttribute('x', b.x);
-            building.setAttribute('y', b.y - size.h + 40);
-            building.setAttribute('width', size.w);
-            building.setAttribute('height', size.h);
-            building.setAttribute('opacity', '0.95');
-            building.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+                buildingsGroup.appendChild(building);
+            });
 
-            buildingsGroup.appendChild(building);
-        });
-
-        this.rootGroup.appendChild(buildingsGroup);
-        console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
-    }
-
-    /**
-     * Draw grid lines to help visualize tile positions
-     */
-    drawGridLines() {
-        const gridGroup = document.createElementNS(this.ns, 'g');
-        gridGroup.setAttribute('id', 'grid-lines');
-        gridGroup.setAttribute('opacity', '0.3');
-        gridGroup.style.pointerEvents = 'none'; // CRITICAL: Pass clicks through
-
-        const gridSize = 50; // 50px grid
-        const strokeColor = '#4a4a6a';
-
-        // Vertical lines
-        for (let x = 0; x <= this.width; x += gridSize) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', 0);
-            line.setAttribute('x2', x);
-            line.setAttribute('y2', this.height);
-            line.setAttribute('stroke', strokeColor);
-            line.setAttribute('stroke-width', x % 100 === 0 ? '1' : '0.5');
-            gridGroup.appendChild(line);
+            this.rootGroup.appendChild(buildingsGroup);
+            console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
         }
 
-        // Horizontal lines
-        for (let y = 0; y <= this.height; y += gridSize) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', 0);
-            line.setAttribute('y1', y);
-            line.setAttribute('x2', this.width);
-            line.setAttribute('y2', y);
-            line.setAttribute('stroke', strokeColor);
-            line.setAttribute('stroke-width', y % 100 === 0 ? '1' : '0.5');
-            gridGroup.appendChild(line);
-        }
+        /**
+         * Draw grid lines to help visualize tile positions
+         */
+        drawGridLines() {
+            const gridGroup = document.createElementNS(this.ns, 'g');
+            gridGroup.setAttribute('id', 'grid-lines');
+            gridGroup.setAttribute('opacity', '0.3');
+            gridGroup.style.pointerEvents = 'none'; // CRITICAL: Pass clicks through
 
-        this.rootGroup.appendChild(gridGroup);
-        console.log('📐 [GRID] Rendered grid lines');
+            const gridSize = 50; // 50px grid
+            const strokeColor = '#4a4a6a';
+
+            // Vertical lines
+            for (let x = 0; x <= this.width; x += gridSize) {
+                const line = document.createElementNS(this.ns, 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', 0);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', this.height);
+                line.setAttribute('stroke', strokeColor);
+                line.setAttribute('stroke-width', x % 100 === 0 ? '1' : '0.5');
+                gridGroup.appendChild(line);
+            }
+
+            // Horizontal lines
+            for (let y = 0; y <= this.height; y += gridSize) {
+                const line = document.createElementNS(this.ns, 'line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', this.width);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', strokeColor);
+                line.setAttribute('stroke-width', y % 100 === 0 ? '1' : '0.5');
+                gridGroup.appendChild(line);
+            }
+
+            this.rootGroup.appendChild(gridGroup);
+            console.log('📐 [GRID] Rendered grid lines');
+        }
     }
-}
