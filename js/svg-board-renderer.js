@@ -950,6 +950,12 @@ export class SVGBoardRenderer {
                         🗑️ Eliminar
                     </button>
                 </div>
+                <!-- Extra Tools -->
+                <div style="margin-top:8px;">
+                     <button id="btn-clear-conn" style="width:100%; background:#fd7e14; color:#fff; border:none; padding:6px; border-radius:4px; cursor:pointer; font-size:11px;">
+                        ✂️ Borrar Todas las Conexiones
+                    </button>
+                </div>
             </div>
 
             <!-- Tools Section (NEW) -->
@@ -1300,6 +1306,10 @@ export class SVGBoardRenderer {
             };
 
             if (delBtn) delBtn.onclick = () => this.removeTile(this.selectedTileId);
+
+            // New Clear Conn listener
+            const btnClearConn = document.getElementById('btn-clear-conn');
+            if (btnClearConn) btnClearConn.onclick = () => this.clearAllConnections();
         }
     }
 
@@ -1400,6 +1410,14 @@ export class SVGBoardRenderer {
         // maybe open inspector for it immediately?
         const newTile = this.svg.querySelector(`.tile-group[data-id="${newId}"]`);
         if (newTile) this.openInspector(newTile);
+    }
+
+    clearAllConnections() {
+        if (confirm('¿Estás seguro de que quieres BORRAR TODAS las conexiones? Esto no se puede deshacer.')) {
+            this.edges = [];
+            this.drawEdges();
+            this.showEditorNotification('✂️ Conexiones eliminadas');
+        }
     }
 
     openInspector(tileGroup) {
