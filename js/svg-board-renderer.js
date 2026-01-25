@@ -904,9 +904,28 @@ export class SVGBoardRenderer {
         const projectName = activeProject ? activeProject.name : 'Sin proyecto';
 
         // NEW ORGANIZED PANEL DESIGN
+        // 1. Enable Scroll for panel
+        panel.style.overflowY = 'auto';
+        panel.style.maxHeight = '85vh';
+
+        // 2. Prepare Connection List
+        let connectedListHTML = '<span style="color:#666; font-style:italic;">Ninguna</span>';
+        if (this.selectedTileId) {
+            const connectedIds = [];
+            this.edges.forEach(e => {
+                if (String(e[0]) === String(this.selectedTileId)) connectedIds.push(e[1]);
+                if (String(e[1]) === String(this.selectedTileId)) connectedIds.push(e[0]);
+            });
+            if (connectedIds.length > 0) {
+                connectedListHTML = connectedIds.map(id =>
+                    `<strong style="color:#00d2ff; cursor:pointer;" onclick="window.boardRenderer.showTileInspector('${id}')">${id}</strong>`
+                ).join(', ');
+            }
+        }
+
         panel.innerHTML = `
             <!-- Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:2px solid #444; background:#2d2d2d;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:2px solid #444; background:#2d2d2d; position:sticky; top:0; z-index:10;">
                 <h3 style="margin:0; font-size:18px; color:#fff; font-weight:bold;">🎨 EDITOR ESTUDIO</h3>
                 <button id="uni-close" style="background:none; border:none; color:#bbb; cursor:pointer; font-size:20px;" title="Minimizar">✕</button>
             </div>
@@ -975,11 +994,11 @@ export class SVGBoardRenderer {
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
                         <div>
                             <label style="font-size:10px; color:#aaa;">ID (Texto)</label>
-                            <input id="insp-display" type="text" value="" style="width:100%; bg:#333; color:#fff; border:1px solid #555; border-radius:3px; padding:4px;">
+                            <input id="insp-display" type="text" value="" style="width:100%; background:#fff; color:#000; border:1px solid #555; border-radius:3px; padding:4px; font-weight:bold;">
                         </div>
                         <div>
                             <label style="font-size:10px; color:#aaa;">Tipo</label>
-                            <select id="insp-type" style="width:100%; bg:#333; color:#fff; border:1px solid #555; border-radius:3px; padding:4px;">
+                            <select id="insp-type" style="width:100%; background:#fff; color:#000; border:1px solid #555; border-radius:3px; padding:4px;">
                                 <option value="normal">Normal</option>
                                 <option value="start">Inicio</option>
                                 <option value="finish">Meta</option>
@@ -988,6 +1007,11 @@ export class SVGBoardRenderer {
                             </select>
                         </div>
                     </div>
+                    
+                    <div style="font-size:11px; color:#ccc; margin-bottom:8px; background:#222; padding:5px; border-radius:3px;">
+                        🔗 <strong>Conectado a:</strong> ${connectedListHTML}
+                    </div>
+
                     <button id="insp-delete" style="width:100%; background:#dc3545; color:#fff; border:none; padding:6px; border-radius:3px; cursor:pointer; font-size:11px;">
                         🗑️ Eliminar Casilla
                     </button>
