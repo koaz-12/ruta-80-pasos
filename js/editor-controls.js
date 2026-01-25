@@ -12,8 +12,8 @@
         lobbyEditorBtn.addEventListener('click', () => {
             console.log('[EDITOR] Loading editor from lobby...');
 
-            // Wait for board renderer to be ready
-            setTimeout(() => {
+            // Wait for board renderer to be ready (Retry loop)
+            const checkRenderer = (attempts = 0) => {
                 if (window.boardRenderer && window.boardRenderer.activateEditorMode) {
                     window.boardRenderer.activateEditorMode();
                     console.log('[EDITOR] Editor mode activated via SVGBoardRenderer');
@@ -23,10 +23,16 @@
                         window.emptyTilesBtn.style.display = 'block';
                     }
                 } else {
-                    console.error('[EDITOR] Board renderer not available');
-                    alert('Error: El editor no está disponible. Recarga la página.');
+                    if (attempts < 20) { // Try for 2 seconds (20 * 100ms)
+                        console.log(`[EDITOR] Waiting for renderer... (${attempts + 1}/20)`);
+                        setTimeout(() => checkRenderer(attempts + 1), 100);
+                    } else {
+                        console.error('[EDITOR] Board renderer not available after waiting');
+                        alert('Error: El editor no está disponible. Recarga la página.');
+                    }
                 }
-            }, 100);
+            };
+            checkRenderer();
         });
     }
 
