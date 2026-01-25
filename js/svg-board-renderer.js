@@ -741,8 +741,22 @@ export class SVGBoardRenderer {
 
     // Initialize Tool Interaction (Click to add/select/connect)
     initEditorTools() {
-        this.svg.addEventListener('click', (e) => {
+        let toolStartPos = null;
+
+        this.svg.addEventListener('mousedown', (e) => {
             if (!this.isEditorMode) return;
+            toolStartPos = { x: e.clientX, y: e.clientY };
+        });
+
+        this.svg.addEventListener('mouseup', (e) => {
+            if (!this.isEditorMode || !toolStartPos) return;
+
+            // Check drag threshold
+            const dx = Math.abs(e.clientX - toolStartPos.x);
+            const dy = Math.abs(e.clientY - toolStartPos.y);
+            toolStartPos = null;
+
+            if (dx > 5 || dy > 5) return; // It was a drag, ignore
 
             // Check if clicking existing tile
             const target = e.target.closest('.tile-group');
@@ -3219,6 +3233,7 @@ export class SVGBoardRenderer {
         const gridGroup = document.createElementNS(this.ns, 'g');
         gridGroup.setAttribute('id', 'grid-lines');
         gridGroup.setAttribute('opacity', '0.3');
+        gridGroup.style.pointerEvents = 'none'; // CRITICAL: Pass clicks through
 
         const gridSize = 50; // 50px grid
         const strokeColor = '#4a4a6a';
