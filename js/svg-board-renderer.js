@@ -1288,29 +1288,32 @@ export class SVGBoardRenderer {
                 if (delBtn) delBtn.onclick = () => this.removeTile(this.selectedTileId);
             }
 
-            // === ADVANCED TOOLS LISTENERS ===
-            document.getElementById('tool-renumber').onclick = () => this.autoRenumberPath();
 
-            document.getElementById('tool-snap').onclick = () => {
-                this.snapToPath = !this.snapToPath;
-                localStorage.setItem('editorSnapToPath', this.snapToPath);
-                this.drawUnifiedControls();
-                this.showEditorNotification(this.snapToPath ? '🧲 Snap a Ruta: ACTIVADO' : '🧲 Snap a Ruta: DESACTIVADO');
-            };
-
-            document.getElementById('tool-vis').onclick = () => {
-                this.hideConnections = !this.hideConnections;
-                const grp = this.svg.querySelector('#connections-layer');
-                if (grp) grp.style.display = this.hideConnections ? 'none' : 'block';
-                this.drawUnifiedControls(); // Update icon
-            };
-
-            if (delBtn) delBtn.onclick = () => this.removeTile(this.selectedTileId);
-
-            // New Clear Conn listener
-            const btnClearConn = document.getElementById('btn-clear-conn');
-            if (btnClearConn) btnClearConn.onclick = () => this.clearAllConnections();
         }
+
+        // === ADVANCED TOOLS LISTENERS (Global) ===
+        const btnRenumber = document.getElementById('tool-renumber');
+        if (btnRenumber) btnRenumber.onclick = () => this.autoRenumberPath();
+
+        const btnSnap = document.getElementById('tool-snap');
+        if (btnSnap) btnSnap.onclick = () => {
+            this.snapToPath = !this.snapToPath;
+            localStorage.setItem('editorSnapToPath', this.snapToPath);
+            this.drawUnifiedControls();
+            this.showEditorNotification(this.snapToPath ? '🧲 Snap a Ruta: ACTIVADO' : '🧲 Snap a Ruta: DESACTIVADO');
+        };
+
+        const btnVis = document.getElementById('tool-vis');
+        if (btnVis) btnVis.onclick = () => {
+            this.hideConnections = !this.hideConnections;
+            const grp = this.svg.querySelector('#connections-layer');
+            if (grp) grp.style.display = this.hideConnections ? 'none' : 'block';
+            this.drawUnifiedControls(); // Update icon
+        };
+
+        // Clear Conn listener (Global)
+        const btnClearConn = document.getElementById('btn-clear-conn');
+        if (btnClearConn) btnClearConn.onclick = () => this.clearAllConnections();
     }
 
     showTileInspector(id) {
