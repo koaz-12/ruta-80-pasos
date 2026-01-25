@@ -264,10 +264,18 @@ export class SVGBoardRenderer {
     initCamera() {
         // 1. Mouse/Touch Pan
         const startDrag = (e) => {
-            // Ignore if touching a UI element (like token, maybe?)
-            // Actually, we want to drag ANYWHERE unless it's a critical interaction.
-            // Tokens don't have click actions yet except inspector.
-            // if (this.isEditorMode) return; // REMOVED: Allow camera move in Editor
+            // Check if interacting with UI panel or Inspector inputs
+            if (e.target.closest('#editor-panel') || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') {
+                return;
+            }
+
+            // In Editor Mode: If tool is active (add/connect), DO NOT DRAG
+            // Exception: 'select' tool allows dragging the camera if clicking background?
+            // Actually, we want dragging camera always on background, UNLESS we are clicking a tile.
+            // But tile clicks are handled by 'click', while drag is 'mousedown'.
+            // Drag consumes mouseup so 'click' might not fire if we moved.
+
+            // Allow drag if not clicking a tile (or if tool is select/none and we want to move map)
 
             this.camera.isDragging = true;
             const pt = this.getEventPoint(e);
