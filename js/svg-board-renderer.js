@@ -2585,6 +2585,12 @@ export class SVGBoardRenderer {
             console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
             if (!this.isEditorMode) return; // EDITOR GUARD
 
+            // --- CRITICAL FIX: Only allow drag if tool is "select" ---
+            if (this.currentTool && this.currentTool !== 'select') {
+                console.log('[DRAG] Drag blocked because tool is not SELECT (current:', this.currentTool, ')');
+                return;
+            }
+
             const group = evt.target.closest('.draggable');
             console.log('[DRAG] draggable group:', group);
             if (group) {
