@@ -263,6 +263,8 @@ export class SVGBoardRenderer {
 
     initCamera() {
         // 1. Mouse/Touch Pan
+        // Logic for Snap to Path
+
         const startDrag = (e) => {
             // Check if interacting with UI panel or Inspector inputs
             if (e.target.closest('#editor-panel') || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') {
@@ -950,6 +952,22 @@ export class SVGBoardRenderer {
                     </button>
                 </div>
 
+                <!-- Advanced Tools Row -->
+                <div style="display:flex; gap:5px; margin-bottom:15px;">
+                    <button id="tool-snap" class="tool-btn ${this.snapToPath ? 'active' : ''}" 
+                            style="flex:1; padding:6px; border:none; border-radius:4px; background:${this.snapToPath ? '#6610f2' : '#444'}; color:#fff; cursor:pointer; font-size:11px;" title="Alinear con vecinos">
+                        🧲 Snap: ${this.snapToPath ? 'ON' : 'OFF'}
+                    </button>
+                    <button id="tool-renumber" class="tool-btn" 
+                            style="flex:1; padding:6px; border:none; border-radius:4px; background:#e83e8c; color:#fff; cursor:pointer; font-size:11px;" title="Renumerar ruta desde Inicio">
+                        🔢 1-2-3...
+                    </button>
+                    <button id="tool-vis" class="tool-btn" 
+                            style="width:30px; padding:6px; border:none; border-radius:4px; background:${this.hideConnections ? '#444' : '#17a2b8'}; color:#fff; cursor:pointer; font-size:11px;" title="Ocultar/Mostrar Conexiones">
+                        ${this.hideConnections ? '🙈' : '👁️'}
+                    </button>
+                </div>
+
                 <!-- Inspector (Visible only if tile selected) -->
                 <div id="inspector-panel" style="display:${this.selectedTileId ? 'block' : 'none'}; background:#1a1a1a; padding:10px; border-radius:6px; border:1px solid #444;">
                     <div style="color:#ffc107; font-size:12px; margin-bottom:8px; font-weight:bold;">📝 INSPECTOR: Casilla ${this.selectedTileId || '?'}</div>
@@ -1226,10 +1244,10 @@ export class SVGBoardRenderer {
                 if (dispInput && document.activeElement !== dispInput) dispInput.value = tile.display || tile.id;
                 if (typeSelect && document.activeElement !== typeSelect) typeSelect.value = tile.type || 'normal';
 
-                if (dispInput) dispInput.oninput = (e) => {
-                    tile.display = e.target.value;
-                    const textEl = this.svg.querySelector(`g[data-id="${this.selectedTileId}"] text`);
-                    if (textEl) textEl.textContent = tile.display;
+                if (dispInput) dispInput.onchange = (e) => {
+                    const newId = e.target.value.trim();
+                    if (!newId) return;
+                    this.updateTileId(this.selectedTileId, newId);
                 };
 
                 if (typeSelect) typeSelect.onchange = (e) => {
@@ -1239,146 +1257,166 @@ export class SVGBoardRenderer {
 
                 if (delBtn) delBtn.onclick = () => this.removeTile(this.selectedTileId);
             }
+
+            // === ADVANCED TOOLS LISTENERS ===
+            document.getElementById('tool-renumber').onclick = () => this.autoRenumberPath();
+
+            document.getElementById('tool-snap').onclick = () => {
+                this.snapToPath = !this.snapToPath;
+                localStorage.setItem('editorSnapToPath', this.snapToPath);
+                this.drawUnifiedControls();
+                this.showEditorNotification(this.snapToPath ? '🧲 Snap a Ruta: ACTIVADO' : '🧲 Snap a Ruta: DESACTIVADO');
+            };
+
+            document.getElementById('tool-vis').onclick = () => {
+                this.hideConnections = !this.hideConnections;
+                const grp = this.svg.querySelector('#connections-layer');
+                if (grp) grp.style.display = this.hideConnections ? 'none' : 'block';
+                this.drawUnifiedControls(); // Update icon
+            };
+
+            if (delBtn) delBtn.onclick = () => this.removeTile(this.selectedTileId);
         }
     }
+}
 
-    showTileInspector(id) {
-        this.selectedTileId = id;
-        this.drawUnifiedControls(); // Refresh panel to show inspector data
+showTileInspector(id) {
+    this.selectedTileId = id;
+    this.drawUnifiedControls(); // Refresh panel to show inspector data
 
-        // Highlight selection
-        this.svg.querySelectorAll('.tile-group').forEach(el => {
-            el.querySelector('rect').setAttribute('stroke', '#666');
-            el.querySelector('rect').setAttribute('stroke-width', '1');
-        });
-        const group = this.svg.querySelector(`g[data-id="${id}"]`);
-        if (group) {
-            const rect = group.querySelector('rect');
-            rect.setAttribute('stroke', '#00d2ff');
-            rect.setAttribute('stroke-width', '3');
-        }
+    // Highlight selection
+    this.svg.querySelectorAll('.tile-group').forEach(el => {
+        el.querySelector('rect').setAttribute('stroke', '#666');
+        el.querySelector('rect').setAttribute('stroke-width', '1');
+    });
+    const group = this.svg.querySelector(`g[data-id="${id}"]`);
+    if (group) {
+        const rect = group.querySelector('rect');
+        rect.setAttribute('stroke', '#00d2ff');
+        rect.setAttribute('stroke-width', '3');
+    }
+}
+
+// Apply theme background
+applyThemeBackground(type) {
+    const bgImage = this.rootGroup.querySelector('image');
+    const bgRect = this.rootGroup.querySelector('rect:first-of-type');
+
+    // Remove existing background
+    if (bgImage) bgImage.remove();
+    if (bgRect) bgRect.remove();
+
+    // Create new background based on type
+    let newBg;
+    switch (type) {
+        case 'solid':
+            newBg = document.createElementNS(this.ns, 'rect');
+            newBg.setAttribute('width', this.width);
+            newBg.setAttribute('height', this.height);
+            newBg.setAttribute('fill', '#1a1f1a');
+            break;
+        case 'texture':
+            newBg = document.createElementNS(this.ns, 'image');
+            newBg.setAttribute('width', this.width);
+            newBg.setAttribute('height', this.height);
+            newBg.setAttribute('href', './assets/bg-texture-subtle.png');
+            newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            break;
+        case 'night':
+            newBg = document.createElementNS(this.ns, 'image');
+            newBg.setAttribute('width', this.width);
+            newBg.setAttribute('height', this.height);
+            newBg.setAttribute('href', './assets/board-bg-night.png');
+            newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            break;
     }
 
-    // Apply theme background
-    applyThemeBackground(type) {
-        const bgImage = this.rootGroup.querySelector('image');
-        const bgRect = this.rootGroup.querySelector('rect:first-of-type');
-
-        // Remove existing background
-        if (bgImage) bgImage.remove();
-        if (bgRect) bgRect.remove();
-
-        // Create new background based on type
-        let newBg;
-        switch (type) {
-            case 'solid':
-                newBg = document.createElementNS(this.ns, 'rect');
-                newBg.setAttribute('width', this.width);
-                newBg.setAttribute('height', this.height);
-                newBg.setAttribute('fill', '#1a1f1a');
-                break;
-            case 'texture':
-                newBg = document.createElementNS(this.ns, 'image');
-                newBg.setAttribute('width', this.width);
-                newBg.setAttribute('height', this.height);
-                newBg.setAttribute('href', './assets/bg-texture-subtle.png');
-                newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-                break;
-            case 'night':
-                newBg = document.createElementNS(this.ns, 'image');
-                newBg.setAttribute('width', this.width);
-                newBg.setAttribute('height', this.height);
-                newBg.setAttribute('href', './assets/board-bg-night.png');
-                newBg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-                break;
-        }
-
-        // Insert at beginning of rootGroup
-        if (newBg && this.rootGroup.firstChild) {
-            this.rootGroup.insertBefore(newBg, this.rootGroup.firstChild);
-        } else if (newBg) {
-            this.rootGroup.appendChild(newBg);
-        }
+    // Insert at beginning of rootGroup
+    if (newBg && this.rootGroup.firstChild) {
+        this.rootGroup.insertBefore(newBg, this.rootGroup.firstChild);
+    } else if (newBg) {
+        this.rootGroup.appendChild(newBg);
     }
+}
 
-    // Apply theme line colors
-    applyThemeLines(color) {
-        const linesGroup = this.rootGroup.querySelector('#connection-lines');
-        if (!linesGroup) return;
+// Apply theme line colors
+applyThemeLines(color) {
+    const linesGroup = this.rootGroup.querySelector('#connection-lines');
+    if (!linesGroup) return;
 
-        const colors = {
-            'cyan': 'rgba(0, 255, 200, 0.6)',
-            'black': '#000000',
-            'gold': '#FFD700',
-            'red': '#8B0000'
-        };
+    const colors = {
+        'cyan': 'rgba(0, 255, 200, 0.6)',
+        'black': '#000000',
+        'gold': '#FFD700',
+        'red': '#8B0000'
+    };
 
-        const strokeColor = colors[color] || colors['cyan'];
-        const lines = linesGroup.querySelectorAll('line');
-        lines.forEach(line => {
-            line.setAttribute('stroke', strokeColor);
-        });
-    }
+    const strokeColor = colors[color] || colors['cyan'];
+    const lines = linesGroup.querySelectorAll('line');
+    lines.forEach(line => {
+        line.setAttribute('stroke', strokeColor);
+    });
+}
 
-    addNewTile() {
-        // Find max ID
-        const tiles = Array.from(this.svg.querySelectorAll('.tile-group'));
-        let maxId = 0;
-        tiles.forEach(t => {
-            const id = parseInt(t.getAttribute('data-id') || 0);
-            if (id > maxId && id < 1000) maxId = id; // Avoid zone IDs like 5000 if simple sequential
-        });
-        // Or if standard sequential 1-80, just max
-        // Actually, let's just use max + 1
-        const newId = maxId + 1;
+addNewTile() {
+    // Find max ID
+    const tiles = Array.from(this.svg.querySelectorAll('.tile-group'));
+    let maxId = 0;
+    tiles.forEach(t => {
+        const id = parseInt(t.getAttribute('data-id') || 0);
+        if (id > maxId && id < 1000) maxId = id; // Avoid zone IDs like 5000 if simple sequential
+    });
+    // Or if standard sequential 1-80, just max
+    // Actually, let's just use max + 1
+    const newId = maxId + 1;
 
-        // Position at center of view or near top left
-        this.tile(100, 100, newId, newId);
+    // Position at center of view or near top left
+    this.tile(100, 100, newId, newId);
 
-        // Feedback
-        // maybe open inspector for it immediately?
-        const newTile = this.svg.querySelector(`.tile-group[data-id="${newId}"]`);
-        if (newTile) this.openInspector(newTile);
-    }
+    // Feedback
+    // maybe open inspector for it immediately?
+    const newTile = this.svg.querySelector(`.tile-group[data-id="${newId}"]`);
+    if (newTile) this.openInspector(newTile);
+}
 
-    openInspector(tileGroup) {
-        this.selectedTile = tileGroup;
-        this.selectedTileId = tileGroup.getAttribute('data-id'); // Track for keyboard shortcuts
-        const id = tileGroup.getAttribute('data-id');
-        const display = tileGroup.getAttribute('data-display');
-        const x = tileGroup.dataset.x || 0;
-        const y = tileGroup.dataset.y || 0;
+openInspector(tileGroup) {
+    this.selectedTile = tileGroup;
+    this.selectedTileId = tileGroup.getAttribute('data-id'); // Track for keyboard shortcuts
+    const id = tileGroup.getAttribute('data-id');
+    const display = tileGroup.getAttribute('data-display');
+    const x = tileGroup.dataset.x || 0;
+    const y = tileGroup.dataset.y || 0;
 
-        // Remove existing inspector window to refresh
-        if (this.inspectorWin) this.inspectorWin.remove();
+    // Remove existing inspector window to refresh
+    if (this.inspectorWin) this.inspectorWin.remove();
 
-        // Infer Type from TILE_TYPE_MAP
-        const typeKey = TILE_TYPE_MAP[String(id)];
-        const tileTypeData = typeKey ? getTileType(id) : { id: 'normal', color: '#A0C4FF' };
-        let type = tileTypeData.id;
-        let col = tileTypeData.color;
+    // Infer Type from TILE_TYPE_MAP
+    const typeKey = TILE_TYPE_MAP[String(id)];
+    const tileTypeData = typeKey ? getTileType(id) : { id: 'normal', color: '#A0C4FF' };
+    let type = tileTypeData.id;
+    let col = tileTypeData.color;
 
-        // CREATE FLOATING WINDOW (PRO DARK THEME)
-        const win = document.createElement('div');
-        this.inspectorWin = win;
-        win.id = 'inspector-floating-window';
+    // CREATE FLOATING WINDOW (PRO DARK THEME)
+    const win = document.createElement('div');
+    this.inspectorWin = win;
+    win.id = 'inspector-floating-window';
 
-        Object.assign(win.style, {
-            position: 'fixed', top: '100px', left: '100px',
-            width: '260px', maxHeight: '85vh', overflowY: 'auto',
-            background: '#1e1e1e', // Unity/VSCode Dark
-            border: '1px solid #333',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            color: '#ccc', fontFamily: 'Segoe UI, sans-serif', fontSize: '12px',
-            zIndex: '10001', display: 'flex', flexDirection: 'column'
-        });
+    Object.assign(win.style, {
+        position: 'fixed', top: '100px', left: '100px',
+        width: '260px', maxHeight: '85vh', overflowY: 'auto',
+        background: '#1e1e1e', // Unity/VSCode Dark
+        border: '1px solid #333',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+        color: '#ccc', fontFamily: 'Segoe UI, sans-serif', fontSize: '12px',
+        zIndex: '10001', display: 'flex', flexDirection: 'column'
+    });
 
-        const rowStyle = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
-        const labelStyle = "color: #9cdcfe; font-weight: 600; min-width: 60px;";
-        const inputStyle = "background: #3c3c3c; border: 1px solid #333; color: white; padding: 4px; width: 100px; border-radius: 2px; outline:none;";
-        const sectionStyle = "background: #252526; padding: 10px; margin-bottom: 1px; border-left: 3px solid #007acc;";
+    const rowStyle = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
+    const labelStyle = "color: #9cdcfe; font-weight: 600; min-width: 60px;";
+    const inputStyle = "background: #3c3c3c; border: 1px solid #333; color: white; padding: 4px; width: 100px; border-radius: 2px; outline:none;";
+    const sectionStyle = "background: #252526; padding: 10px; margin-bottom: 1px; border-left: 3px solid #007acc;";
 
-        win.innerHTML = `
+    win.innerHTML = `
             <div id="insp-header" style="background:#2d2d2d; padding:8px 10px; border-bottom:1px solid #111; cursor:move; display:flex; justify-content:space-between; align-items:center;">
                 <strong style="color:white; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Inspector</strong>
                 <button id="insp-close-btn" style="background:none; border:none; color:#aaa; cursor:pointer;">✕</button>
@@ -1447,20 +1485,20 @@ export class SVGBoardRenderer {
                     <div style="color:#9cdcfe; font-size:11px; margin-bottom:2px;">Next (from buildGraph):</div>
                     <div style="background:#3c3c3c; padding:4px; border-radius:2px; color:#84fab0; word-break:break-all;">
                         ${this.boardGraph && this.boardGraph[id] ?
-                (Array.isArray(this.boardGraph[id].next) ?
-                    this.boardGraph[id].next.join(', ') :
-                    this.boardGraph[id].next) :
-                'NONE'}
+            (Array.isArray(this.boardGraph[id].next) ?
+                this.boardGraph[id].next.join(', ') :
+                this.boardGraph[id].next) :
+            'NONE'}
                     </div>
                 </div>
                 ${this.boardGraph && this.boardGraph[id] && Array.isArray(this.boardGraph[id].next) ?
-                `<div style="margin-top:8px; padding:6px; background:rgba(253,160,133,0.1); border-radius:4px;">
+            `<div style="margin-top:8px; padding:6px; background:rgba(253,160,133,0.1); border-radius:4px;">
                     <div style="color:#fda085; font-weight:bold; font-size:11px; margin-bottom:4px;">🔀 JUNCTION</div>
                     <div style="font-size:10px; color:#ccc;">
                       ${this.boardGraph[id].branchInfo?.map(b => `${b.id}: ${b.label}`).join('<br>') || ''}
                     </div>
                   </div>` :
-                ''}
+            ''}
             </div>
 
                 <!-- Actions -->
@@ -1469,311 +1507,311 @@ export class SVGBoardRenderer {
                 </div>
             </div>
         `;
-        document.body.appendChild(win);
+    document.body.appendChild(win);
 
-        // DRAG LOGIC
-        const hdr = win.querySelector('#insp-header');
-        let isDown = false, offX, offY;
-        hdr.onmousedown = (e) => { isDown = true; offX = e.clientX - win.offsetLeft; offY = e.clientY - win.offsetTop; };
-        document.onmouseup = () => { isDown = false; };
-        document.onmousemove = (e) => {
-            if (isDown) {
-                win.style.left = (e.clientX - offX) + 'px';
-                win.style.top = (e.clientY - offY) + 'px';
-            }
-        };
+    // DRAG LOGIC
+    const hdr = win.querySelector('#insp-header');
+    let isDown = false, offX, offY;
+    hdr.onmousedown = (e) => { isDown = true; offX = e.clientX - win.offsetLeft; offY = e.clientY - win.offsetTop; };
+    document.onmouseup = () => { isDown = false; };
+    document.onmousemove = (e) => {
+        if (isDown) {
+            win.style.left = (e.clientX - offX) + 'px';
+            win.style.top = (e.clientY - offY) + 'px';
+        }
+    };
 
-        // BINDINGS
-        win.querySelector('#insp-close-btn').onclick = () => win.remove();
+    // BINDINGS
+    win.querySelector('#insp-close-btn').onclick = () => win.remove();
 
-        const update = () => {
-            const vNum = win.querySelector('#insp-num').value;
-            const vX = parseInt(win.querySelector('#insp-x').value) || 0;
-            const vY = parseInt(win.querySelector('#insp-y').value) || 0;
-            const vType = win.querySelector('#insp-type').value;
+    const update = () => {
+        const vNum = win.querySelector('#insp-num').value;
+        const vX = parseInt(win.querySelector('#insp-x').value) || 0;
+        const vY = parseInt(win.querySelector('#insp-y').value) || 0;
+        const vType = win.querySelector('#insp-type').value;
 
-            this.selectedTile.setAttribute('data-display', vNum);
-            const txt = this.selectedTile.querySelector('text');
-            if (txt) {
-                txt.textContent = vNum;
-                // Move text to corner for 'Space' look
-                txt.setAttribute('x', '6');
-                txt.setAttribute('y', '14');
-                txt.setAttribute('text-anchor', 'start');
-                txt.setAttribute('font-size', '12');
-                txt.setAttribute('font-weight', 'bold');
-                txt.setAttribute('fill', '#777');
-                txt.removeAttribute('filter');
-            }
+        this.selectedTile.setAttribute('data-display', vNum);
+        const txt = this.selectedTile.querySelector('text');
+        if (txt) {
+            txt.textContent = vNum;
+            // Move text to corner for 'Space' look
+            txt.setAttribute('x', '6');
+            txt.setAttribute('y', '14');
+            txt.setAttribute('text-anchor', 'start');
+            txt.setAttribute('font-size', '12');
+            txt.setAttribute('font-weight', 'bold');
+            txt.setAttribute('fill', '#777');
+            txt.removeAttribute('filter');
+        }
 
-            this.selectedTile.setAttribute('transform', `translate(${vX},${vY})`);
-            this.selectedTile.dataset.x = vX;
-            this.selectedTile.dataset.y = vY;
-            this.drawEdges();
+        this.selectedTile.setAttribute('transform', `translate(${vX},${vY})`);
+        this.selectedTile.dataset.x = vX;
+        this.selectedTile.dataset.y = vY;
+        this.drawEdges();
 
-            // RENDER WITH GAME TILE COLORS
-            const rects = this.selectedTile.querySelectorAll('rect');
-            rects.forEach(re => {
-                re.setAttribute('rx', '4');
-                re.setAttribute('stroke-width', '1');
-                re.removeAttribute('filter');
+        // RENDER WITH GAME TILE COLORS
+        const rects = this.selectedTile.querySelectorAll('rect');
+        rects.forEach(re => {
+            re.setAttribute('rx', '4');
+            re.setAttribute('stroke-width', '1');
+            re.removeAttribute('filter');
 
-                let fill = '#f7f5e6'; // Normal tile color
-                let stroke = '#adb5bd';
+            let fill = '#f7f5e6'; // Normal tile color
+            let stroke = '#adb5bd';
 
-                // Game tile type colors (matching tile-types.js)
-                if (vType === 'zombie') { fill = '#4ade80'; stroke = '#22c55e'; } // Green
-                if (vType === 'luck') { fill = '#a78bfa'; stroke = '#8b5cf6'; }    // Purple
-                if (vType === 'event') { fill = '#fbbf24'; stroke = '#f59e0b'; }   // Yellow
-                if (vType === 'market') { fill = '#f472b6'; stroke = '#ec4899'; }  // Pink
-                if (vType === 'safe') { fill = '#60a5fa'; stroke = '#3b82f6'; }    // Blue
+            // Game tile type colors (matching tile-types.js)
+            if (vType === 'zombie') { fill = '#4ade80'; stroke = '#22c55e'; } // Green
+            if (vType === 'luck') { fill = '#a78bfa'; stroke = '#8b5cf6'; }    // Purple
+            if (vType === 'event') { fill = '#fbbf24'; stroke = '#f59e0b'; }   // Yellow
+            if (vType === 'market') { fill = '#f472b6'; stroke = '#ec4899'; }  // Pink
+            if (vType === 'safe') { fill = '#60a5fa'; stroke = '#3b82f6'; }    // Blue
 
-                re.setAttribute('fill', fill);
-                re.setAttribute('stroke', stroke);
-            });
-        };
-
-        win.querySelectorAll('input, select').forEach(el => el.onchange = update);
-        win.querySelectorAll('input').forEach(el => {
-            if (el.id !== 'insp-new-c') el.oninput = update;
+            re.setAttribute('fill', fill);
+            re.setAttribute('stroke', stroke);
         });
+    };
 
-        win.querySelector('#insp-del').onclick = () => {
-            if (confirm('Delete Object?')) {
-                const nid = parseInt(id);
-                this.modifyEdge(nid, null, 'remove_all'); // Need to handle remove all for id? Or just filter arrays.
-                this.edges = this.edges.filter(e => e[0] !== nid && e[1] !== nid);
-                this.drawEdges();
-                this.selectedTile.remove();
-                win.remove();
-            }
-        };
+    win.querySelectorAll('input, select').forEach(el => el.onchange = update);
+    win.querySelectorAll('input').forEach(el => {
+        if (el.id !== 'insp-new-c') el.oninput = update;
+    });
 
-        // === CONNECTIONS UPDATE ===
-        const connsDiv = win.querySelector('#insp-conn-list');
-        let numId;
-        if (connsDiv) {
-            numId = parseInt(id);
+    win.querySelector('#insp-del').onclick = () => {
+        if (confirm('Delete Object?')) {
+            const nid = parseInt(id);
+            this.modifyEdge(nid, null, 'remove_all'); // Need to handle remove all for id? Or just filter arrays.
+            this.edges = this.edges.filter(e => e[0] !== nid && e[1] !== nid);
+            this.drawEdges();
+            this.selectedTile.remove();
+            win.remove();
+        }
+    };
 
-            // Show connections from boardGraph (game data)
-            if (this.boardGraph && this.boardGraph[id]) {
-                const graphNext = this.boardGraph[id].next;
-                const nextIds = Array.isArray(graphNext) ? graphNext : [graphNext];
+    // === CONNECTIONS UPDATE ===
+    const connsDiv = win.querySelector('#insp-conn-list');
+    let numId;
+    if (connsDiv) {
+        numId = parseInt(id);
 
-                nextIds.forEach(nextId => {
-                    const tag = document.createElement('span');
-                    tag.style.cssText = "background:#4ade80; color:black; padding:2px 8px; border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:5px; margin-right:4px; margin-bottom:4px; font-weight:bold;";
-                    tag.innerHTML = `→ ${nextId} <span style='color:#666; font-size:9px;'>(GAME)</span>`;
-                    connsDiv.appendChild(tag);
-                });
-            }
+        // Show connections from boardGraph (game data)
+        if (this.boardGraph && this.boardGraph[id]) {
+            const graphNext = this.boardGraph[id].next;
+            const nextIds = Array.isArray(graphNext) ? graphNext : [graphNext];
 
-            // Show manual editor edges
-            const myEdges = this.edges.filter(e => e[0] === numId || e[1] === numId);
-            myEdges.forEach(e => {
-                const other = (e[0] === numId) ? e[1] : e[0];
+            nextIds.forEach(nextId => {
                 const tag = document.createElement('span');
-                tag.style.cssText = "background:#0e639c; color:white; padding:2px 8px; border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:5px; margin-right:4px; margin-bottom:4px;";
-                tag.innerHTML = `${other} <span style='cursor:pointer; font-weight:bold; opacity:0.7;'>x</span>`;
-                tag.querySelector('span').onclick = () => {
-                    this.modifyEdge(numId, other, 'remove');
-                    this.openInspector(this.selectedTile);
-                };
+                tag.style.cssText = "background:#4ade80; color:black; padding:2px 8px; border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:5px; margin-right:4px; margin-bottom:4px; font-weight:bold;";
+                tag.innerHTML = `→ ${nextId} <span style='color:#666; font-size:9px;'>(GAME)</span>`;
                 connsDiv.appendChild(tag);
             });
         }
 
-        win.querySelector('#insp-add-c').onclick = () => {
-            const dest = win.querySelector('#insp-new-c').value;
-            if (dest) {
-                this.modifyEdge(numId, parseInt(dest), 'add');
+        // Show manual editor edges
+        const myEdges = this.edges.filter(e => e[0] === numId || e[1] === numId);
+        myEdges.forEach(e => {
+            const other = (e[0] === numId) ? e[1] : e[0];
+            const tag = document.createElement('span');
+            tag.style.cssText = "background:#0e639c; color:white; padding:2px 8px; border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:5px; margin-right:4px; margin-bottom:4px;";
+            tag.innerHTML = `${other} <span style='cursor:pointer; font-weight:bold; opacity:0.7;'>x</span>`;
+            tag.querySelector('span').onclick = () => {
+                this.modifyEdge(numId, other, 'remove');
                 this.openInspector(this.selectedTile);
-            }
-        };
-    }
-
-    setBackgroundImage(url) {
-        // Add image to SVG at bottom
-        // Remove existing background image if any
-        const existing = this.svg.querySelector('.bg-sketch');
-        if (existing) existing.remove();
-
-        const img = document.createElementNS(this.ns, 'image');
-        img.setAttribute('href', url);
-        img.setAttribute('width', this.width);
-        img.setAttribute('height', this.height);
-        img.setAttribute('preserveAspectRatio', 'none'); // Stretch to fit? Or xMidYMid meet?
-        img.setAttribute('class', 'bg-sketch');
-        img.setAttribute('opacity', '0.5'); // Semi-transparent to see tiles on top
-
-        // Prepend so it's behind everything
-        this.svg.insertBefore(img, this.svg.firstChild);
-    }
-
-    exportSkeleton() {
-        const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
-            const id = g.getAttribute('data-id');
-            // Detect type from TILE_TYPE_MAP
-            const typeKey = TILE_TYPE_MAP[String(id)];
-            const tileType = typeKey || 'NORMAL';
-
-            return {
-                id: id,
-                display: g.getAttribute('data-display'),
-                x: parseInt(g.dataset.x),
-                y: parseInt(g.dataset.y),
-                type: tileType
             };
+            connsDiv.appendChild(tag);
         });
-
-        const edges = this.edges;
-
-        const data = { tiles, edges, version: 'v2' };
-        const json = JSON.stringify(data, null, 2);
-        console.log("SKELETON DATA:", json);
-
-        // Save to Local Storage
-        localStorage.setItem('BOARD_LAYOUT_BACKUP', json);
-
-        // Download as file
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `board-layout-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        alert("✅ Guardado en Navegador y descargado como JSON!\n\n🔹 Incluye tipos de casillas\n🔹 Copia al portapapeles también");
-        navigator.clipboard.writeText(json);
     }
 
-    // === PROJECT MANAGEMENT SYSTEM ===
-
-    // Get all projects from localStorage
-    getProjects() {
-        try {
-            const data = localStorage.getItem('editorProjects');
-            return data ? JSON.parse(data) : { projects: [], activeProjectId: null };
-        } catch {
-            return { projects: [], activeProjectId: null };
+    win.querySelector('#insp-add-c').onclick = () => {
+        const dest = win.querySelector('#insp-new-c').value;
+        if (dest) {
+            this.modifyEdge(numId, parseInt(dest), 'add');
+            this.openInspector(this.selectedTile);
         }
-    }
+    };
+}
 
-    // Save projects to localStorage
-    setProjects(data) {
-        localStorage.setItem('editorProjects', JSON.stringify(data));
-    }
+setBackgroundImage(url) {
+    // Add image to SVG at bottom
+    // Remove existing background image if any
+    const existing = this.svg.querySelector('.bg-sketch');
+    if (existing) existing.remove();
 
-    // Get active project
-    getActiveProject() {
-        const data = this.getProjects();
-        if (!data.activeProjectId) return null;
-        return data.projects.find(p => p.id === data.activeProjectId) || null;
-    }
+    const img = document.createElementNS(this.ns, 'image');
+    img.setAttribute('href', url);
+    img.setAttribute('width', this.width);
+    img.setAttribute('height', this.height);
+    img.setAttribute('preserveAspectRatio', 'none'); // Stretch to fit? Or xMidYMid meet?
+    img.setAttribute('class', 'bg-sketch');
+    img.setAttribute('opacity', '0.5'); // Semi-transparent to see tiles on top
 
-    // Get current board data as project data
-    getCurrentBoardData() {
-        const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
-            const id = g.getAttribute('data-id');
-            const typeKey = TILE_TYPE_MAP[String(id)];
-            return {
-                id: id,
-                display: g.getAttribute('data-display'),
-                x: parseInt(g.dataset.x),
-                y: parseInt(g.dataset.y),
-                type: typeKey || 'NORMAL'
-            };
-        });
+    // Prepend so it's behind everything
+    this.svg.insertBefore(img, this.svg.firstChild);
+}
+
+exportSkeleton() {
+    const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
+        const id = g.getAttribute('data-id');
+        // Detect type from TILE_TYPE_MAP
+        const typeKey = TILE_TYPE_MAP[String(id)];
+        const tileType = typeKey || 'NORMAL';
+
         return {
-            tiles,
-            edges: this.edges,
-            boardWidth: this.width || 850,
-            boardHeight: this.height || 1400
+            id: id,
+            display: g.getAttribute('data-display'),
+            x: parseInt(g.dataset.x),
+            y: parseInt(g.dataset.y),
+            type: tileType
         };
+    });
+
+    const edges = this.edges;
+
+    const data = { tiles, edges, version: 'v2' };
+    const json = JSON.stringify(data, null, 2);
+    console.log("SKELETON DATA:", json);
+
+    // Save to Local Storage
+    localStorage.setItem('BOARD_LAYOUT_BACKUP', json);
+
+    // Download as file
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `board-layout-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    alert("✅ Guardado en Navegador y descargado como JSON!\n\n🔹 Incluye tipos de casillas\n🔹 Copia al portapapeles también");
+    navigator.clipboard.writeText(json);
+}
+
+// === PROJECT MANAGEMENT SYSTEM ===
+
+// Get all projects from localStorage
+getProjects() {
+    try {
+        const data = localStorage.getItem('editorProjects');
+        return data ? JSON.parse(data) : { projects: [], activeProjectId: null };
+    } catch {
+        return { projects: [], activeProjectId: null };
     }
+}
 
-    // Save current project
-    saveCurrentProject() {
-        const data = this.getProjects();
-        const activeProject = data.projects.find(p => p.id === data.activeProjectId);
+// Save projects to localStorage
+setProjects(data) {
+    localStorage.setItem('editorProjects', JSON.stringify(data));
+}
 
-        if (activeProject) {
-            // Update existing project
-            activeProject.data = this.getCurrentBoardData();
-            activeProject.modified = new Date().toISOString();
-            this.setProjects(data);
-            alert(`✅ Proyecto "${activeProject.name}" guardado!`);
-        } else {
-            // Create new project
-            const name = prompt('Nombre del proyecto:');
-            if (!name || !name.trim()) return;
+// Get active project
+getActiveProject() {
+    const data = this.getProjects();
+    if (!data.activeProjectId) return null;
+    return data.projects.find(p => p.id === data.activeProjectId) || null;
+}
 
-            const newProject = {
-                id: 'proj_' + Date.now(),
-                name: name.trim(),
-                created: new Date().toISOString(),
-                modified: new Date().toISOString(),
-                data: this.getCurrentBoardData()
-            };
+// Get current board data as project data
+getCurrentBoardData() {
+    const tiles = Array.from(this.svg.querySelectorAll('.tile-group')).map(g => {
+        const id = g.getAttribute('data-id');
+        const typeKey = TILE_TYPE_MAP[String(id)];
+        return {
+            id: id,
+            display: g.getAttribute('data-display'),
+            x: parseInt(g.dataset.x),
+            y: parseInt(g.dataset.y),
+            type: typeKey || 'NORMAL'
+        };
+    });
+    return {
+        tiles,
+        edges: this.edges,
+        boardWidth: this.width || 850,
+        boardHeight: this.height || 1400
+    };
+}
 
-            data.projects.push(newProject);
-            data.activeProjectId = newProject.id;
-            this.setProjects(data);
+// Save current project
+saveCurrentProject() {
+    const data = this.getProjects();
+    const activeProject = data.projects.find(p => p.id === data.activeProjectId);
 
-            alert(`✅ Proyecto "${name}" creado!`);
-            this.drawUnifiedControls(); // Refresh panel to show new name
-        }
-    }
-
-    // Create new project
-    newProject() {
-        const data = this.getProjects();
-        const activeProject = data.projects.find(p => p.id === data.activeProjectId);
-
-        if (activeProject && !confirm('¿Crear nuevo proyecto?\n\nEl proyecto actual se guardará primero.')) {
-            return;
-        }
-
-        // Save current if exists
-        if (activeProject) {
-            activeProject.data = this.getCurrentBoardData();
-            activeProject.modified = new Date().toISOString();
-        }
-
-        // Clear active project and board
-        data.activeProjectId = null;
+    if (activeProject) {
+        // Update existing project
+        activeProject.data = this.getCurrentBoardData();
+        activeProject.modified = new Date().toISOString();
         this.setProjects(data);
-        this.clearAllTiles();
-        this.drawUnifiedControls();
+        alert(`✅ Proyecto "${activeProject.name}" guardado!`);
+    } else {
+        // Create new project
+        const name = prompt('Nombre del proyecto:');
+        if (!name || !name.trim()) return;
+
+        const newProject = {
+            id: 'proj_' + Date.now(),
+            name: name.trim(),
+            created: new Date().toISOString(),
+            modified: new Date().toISOString(),
+            data: this.getCurrentBoardData()
+        };
+
+        data.projects.push(newProject);
+        data.activeProjectId = newProject.id;
+        this.setProjects(data);
+
+        alert(`✅ Proyecto "${name}" creado!`);
+        this.drawUnifiedControls(); // Refresh panel to show new name
+    }
+}
+
+// Create new project
+newProject() {
+    const data = this.getProjects();
+    const activeProject = data.projects.find(p => p.id === data.activeProjectId);
+
+    if (activeProject && !confirm('¿Crear nuevo proyecto?\n\nEl proyecto actual se guardará primero.')) {
+        return;
     }
 
-    // Show project list modal
-    showProjectList(mode) {
-        const data = this.getProjects();
+    // Save current if exists
+    if (activeProject) {
+        activeProject.data = this.getCurrentBoardData();
+        activeProject.modified = new Date().toISOString();
+    }
 
-        if (data.projects.length === 0) {
-            alert('📁 No hay proyectos guardados.\n\nUsa "💾 Guardar" para crear uno.');
-            return;
-        }
+    // Clear active project and board
+    data.activeProjectId = null;
+    this.setProjects(data);
+    this.clearAllTiles();
+    this.drawUnifiedControls();
+}
 
-        // Create modal
-        let modal = document.getElementById('project-modal');
-        if (modal) modal.remove();
+// Show project list modal
+showProjectList(mode) {
+    const data = this.getProjects();
 
-        modal = document.createElement('div');
-        modal.id = 'project-modal';
-        modal.style.cssText = `
+    if (data.projects.length === 0) {
+        alert('📁 No hay proyectos guardados.\n\nUsa "💾 Guardar" para crear uno.');
+        return;
+    }
+
+    // Create modal
+    let modal = document.getElementById('project-modal');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
+    modal.id = 'project-modal';
+    modal.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 10001;
             display: flex; align-items: center; justify-content: center;
         `;
 
-        const title = mode === 'load' ? '📂 Cargar Proyecto' : '🗑️ Eliminar Proyecto';
-        const actionBtn = mode === 'load' ? '📂 Cargar' : '🗑️ Eliminar';
-        const actionColor = mode === 'load' ? '#17a2b8' : '#dc3545';
+    const title = mode === 'load' ? '📂 Cargar Proyecto' : '🗑️ Eliminar Proyecto';
+    const actionBtn = mode === 'load' ? '📂 Cargar' : '🗑️ Eliminar';
+    const actionColor = mode === 'load' ? '#17a2b8' : '#dc3545';
 
-        modal.innerHTML = `
+    modal.innerHTML = `
             <div style="background:#1e1e1e; border-radius:12px; width:320px; max-height:80vh; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
                 <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; color:#fff; font-size:16px;">${title}</h3>
@@ -1802,1188 +1840,1446 @@ export class SVGBoardRenderer {
             </div>
         `;
 
-        document.body.appendChild(modal);
+    document.body.appendChild(modal);
 
-        let selectedId = null;
-        const actionBtnEl = document.getElementById('project-action-btn');
+    let selectedId = null;
+    const actionBtnEl = document.getElementById('project-action-btn');
 
-        // Selection handlers
-        modal.querySelectorAll('.project-item').forEach(item => {
-            item.onclick = () => {
-                modal.querySelectorAll('.project-item').forEach(i => i.style.background = '#2d2d2d');
-                item.style.background = '#3d3d3d';
-                selectedId = item.dataset.id;
-                actionBtnEl.disabled = false;
-                actionBtnEl.style.opacity = '1';
-            };
-        });
-
-        // Close button
-        document.getElementById('close-project-modal').onclick = () => modal.remove();
-
-        // Action button
-        actionBtnEl.onclick = () => {
-            if (!selectedId) return;
-
-            if (mode === 'load') {
-                this.loadProject(selectedId);
-            } else {
-                this.deleteProject(selectedId);
-            }
-            modal.remove();
+    // Selection handlers
+    modal.querySelectorAll('.project-item').forEach(item => {
+        item.onclick = () => {
+            modal.querySelectorAll('.project-item').forEach(i => i.style.background = '#2d2d2d');
+            item.style.background = '#3d3d3d';
+            selectedId = item.dataset.id;
+            actionBtnEl.disabled = false;
+            actionBtnEl.style.opacity = '1';
         };
+    });
 
-        // Click outside to close
-        modal.onclick = (e) => {
-            if (e.target === modal) modal.remove();
-        };
-    }
+    // Close button
+    document.getElementById('close-project-modal').onclick = () => modal.remove();
 
-    // Load project by ID
-    loadProject(projectId) {
-        const data = this.getProjects();
-        const project = data.projects.find(p => p.id === projectId);
+    // Action button
+    actionBtnEl.onclick = () => {
+        if (!selectedId) return;
 
-        if (!project) {
-            alert('❌ Proyecto no encontrado');
-            return;
-        }
-
-        // Set as active
-        data.activeProjectId = projectId;
-        this.setProjects(data);
-
-        // Load board data
-        if (project.data) {
-            const layoutJson = JSON.stringify({
-                tiles: project.data.tiles,
-                edges: project.data.edges,
-                version: 'v2'
-            });
-            localStorage.setItem('BOARD_LAYOUT_BACKUP', layoutJson);
-
-            // Reload to apply
-            alert(`📂 Cargando proyecto "${project.name}"...`);
-            window.location.reload();
-        }
-    }
-
-    // Delete project by ID
-    deleteProject(projectId) {
-        const data = this.getProjects();
-        const project = data.projects.find(p => p.id === projectId);
-
-        if (!project) return;
-
-        if (!confirm(`¿Eliminar proyecto "${project.name}"?\n\nEsta acción no se puede deshacer.`)) {
-            return;
-        }
-
-        data.projects = data.projects.filter(p => p.id !== projectId);
-
-        if (data.activeProjectId === projectId) {
-            data.activeProjectId = null;
-        }
-
-        this.setProjects(data);
-        alert(`🗑️ Proyecto "${project.name}" eliminado`);
-        this.drawUnifiedControls();
-    }
-
-    // Render visual grid on the board
-    renderGrid() {
-        // Remove existing grid
-        const existingGrid = this.svg.querySelector('#editor-grid');
-        if (existingGrid) existingGrid.remove();
-
-        if (!this.showGrid) return;
-
-        const gridGroup = document.createElementNS(this.ns, 'g');
-        gridGroup.id = 'editor-grid';
-        gridGroup.style.pointerEvents = 'none'; // Don't interfere with clicks
-
-        const width = this.width || 850;
-        const height = this.height || 1400;
-        const size = this.gridSize || 25;
-
-        // Create grid pattern using lines
-        // Vertical lines
-        for (let x = 0; x <= width; x += size) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', 0);
-            line.setAttribute('x2', x);
-            line.setAttribute('y2', height);
-            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
-            line.setAttribute('stroke-width', '0.5');
-            gridGroup.appendChild(line);
-        }
-
-        // Horizontal lines
-        for (let y = 0; y <= height; y += size) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', 0);
-            line.setAttribute('y1', y);
-            line.setAttribute('x2', width);
-            line.setAttribute('y2', y);
-            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
-            line.setAttribute('stroke-width', '0.5');
-            gridGroup.appendChild(line);
-        }
-
-        // Major gridlines every 100px
-        for (let x = 0; x <= width; x += 100) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', 0);
-            line.setAttribute('x2', x);
-            line.setAttribute('y2', height);
-            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
-            line.setAttribute('stroke-width', '1');
-            gridGroup.appendChild(line);
-        }
-        for (let y = 0; y <= height; y += 100) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', 0);
-            line.setAttribute('y1', y);
-            line.setAttribute('x2', width);
-            line.setAttribute('y2', y);
-            line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
-            line.setAttribute('stroke-width', '1');
-            gridGroup.appendChild(line);
-        }
-
-        // Insert at beginning of rootGroup so it's behind tiles
-        this.rootGroup.insertBefore(gridGroup, this.rootGroup.firstChild);
-        console.log(`📐 [GRID] Rendered grid: ${size}px spacing`);
-    }
-
-    // Snap position to grid
-    snapToGridPos(value) {
-        if (!this.snapToGrid) return value;
-        const size = this.gridSize || 25;
-        return Math.round(value / size) * size;
-    }
-
-    // Set board size
-    setBoardSize(width, height) {
-        this.width = width;
-        this.height = height;
-
-        // Update SVG viewBox
-        if (this.svg) {
-            this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-            console.log(`📐 Board size updated: ${width}×${height}px`);
-        }
-    }
-
-    // Clear all tiles from board
-    clearAllTiles() {
-        if (!this.svg) return;
-
-        // Remove all tile groups
-        const tiles = this.svg.querySelectorAll('.tile-group');
-        tiles.forEach(tile => tile.remove());
-
-        // Clear edges
-        this.edges = [];
-        this.drawEdges();
-
-        // Close inspector if open
-        if (this.inspectorWin) this.inspectorWin.remove();
-
-        console.log('🗑️ All tiles cleared');
-        alert('✅ Todas las casillas eliminadas\n\n Usa ➕ para crear nuevas');
-    }
-
-    drawBoard() {
-        this.edges = []; // Reset edges
-        this.tileIdx = 0; // Reset counter for layout overrides
-
-        // Use this.layoutData from Constructor (Imported or LocalStorage)
-
-
-        // --- DEFINITIONS (Gradients & Shadows) ---
-
-        const defs = document.createElementNS(this.ns, 'defs');
-        // ... (Filters code assumed unchanged, reuse existing but need to ensure it's here if replacing whole function? 
-        // No, I'm replacing the whole drawBoard, so I must include the definitions.)
-
-        // 1. Soft Drop Shadow
-        const shadowFilter = document.createElementNS(this.ns, 'filter');
-        shadowFilter.setAttribute('id', 'softShadow');
-        shadowFilter.setAttribute('x', '-50%');
-        shadowFilter.setAttribute('y', '-50%');
-        shadowFilter.setAttribute('width', '200%');
-        shadowFilter.setAttribute('height', '200%');
-        const blur = document.createElementNS(this.ns, 'feGaussianBlur');
-        blur.setAttribute('in', 'SourceAlpha'); blur.setAttribute('stdDeviation', '3');
-        const offset = document.createElementNS(this.ns, 'feOffset');
-        offset.setAttribute('dx', '2'); offset.setAttribute('dy', '4'); offset.setAttribute('result', 'offsetblur');
-        const flood = document.createElementNS(this.ns, 'feFlood');
-        flood.setAttribute('flood-color', 'rgba(0,0,0,0.3)');
-        const composite = document.createElementNS(this.ns, 'feComposite');
-        composite.setAttribute('in2', 'offsetblur'); composite.setAttribute('operator', 'in');
-        const merge = document.createElementNS(this.ns, 'feMerge');
-        const node1 = document.createElementNS(this.ns, 'feMergeNode');
-        const node2 = document.createElementNS(this.ns, 'feMergeNode');
-        node2.setAttribute('in', 'SourceGraphic');
-        merge.appendChild(node1); merge.appendChild(node2);
-        shadowFilter.appendChild(blur); shadowFilter.appendChild(offset);
-        shadowFilter.appendChild(flood); shadowFilter.appendChild(composite); shadowFilter.appendChild(merge);
-        defs.appendChild(shadowFilter);
-
-        // 2. Gradients
-        const gradients = [
-            { id: 'gradBlue', start: '#4facfe', end: '#00f2fe' },
-            { id: 'gradRed', start: '#ff9a9e', end: '#fecfef' },
-            { id: 'gradYellow', start: '#f6d365', end: '#fda085' },
-            { id: 'gradGreen', start: '#84fab0', end: '#8fd3f4' },
-            { id: 'gradSafe', start: '#43e97b', end: '#38f9d7' },
-            { id: 'gradMortal', start: '#fa709a', end: '#fee140' },
-            { id: 'gradGray', start: '#ffffff', end: '#ced4da' }
-        ];
-        gradients.forEach(g => {
-            const lg = document.createElementNS(this.ns, 'linearGradient');
-            lg.setAttribute('id', g.id);
-            lg.setAttribute('x1', '0%'); lg.setAttribute('x2', '100%'); lg.setAttribute('y1', '0%'); lg.setAttribute('y2', '100%');
-            const stop1 = document.createElementNS(this.ns, 'stop');
-            stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', g.start);
-            const stop2 = document.createElementNS(this.ns, 'stop');
-            stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', g.end);
-            lg.appendChild(stop1); lg.appendChild(stop2);
-            defs.appendChild(lg);
-        });
-        this.svg.appendChild(defs);
-
-        // Background - Either Tilemap or Image
-        if (this.useTilemap) {
-            // Initialize TileRenderer if not already done
-            if (!this.tileRenderer) {
-                this.tileRenderer = new TileRenderer(this.svg, this.ns);
-            }
-
-            // Render dark background first
-            const bg = document.createElementNS(this.ns, 'rect');
-            bg.setAttribute('width', this.width);
-            bg.setAttribute('height', this.height);
-            bg.setAttribute('fill', '#1a1f1a');
-            this.rootGroup.appendChild(bg);
-
-            // Render city tilemap
-            this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
+        if (mode === 'load') {
+            this.loadProject(selectedId);
         } else {
-            // LAYER 1: Zombie City Background Image
-            const bg = document.createElementNS(this.ns, 'image');
-            bg.setAttribute('width', this.width);
-            bg.setAttribute('height', this.height);
-            bg.setAttribute('href', './assets/zombie-city-bg.jpg');
-            bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-            this.rootGroup.appendChild(bg);
+            this.deleteProject(selectedId);
+        }
+        modal.remove();
+    };
+
+    // Click outside to close
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// Load project by ID
+loadProject(projectId) {
+    const data = this.getProjects();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        alert('❌ Proyecto no encontrado');
+        return;
+    }
+
+    // Set as active
+    data.activeProjectId = projectId;
+    this.setProjects(data);
+
+    // Load board data
+    if (project.data) {
+        const layoutJson = JSON.stringify({
+            tiles: project.data.tiles,
+            edges: project.data.edges,
+            version: 'v2'
+        });
+        localStorage.setItem('BOARD_LAYOUT_BACKUP', layoutJson);
+
+        // Reload to apply
+        alert(`📂 Cargando proyecto "${project.name}"...`);
+        window.location.reload();
+    }
+}
+
+// Delete project by ID
+deleteProject(projectId) {
+    const data = this.getProjects();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) return;
+
+    if (!confirm(`¿Eliminar proyecto "${project.name}"?\n\nEsta acción no se puede deshacer.`)) {
+        return;
+    }
+
+    data.projects = data.projects.filter(p => p.id !== projectId);
+
+    if (data.activeProjectId === projectId) {
+        data.activeProjectId = null;
+    }
+
+    this.setProjects(data);
+    alert(`🗑️ Proyecto "${project.name}" eliminado`);
+    this.drawUnifiedControls();
+}
+
+// Render visual grid on the board
+renderGrid() {
+    // Remove existing grid
+    const existingGrid = this.svg.querySelector('#editor-grid');
+    if (existingGrid) existingGrid.remove();
+
+    if (!this.showGrid) return;
+
+    const gridGroup = document.createElementNS(this.ns, 'g');
+    gridGroup.id = 'editor-grid';
+    gridGroup.style.pointerEvents = 'none'; // Don't interfere with clicks
+
+    const width = this.width || 850;
+    const height = this.height || 1400;
+    const size = this.gridSize || 25;
+
+    // Create grid pattern using lines
+    // Vertical lines
+    for (let x = 0; x <= width; x += size) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', height);
+        line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
+        line.setAttribute('stroke-width', '0.5');
+        gridGroup.appendChild(line);
+    }
+
+    // Horizontal lines
+    for (let y = 0; y <= height; y += size) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', width);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', 'rgba(100, 126, 234, 0.2)');
+        line.setAttribute('stroke-width', '0.5');
+        gridGroup.appendChild(line);
+    }
+
+    // Major gridlines every 100px
+    for (let x = 0; x <= width; x += 100) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', height);
+        line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
+        line.setAttribute('stroke-width', '1');
+        gridGroup.appendChild(line);
+    }
+    for (let y = 0; y <= height; y += 100) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', width);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', 'rgba(100, 126, 234, 0.5)');
+        line.setAttribute('stroke-width', '1');
+        gridGroup.appendChild(line);
+    }
+
+    // Insert at beginning of rootGroup so it's behind tiles
+    this.rootGroup.insertBefore(gridGroup, this.rootGroup.firstChild);
+    console.log(`📐 [GRID] Rendered grid: ${size}px spacing`);
+}
+
+// Snap position to grid
+snapToGridPos(value) {
+    if (!this.snapToGrid) return value;
+    const size = this.gridSize || 25;
+    return Math.round(value / size) * size;
+}
+
+// Set board size
+setBoardSize(width, height) {
+    this.width = width;
+    this.height = height;
+
+    // Update SVG viewBox
+    if (this.svg) {
+        this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        console.log(`📐 Board size updated: ${width}×${height}px`);
+    }
+}
+
+// Clear all tiles from board
+clearAllTiles() {
+    if (!this.svg) return;
+
+    // Remove all tile groups
+    const tiles = this.svg.querySelectorAll('.tile-group');
+    tiles.forEach(tile => tile.remove());
+
+    // Clear edges
+    this.edges = [];
+    this.drawEdges();
+
+    // Close inspector if open
+    if (this.inspectorWin) this.inspectorWin.remove();
+
+    console.log('🗑️ All tiles cleared');
+    alert('✅ Todas las casillas eliminadas\n\n Usa ➕ para crear nuevas');
+}
+
+drawBoard() {
+    this.edges = []; // Reset edges
+    this.tileIdx = 0; // Reset counter for layout overrides
+
+    // Use this.layoutData from Constructor (Imported or LocalStorage)
+
+
+    // --- DEFINITIONS (Gradients & Shadows) ---
+
+    const defs = document.createElementNS(this.ns, 'defs');
+    // ... (Filters code assumed unchanged, reuse existing but need to ensure it's here if replacing whole function? 
+    // No, I'm replacing the whole drawBoard, so I must include the definitions.)
+
+    // 1. Soft Drop Shadow
+    const shadowFilter = document.createElementNS(this.ns, 'filter');
+    shadowFilter.setAttribute('id', 'softShadow');
+    shadowFilter.setAttribute('x', '-50%');
+    shadowFilter.setAttribute('y', '-50%');
+    shadowFilter.setAttribute('width', '200%');
+    shadowFilter.setAttribute('height', '200%');
+    const blur = document.createElementNS(this.ns, 'feGaussianBlur');
+    blur.setAttribute('in', 'SourceAlpha'); blur.setAttribute('stdDeviation', '3');
+    const offset = document.createElementNS(this.ns, 'feOffset');
+    offset.setAttribute('dx', '2'); offset.setAttribute('dy', '4'); offset.setAttribute('result', 'offsetblur');
+    const flood = document.createElementNS(this.ns, 'feFlood');
+    flood.setAttribute('flood-color', 'rgba(0,0,0,0.3)');
+    const composite = document.createElementNS(this.ns, 'feComposite');
+    composite.setAttribute('in2', 'offsetblur'); composite.setAttribute('operator', 'in');
+    const merge = document.createElementNS(this.ns, 'feMerge');
+    const node1 = document.createElementNS(this.ns, 'feMergeNode');
+    const node2 = document.createElementNS(this.ns, 'feMergeNode');
+    node2.setAttribute('in', 'SourceGraphic');
+    merge.appendChild(node1); merge.appendChild(node2);
+    shadowFilter.appendChild(blur); shadowFilter.appendChild(offset);
+    shadowFilter.appendChild(flood); shadowFilter.appendChild(composite); shadowFilter.appendChild(merge);
+    defs.appendChild(shadowFilter);
+
+    // 2. Gradients
+    const gradients = [
+        { id: 'gradBlue', start: '#4facfe', end: '#00f2fe' },
+        { id: 'gradRed', start: '#ff9a9e', end: '#fecfef' },
+        { id: 'gradYellow', start: '#f6d365', end: '#fda085' },
+        { id: 'gradGreen', start: '#84fab0', end: '#8fd3f4' },
+        { id: 'gradSafe', start: '#43e97b', end: '#38f9d7' },
+        { id: 'gradMortal', start: '#fa709a', end: '#fee140' },
+        { id: 'gradGray', start: '#ffffff', end: '#ced4da' }
+    ];
+    gradients.forEach(g => {
+        const lg = document.createElementNS(this.ns, 'linearGradient');
+        lg.setAttribute('id', g.id);
+        lg.setAttribute('x1', '0%'); lg.setAttribute('x2', '100%'); lg.setAttribute('y1', '0%'); lg.setAttribute('y2', '100%');
+        const stop1 = document.createElementNS(this.ns, 'stop');
+        stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', g.start);
+        const stop2 = document.createElementNS(this.ns, 'stop');
+        stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', g.end);
+        lg.appendChild(stop1); lg.appendChild(stop2);
+        defs.appendChild(lg);
+    });
+    this.svg.appendChild(defs);
+
+    // Background - Either Tilemap or Image
+    if (this.useTilemap) {
+        // Initialize TileRenderer if not already done
+        if (!this.tileRenderer) {
+            this.tileRenderer = new TileRenderer(this.svg, this.ns);
         }
 
-        // CHECK FOR FULL SNAPSHOT
-        if (this.layoutData && !Array.isArray(this.layoutData) && this.layoutData.tiles) {
-            console.log("Loading Full Snapshot Mode...");
-            // Render Border
-            this.drawWorldBorder();
-            // Render Decoration
-            // this.drawDecoration(); // Disabled - decorative lines removed
+        // Render dark background first
+        const bg = document.createElementNS(this.ns, 'rect');
+        bg.setAttribute('width', this.width);
+        bg.setAttribute('height', this.height);
+        bg.setAttribute('fill', '#1a1f1a');
+        this.rootGroup.appendChild(bg);
 
-            // Render Tiles from Snapshot
-            this.layoutData.tiles.forEach(t => {
-                // Draw all tiles including START (0) and FINAL (80)
-                this.tile(t.x, t.y, t.id, t.display || t.id);
-            });
-            // Load Edges
-            this.edges = this.layoutData.edges || [];
-            this.drawEdges();
-            // this.drawCenter(); // Disabled - decorative center lines removed
-            return; // SKIP STANDARD GENERATION
-        }
+        // Render city tilemap
+        this.tileRenderer.renderMap(CITY_TILEMAP, this.rootGroup);
+    } else {
+        // LAYER 1: Zombie City Background Image
+        const bg = document.createElementNS(this.ns, 'image');
+        bg.setAttribute('width', this.width);
+        bg.setAttribute('height', this.height);
+        bg.setAttribute('href', './assets/zombie-city-bg.jpg');
+        bg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        this.rootGroup.appendChild(bg);
+    }
 
-        const s = this.ts + this.gap;
-
+    // CHECK FOR FULL SNAPSHOT
+    if (this.layoutData && !Array.isArray(this.layoutData) && this.layoutData.tiles) {
+        console.log("Loading Full Snapshot Mode...");
         // Render Border
         this.drawWorldBorder();
-
-        // Decoration (Moved to helper to allow reuse)
+        // Render Decoration
         // this.drawDecoration(); // Disabled - decorative lines removed
-        // === INICIO ===
 
-
-        // === ZONA INFERIOR: 1-10 ===
-        let x = 150;
-        const bottomY = 710;
-        for (let i = 1; i <= 10; i++) {
-            this.tile(x, bottomY, i, i);
-            if (i > 1) this.addEdge(i - 1, i);
-            x += s;
-        }
-        // Connect 10 to Next (Split)
-        // 10 connects to start of A, B, C
-
-        // === BIFURCACIÓN A/B/C: 12-18 ===
-        const bx = x + 15;
-        const parallelIndices = [12, 13, 14, 15, 16, 17];
-
-        // IDs: Row A (10xx), Row B (20xx), Row C (30xx)
-
-        // Draw & Edge Logic
-        // Row A (Top): 12, 13, 14
-        this.tile(bx, bottomY - 50, 1012, 12); this.addEdge(10, 1012);
-        this.tile(bx + s, bottomY - 50, 1013, 13); this.addEdge(1012, 1013);
-        this.tile(bx + s * 2, bottomY - 50, 1014, 14); this.addEdge(1013, 1014);
-
-        // Row B (Mid): 12..17
-        this.tile(bx, bottomY, 2012, 12); this.addEdge(10, 2012);
-        let prev = 2012;
-        [13, 14, 15, 16, 17].forEach(n => {
-            let id = 2000 + n;
-            this.tile(bx + (n - 12) * s + s, bottomY, id, n);
-            this.addEdge(prev, id);
-            prev = id;
+        // Render Tiles from Snapshot
+        this.layoutData.tiles.forEach(t => {
+            // Draw all tiles including START (0) and FINAL (80)
+            this.tile(t.x, t.y, t.id, t.display || t.id);
         });
-
-        // Row C (Bot): 12, 13, 14
-        this.tile(bx, bottomY + 50, 3012, 12); this.addEdge(10, 3012);
-        this.tile(bx + s, bottomY + 50, 3013, 13); this.addEdge(3012, 3013);
-        this.tile(bx + s * 2, bottomY + 50, 3014, 14); this.addEdge(3013, 3014);
-
-        // Merge (18)
-        x = bx + s * 4 + 20;
-        this.tile(x, bottomY, 18, 18);
-        this.addEdge(1014, 18);
-        this.addEdge(prev, 18); // 2017
-        this.addEdge(3014, 18);
-
-        // === ZONA DERECHA: 19-25 ===
-        x = 1250;
-        let y = 710;
-        this.addEdge(18, 19);
-        for (let i = 19; i <= 25; i++) {
-            this.tile(x, y, i, i);
-            if (i > 19) this.addEdge(i - 1, i);
-            y -= s;
-        }
-
-        // === DIAMANTE: 26-33 ===
-        y -= s;
-        this.tile(x, y, 26, 26); this.addEdge(25, 26);
-
-        // Left Branch (27-30) unique IDs standard
-        this.tile(x - 45, y - 45, 27, 27); this.addEdge(26, 27);
-        this.tile(x - 45, y - 90, 28, 28); this.addEdge(27, 28);
-        this.tile(x - 45, y - 135, 29, 29); this.addEdge(28, 29);
-        this.tile(x - 45, y - 180, 30, 30); this.addEdge(29, 30);
-
-        // Right Branch (31-33)
-        this.tile(x + 45, y - 45, 31, 31); this.addEdge(26, 31);
-        this.tile(x + 45, y - 90, 32, 32); this.addEdge(31, 32);
-        this.tile(x + 45, y - 135, 33, 33); this.addEdge(32, 33);
-
-        // Exit (34)
-        const zigY = y - 225;
-        this.tile(x, zigY, 34, 34);
-        this.addEdge(30, 34);
-        this.addEdge(33, 34);
-
-        // === ZIG-ZAG: 35-50 ===
-        let zigX = x - 45;
-        let up = false;
-        this.addEdge(34, 35);
-        for (let i = 35; i <= 50; i++) {
-            const yOff = up ? -30 : 30;
-            this.tile(zigX, zigY + yOff, i, i);
-            if (i > 35) this.addEdge(i - 1, i);
-            zigX -= 42;
-            up = !up;
-        }
-
-        // === ZONA SUPERIOR PARALELA: 51-64 ===
-        const topY = 80;
-        const mortRowY = 150;
-        let px = 350;
-
-        // Split from 50
-        this.addEdge(50, 5051); // Safe start
-        this.addEdge(50, 6051); // Mortal start
-
-        // Safe (50xx)
-        for (let i = 0; i < 14; i++) {
-            const n = 51 + i;
-            const id = 5000 + n;
-            this.tile(px + i * s, topY, id, n);
-            if (i > 0) this.addEdge(5000 + n - 1, id);
-        }
-
-        // Mortal (60xx)
-        // px reset if aligned left? Yes px=350
-        for (let i = 0; i < 10; i++) {
-            const n = 51 + i;
-            const id = 6000 + n;
-            this.tile(px + i * s, mortRowY, id, n);
-            if (i > 0) this.addEdge(6000 + n - 1, id);
-        }
-
-        // Merge to 65?
-        // Safe 5064 -> 65
-        this.addEdge(5064, 65);
-        // Mortal 6060 -> 65? Or Penalty? Assuming merge for visual graph
-        this.addEdge(6060, 65);
-
-        // === SERPIENTE: 65-80 ===
-        const snake = [
-            [180, 220], [155, 260], [130, 300], [110, 345],
-            [95, 390], [85, 435], [100, 480], [125, 520],
-            [150, 555], [130, 595], [105, 635], [85, 670],
-            [70, 710], [90, 750], [120, 780], [155, 795]
-        ];
-        snake.forEach((pos, i) => {
-            const n = 65 + i;
-            this.tile(pos[0], pos[1], n, n);
-            if (i > 0) this.addEdge(n - 1, n);
-        });
-
-        // === META ===
-        // === META ===
-        this.box(30, 550, 70, 50, 'META', '#DC3545', '#fff');
-        this.addEdge(80, 8081); // Legacy
-
-        this.drawEdges(); // Initial edge draw
+        // Load Edges
+        this.edges = this.layoutData.edges || [];
+        this.drawEdges();
         // this.drawCenter(); // Disabled - decorative center lines removed
+        return; // SKIP STANDARD GENERATION
     }
 
-    drawWorldBorder() {
-        // Dynamic Wood Frame inside SVG
-        const frame = document.createElementNS(this.ns, 'rect');
-        frame.setAttribute('x', 0);
-        frame.setAttribute('y', 0);
-        frame.setAttribute('width', this.width);
-        frame.setAttribute('height', this.height);
-        frame.setAttribute('fill', 'none');
-        frame.setAttribute('stroke', '#5D4037'); // Wood Dark
-        frame.setAttribute('stroke-width', '24'); // Thick Border
-        frame.setAttribute('rx', '12'); // Rounded corners inside
+    const s = this.ts + this.gap;
 
-        // Inner Bevel (simulated with another rect)
-        const bevel = document.createElementNS(this.ns, 'rect');
-        bevel.setAttribute('x', 12);
-        bevel.setAttribute('y', 12);
-        bevel.setAttribute('width', this.width - 24);
-        bevel.setAttribute('height', this.height - 24);
-        bevel.setAttribute('fill', 'none');
-        bevel.setAttribute('stroke', '#3E2723'); // Darker Inner
-        bevel.setAttribute('stroke-width', '4');
-        bevel.setAttribute('rx', '8');
+    // Render Border
+    this.drawWorldBorder();
 
-        // Append to SVG (Background Layer)
-        // Insert at beginning to be behind everything? No, border should be visually on top?
-        // If on top, it borders everything. If behind, tiles might overlap.
-        // Usually frames are on top.
-        this.rootGroup.appendChild(frame);
-        this.rootGroup.appendChild(bevel);
+    // Decoration (Moved to helper to allow reuse)
+    // this.drawDecoration(); // Disabled - decorative lines removed
+    // === INICIO ===
+
+
+    // === ZONA INFERIOR: 1-10 ===
+    let x = 150;
+    const bottomY = 710;
+    for (let i = 1; i <= 10; i++) {
+        this.tile(x, bottomY, i, i);
+        if (i > 1) this.addEdge(i - 1, i);
+        x += s;
+    }
+    // Connect 10 to Next (Split)
+    // 10 connects to start of A, B, C
+
+    // === BIFURCACIÓN A/B/C: 12-18 ===
+    const bx = x + 15;
+    const parallelIndices = [12, 13, 14, 15, 16, 17];
+
+    // IDs: Row A (10xx), Row B (20xx), Row C (30xx)
+
+    // Draw & Edge Logic
+    // Row A (Top): 12, 13, 14
+    this.tile(bx, bottomY - 50, 1012, 12); this.addEdge(10, 1012);
+    this.tile(bx + s, bottomY - 50, 1013, 13); this.addEdge(1012, 1013);
+    this.tile(bx + s * 2, bottomY - 50, 1014, 14); this.addEdge(1013, 1014);
+
+    // Row B (Mid): 12..17
+    this.tile(bx, bottomY, 2012, 12); this.addEdge(10, 2012);
+    let prev = 2012;
+    [13, 14, 15, 16, 17].forEach(n => {
+        let id = 2000 + n;
+        this.tile(bx + (n - 12) * s + s, bottomY, id, n);
+        this.addEdge(prev, id);
+        prev = id;
+    });
+
+    // Row C (Bot): 12, 13, 14
+    this.tile(bx, bottomY + 50, 3012, 12); this.addEdge(10, 3012);
+    this.tile(bx + s, bottomY + 50, 3013, 13); this.addEdge(3012, 3013);
+    this.tile(bx + s * 2, bottomY + 50, 3014, 14); this.addEdge(3013, 3014);
+
+    // Merge (18)
+    x = bx + s * 4 + 20;
+    this.tile(x, bottomY, 18, 18);
+    this.addEdge(1014, 18);
+    this.addEdge(prev, 18); // 2017
+    this.addEdge(3014, 18);
+
+    // === ZONA DERECHA: 19-25 ===
+    x = 1250;
+    let y = 710;
+    this.addEdge(18, 19);
+    for (let i = 19; i <= 25; i++) {
+        this.tile(x, y, i, i);
+        if (i > 19) this.addEdge(i - 1, i);
+        y -= s;
     }
 
-    drawDecoration() {
-        // === INICIO ===
-        this.box(30, 680, 80, 60, 'INICIO', '#ffffff', '#333');
-        // === META ===
-        this.box(30, 550, 70, 50, 'META', '#DC3545', '#fff');
+    // === DIAMANTE: 26-33 ===
+    y -= s;
+    this.tile(x, y, 26, 26); this.addEdge(25, 26);
 
-        // Labels
-        this.label(450, 800, 'Zona Inferior');
-        this.label(680, 670, 'A/B/C', '#666', 12);
-        this.label(1320, 500, 'Z. Derecha', '#666', 12, 90);
-        this.label(280, 95, 'Segura', '#2E7D32', 14);
-        this.label(280, 165, 'Mortal', '#C62828', 14);
+    // Left Branch (27-30) unique IDs standard
+    this.tile(x - 45, y - 45, 27, 27); this.addEdge(26, 27);
+    this.tile(x - 45, y - 90, 28, 28); this.addEdge(27, 28);
+    this.tile(x - 45, y - 135, 29, 29); this.addEdge(28, 29);
+    this.tile(x - 45, y - 180, 30, 30); this.addEdge(29, 30);
+
+    // Right Branch (31-33)
+    this.tile(x + 45, y - 45, 31, 31); this.addEdge(26, 31);
+    this.tile(x + 45, y - 90, 32, 32); this.addEdge(31, 32);
+    this.tile(x + 45, y - 135, 33, 33); this.addEdge(32, 33);
+
+    // Exit (34)
+    const zigY = y - 225;
+    this.tile(x, zigY, 34, 34);
+    this.addEdge(30, 34);
+    this.addEdge(33, 34);
+
+    // === ZIG-ZAG: 35-50 ===
+    let zigX = x - 45;
+    let up = false;
+    this.addEdge(34, 35);
+    for (let i = 35; i <= 50; i++) {
+        const yOff = up ? -30 : 30;
+        this.tile(zigX, zigY + yOff, i, i);
+        if (i > 35) this.addEdge(i - 1, i);
+        zigX -= 42;
+        up = !up;
     }
 
-    tile(x, y, id, displayNum) {
-        // Handle args
-        let n = displayNum;
-        let uid = id;
+    // === ZONA SUPERIOR PARALELA: 51-64 ===
+    const topY = 80;
+    const mortRowY = 150;
+    let px = 350;
 
-        // Fallback for old calls
-        if (displayNum === undefined) { n = id; uid = id; }
+    // Split from 50
+    this.addEdge(50, 5051); // Safe start
+    this.addEdge(50, 6051); // Mortal start
 
-        // Layout Override (Legacy Array Mode)
-        if (this.layoutData && Array.isArray(this.layoutData)) {
-            const override = this.layoutData.find(d => d.id == uid);
-            if (override) {
-                if (typeof override.x === 'number') x = override.x;
-                if (typeof override.y === 'number') y = override.y;
-            }
+    // Safe (50xx)
+    for (let i = 0; i < 14; i++) {
+        const n = 51 + i;
+        const id = 5000 + n;
+        this.tile(px + i * s, topY, id, n);
+        if (i > 0) this.addEdge(5000 + n - 1, id);
+    }
+
+    // Mortal (60xx)
+    // px reset if aligned left? Yes px=350
+    for (let i = 0; i < 10; i++) {
+        const n = 51 + i;
+        const id = 6000 + n;
+        this.tile(px + i * s, mortRowY, id, n);
+        if (i > 0) this.addEdge(6000 + n - 1, id);
+    }
+
+    // Merge to 65?
+    // Safe 5064 -> 65
+    this.addEdge(5064, 65);
+    // Mortal 6060 -> 65? Or Penalty? Assuming merge for visual graph
+    this.addEdge(6060, 65);
+
+    // === SERPIENTE: 65-80 ===
+    const snake = [
+        [180, 220], [155, 260], [130, 300], [110, 345],
+        [95, 390], [85, 435], [100, 480], [125, 520],
+        [150, 555], [130, 595], [105, 635], [85, 670],
+        [70, 710], [90, 750], [120, 780], [155, 795]
+    ];
+    snake.forEach((pos, i) => {
+        const n = 65 + i;
+        this.tile(pos[0], pos[1], n, n);
+        if (i > 0) this.addEdge(n - 1, n);
+    });
+
+    // === META ===
+    // === META ===
+    this.box(30, 550, 70, 50, 'META', '#DC3545', '#fff');
+    this.addEdge(80, 8081); // Legacy
+
+    this.drawEdges(); // Initial edge draw
+    // this.drawCenter(); // Disabled - decorative center lines removed
+}
+
+drawWorldBorder() {
+    // Dynamic Wood Frame inside SVG
+    const frame = document.createElementNS(this.ns, 'rect');
+    frame.setAttribute('x', 0);
+    frame.setAttribute('y', 0);
+    frame.setAttribute('width', this.width);
+    frame.setAttribute('height', this.height);
+    frame.setAttribute('fill', 'none');
+    frame.setAttribute('stroke', '#5D4037'); // Wood Dark
+    frame.setAttribute('stroke-width', '24'); // Thick Border
+    frame.setAttribute('rx', '12'); // Rounded corners inside
+
+    // Inner Bevel (simulated with another rect)
+    const bevel = document.createElementNS(this.ns, 'rect');
+    bevel.setAttribute('x', 12);
+    bevel.setAttribute('y', 12);
+    bevel.setAttribute('width', this.width - 24);
+    bevel.setAttribute('height', this.height - 24);
+    bevel.setAttribute('fill', 'none');
+    bevel.setAttribute('stroke', '#3E2723'); // Darker Inner
+    bevel.setAttribute('stroke-width', '4');
+    bevel.setAttribute('rx', '8');
+
+    // Append to SVG (Background Layer)
+    // Insert at beginning to be behind everything? No, border should be visually on top?
+    // If on top, it borders everything. If behind, tiles might overlap.
+    // Usually frames are on top.
+    this.rootGroup.appendChild(frame);
+    this.rootGroup.appendChild(bevel);
+}
+
+drawDecoration() {
+    // === INICIO ===
+    this.box(30, 680, 80, 60, 'INICIO', '#ffffff', '#333');
+    // === META ===
+    this.box(30, 550, 70, 50, 'META', '#DC3545', '#fff');
+
+    // Labels
+    this.label(450, 800, 'Zona Inferior');
+    this.label(680, 670, 'A/B/C', '#666', 12);
+    this.label(1320, 500, 'Z. Derecha', '#666', 12, 90);
+    this.label(280, 95, 'Segura', '#2E7D32', 14);
+    this.label(280, 165, 'Mortal', '#C62828', 14);
+}
+
+tile(x, y, id, displayNum) {
+    // Handle args
+    let n = displayNum;
+    let uid = id;
+
+    // Fallback for old calls
+    if (displayNum === undefined) { n = id; uid = id; }
+
+    // Layout Override (Legacy Array Mode)
+    if (this.layoutData && Array.isArray(this.layoutData)) {
+        const override = this.layoutData.find(d => d.id == uid);
+        if (override) {
+            if (typeof override.x === 'number') x = override.x;
+            if (typeof override.y === 'number') y = override.y;
         }
+    }
 
-        const g = document.createElementNS(this.ns, 'g');
-        g.setAttribute('class', 'tile-group draggable');
-        g.setAttribute('data-id', uid); // Unique ID for logic
-        g.setAttribute('data-display', n); // Visual Number
-        g.setAttribute('transform', `translate(${x},${y})`);
-        g.dataset.x = x; g.dataset.y = y;
+    const g = document.createElementNS(this.ns, 'g');
+    g.setAttribute('class', 'tile-group draggable');
+    g.setAttribute('data-id', uid); // Unique ID for logic
+    g.setAttribute('data-display', n); // Visual Number
+    g.setAttribute('transform', `translate(${x},${y})`);
+    g.dataset.x = x; g.dataset.y = y;
 
-        // Default 'Floor' Style (Not Button)
-        let fill = '#fcfcfc';
-        let stroke = '#adb5bd';
-        let textColor = '#555';
-        let tileSize = this.ts; // Default tile size
+    // Default 'Floor' Style (Not Button)
+    let fill = '#fcfcfc';
+    let stroke = '#adb5bd';
+    let textColor = '#555';
+    let tileSize = this.ts; // Default tile size
 
-        // Special tiles: START and FINAL - Make them larger
-        if (String(uid) === '0') {
-            // Punto de Partida - Green and larger
-            fill = '#4CAF50';
-            stroke = '#2E7D32';
-            textColor = '#FFF';
-            tileSize = this.ts * 1.5; // 50% larger
-        } else if (String(uid) === '80') {
-            // FINAL - Gold/Red and larger
-            fill = '#FFD700';
-            stroke = '#FF6B00';
-            textColor = '#8B4513';
-            tileSize = this.ts * 1.5; // 50% larger
-        }
+    // Special tiles: START and FINAL - Make them larger
+    if (String(uid) === '0') {
+        // Punto de Partida - Green and larger
+        fill = '#4CAF50';
+        stroke = '#2E7D32';
+        textColor = '#FFF';
+        tileSize = this.ts * 1.5; // 50% larger
+    } else if (String(uid) === '80') {
+        // FINAL - Gold/Red and larger
+        fill = '#FFD700';
+        stroke = '#FF6B00';
+        textColor = '#8B4513';
+        tileSize = this.ts * 1.5; // 50% larger
+    }
 
-        // Group gets attributes
+    // Group gets attributes
+    const r = document.createElementNS(this.ns, 'rect');
+    r.setAttribute('class', 'tile-base'); // Mark for updates
+    r.setAttribute('width', tileSize);
+    r.setAttribute('height', tileSize);
+    r.setAttribute('rx', 4); // Slight round
+    r.setAttribute('fill', fill);
+    r.setAttribute('stroke', stroke); // Border
+    r.setAttribute('stroke-width', '3'); // Thicker border for special tiles
+    // No filter for clean floor look
+    g.appendChild(r);
+
+    // Number Badge (hidden in game mode, visible in editor)
+    const t = document.createElementNS(this.ns, 'text');
+    t.setAttribute('class', 'badge-txt tile-number');
+    // Center text in tile for rotation (LOCAL COORDINATES, since Group is translated)
+    const cx = tileSize / 2;
+    const cy = tileSize / 2;
+
+    t.setAttribute('x', cx);
+    t.setAttribute('y', cy);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('dominant-baseline', 'middle');
+
+    // Dynamic font size for long text
+    let fontSize = 14;
+    const textStr = String(n);
+
+    if (textStr.length > 8) {
+        fontSize = 10; // Smaller for long text
+    } else if (textStr.length > 5) {
+        fontSize = 11;
+    }
+
+    t.setAttribute('font-size', fontSize);
+    t.setAttribute('font-weight', 'bold');
+    t.setAttribute('font-family', '"Segoe UI", sans-serif');
+    t.setAttribute('fill', textColor);
+
+    // Rotate 90deg around center (Local)
+    t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
+
+    // Multi-line support for long text with spaces
+    if (textStr.includes(' ') && textStr.length > 8) {
+        // Split into words
+        const words = textStr.split(' ');
+        const lineHeight = fontSize + 2;
+        const totalLines = words.length;
+        const startY = -(totalLines - 1) * lineHeight / 2;
+
+        words.forEach((word, i) => {
+            const tspan = document.createElementNS(this.ns, 'tspan');
+            tspan.setAttribute('x', cx);
+            tspan.setAttribute('dy', i === 0 ? startY : lineHeight);
+            tspan.textContent = word;
+            t.appendChild(tspan);
+        });
+    } else {
+        // Single line
+        t.textContent = textStr;
+    }
+
+    g.appendChild(t);
+
+    this.rootGroup.appendChild(g);
+}
+
+box(x, y, w, h, txt, fill, txtCol = '#333') {
+    const g = document.createElementNS(this.ns, 'g');
+    g.setAttribute('class', 'draggable'); // Make draggable
+    g.setAttribute('transform', `translate(${x},${y})`);
+    // Adapt rect to 0,0 since group is translated
+    const r = document.createElementNS(this.ns, 'rect');
+    r.setAttribute('x', 0);
+    r.setAttribute('y', 0);
+    r.setAttribute('width', w);
+    r.setAttribute('height', h);
+    r.setAttribute('rx', 4);
+    r.setAttribute('fill', fill);
+    r.setAttribute('stroke', '#222');
+    r.setAttribute('stroke-width', 3);
+    r.style.filter = 'url(#sketchy)'; // APPLY FILTER
+    g.appendChild(r);
+
+    const t = document.createElementNS(this.ns, 'text');
+    t.setAttribute('x', w / 2);
+    t.setAttribute('y', h / 2 + 8);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '18'); // Smaller font
+    t.setAttribute('font-family', '"Patrick Hand", sans-serif');
+    t.setAttribute('font-weight', 'bold');
+    t.setAttribute('fill', txtCol);
+    // Rotate 90deg around center of text (w/2, h/2+8 approx?)
+    // Actually center of box is w/2, h/2. Text is at y = h/2 + 8.
+    // Let's rotate around w/2, h/2.
+    t.setAttribute('transform', `rotate(90, ${w / 2}, ${h / 2})`);
+    t.textContent = txt;
+    g.appendChild(t);
+
+    this.rootGroup.appendChild(g);
+}
+
+drawCenter() {
+    const cx = 600, cy = 420;
+
+    // Mazos
+    this.deck(cx - 120, cy - 50, '#4A90D9', 'Segura');
+    this.deck(cx + 80, cy - 50, '#E85D5D', 'Mortal');
+
+    // Dado
+    const g = document.createElementNS(this.ns, 'g');
+    g.setAttribute('id', 'dice-svg');
+    g.style.cursor = 'pointer';
+
+    const r = document.createElementNS(this.ns, 'rect');
+    r.setAttribute('x', cx - 15);
+    r.setAttribute('y', cy - 30);
+    r.setAttribute('width', 45);
+    r.setAttribute('height', 45);
+    r.setAttribute('rx', 6);
+    r.setAttribute('fill', '#FFF');
+    r.setAttribute('stroke', '#333');
+    r.setAttribute('stroke-width', 2);
+    g.appendChild(r);
+
+    [[10, 10], [23, 23], [10, 35]].forEach(([px, py]) => {
+        const c = document.createElementNS(this.ns, 'circle');
+        c.setAttribute('cx', cx - 15 + px);
+        c.setAttribute('cy', cy - 30 + py);
+        c.setAttribute('r', 4);
+        c.setAttribute('fill', '#333');
+        g.appendChild(c);
+    });
+
+    t.setAttribute('x', cx + 7);
+    t.setAttribute('y', cy + 30);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '11');
+    // Rotate Dice 90
+    t.setAttribute('transform', `rotate(90, ${cx + 7}, ${cy + 30})`);
+    t.textContent = '🎲';
+    g.appendChild(t);
+
+    this.rootGroup.appendChild(g);
+}
+
+deck(x, y, col, lbl) {
+    const g = document.createElementNS(this.ns, 'g');
+    g.setAttribute('class', 'deck');
+    g.setAttribute('data-deck', lbl.toLowerCase());
+    g.style.cursor = 'pointer';
+
+    for (let i = 2; i >= 0; i--) {
         const r = document.createElementNS(this.ns, 'rect');
-        r.setAttribute('class', 'tile-base'); // Mark for updates
-        r.setAttribute('width', tileSize);
-        r.setAttribute('height', tileSize);
-        r.setAttribute('rx', 4); // Slight round
-        r.setAttribute('fill', fill);
-        r.setAttribute('stroke', stroke); // Border
-        r.setAttribute('stroke-width', '3'); // Thicker border for special tiles
-        // No filter for clean floor look
-        g.appendChild(r);
-
-        // Number Badge (hidden in game mode, visible in editor)
-        const t = document.createElementNS(this.ns, 'text');
-        t.setAttribute('class', 'badge-txt tile-number');
-        // Center text in tile for rotation (LOCAL COORDINATES, since Group is translated)
-        const cx = tileSize / 2;
-        const cy = tileSize / 2;
-
-        t.setAttribute('x', cx);
-        t.setAttribute('y', cy);
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('dominant-baseline', 'middle');
-
-        // Dynamic font size for long text
-        let fontSize = 14;
-        const textStr = String(n);
-
-        if (textStr.length > 8) {
-            fontSize = 10; // Smaller for long text
-        } else if (textStr.length > 5) {
-            fontSize = 11;
-        }
-
-        t.setAttribute('font-size', fontSize);
-        t.setAttribute('font-weight', 'bold');
-        t.setAttribute('font-family', '"Segoe UI", sans-serif');
-        t.setAttribute('fill', textColor);
-
-        // Rotate 90deg around center (Local)
-        t.setAttribute('transform', `rotate(90, ${cx}, ${cy})`);
-
-        // Multi-line support for long text with spaces
-        if (textStr.includes(' ') && textStr.length > 8) {
-            // Split into words
-            const words = textStr.split(' ');
-            const lineHeight = fontSize + 2;
-            const totalLines = words.length;
-            const startY = -(totalLines - 1) * lineHeight / 2;
-
-            words.forEach((word, i) => {
-                const tspan = document.createElementNS(this.ns, 'tspan');
-                tspan.setAttribute('x', cx);
-                tspan.setAttribute('dy', i === 0 ? startY : lineHeight);
-                tspan.textContent = word;
-                t.appendChild(tspan);
-            });
-        } else {
-            // Single line
-            t.textContent = textStr;
-        }
-
-        g.appendChild(t);
-
-        this.rootGroup.appendChild(g);
-    }
-
-    box(x, y, w, h, txt, fill, txtCol = '#333') {
-        const g = document.createElementNS(this.ns, 'g');
-        g.setAttribute('class', 'draggable'); // Make draggable
-        g.setAttribute('transform', `translate(${x},${y})`);
-        // Adapt rect to 0,0 since group is translated
-        const r = document.createElementNS(this.ns, 'rect');
-        r.setAttribute('x', 0);
-        r.setAttribute('y', 0);
-        r.setAttribute('width', w);
-        r.setAttribute('height', h);
+        r.setAttribute('x', x + i * 2);
+        r.setAttribute('y', y + i * 2);
+        r.setAttribute('width', 50);
+        r.setAttribute('height', 75);
         r.setAttribute('rx', 4);
-        r.setAttribute('fill', fill);
-        r.setAttribute('stroke', '#222');
-        r.setAttribute('stroke-width', 3);
-        r.style.filter = 'url(#sketchy)'; // APPLY FILTER
-        g.appendChild(r);
-
-        const t = document.createElementNS(this.ns, 'text');
-        t.setAttribute('x', w / 2);
-        t.setAttribute('y', h / 2 + 8);
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('font-size', '18'); // Smaller font
-        t.setAttribute('font-family', '"Patrick Hand", sans-serif');
-        t.setAttribute('font-weight', 'bold');
-        t.setAttribute('fill', txtCol);
-        // Rotate 90deg around center of text (w/2, h/2+8 approx?)
-        // Actually center of box is w/2, h/2. Text is at y = h/2 + 8.
-        // Let's rotate around w/2, h/2.
-        t.setAttribute('transform', `rotate(90, ${w / 2}, ${h / 2})`);
-        t.textContent = txt;
-        g.appendChild(t);
-
-        this.rootGroup.appendChild(g);
-    }
-
-    drawCenter() {
-        const cx = 600, cy = 420;
-
-        // Mazos
-        this.deck(cx - 120, cy - 50, '#4A90D9', 'Segura');
-        this.deck(cx + 80, cy - 50, '#E85D5D', 'Mortal');
-
-        // Dado
-        const g = document.createElementNS(this.ns, 'g');
-        g.setAttribute('id', 'dice-svg');
-        g.style.cursor = 'pointer';
-
-        const r = document.createElementNS(this.ns, 'rect');
-        r.setAttribute('x', cx - 15);
-        r.setAttribute('y', cy - 30);
-        r.setAttribute('width', 45);
-        r.setAttribute('height', 45);
-        r.setAttribute('rx', 6);
-        r.setAttribute('fill', '#FFF');
+        r.setAttribute('fill', col);
         r.setAttribute('stroke', '#333');
         r.setAttribute('stroke-width', 2);
         g.appendChild(r);
-
-        [[10, 10], [23, 23], [10, 35]].forEach(([px, py]) => {
-            const c = document.createElementNS(this.ns, 'circle');
-            c.setAttribute('cx', cx - 15 + px);
-            c.setAttribute('cy', cy - 30 + py);
-            c.setAttribute('r', 4);
-            c.setAttribute('fill', '#333');
-            g.appendChild(c);
-        });
-
-        t.setAttribute('x', cx + 7);
-        t.setAttribute('y', cy + 30);
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('font-size', '11');
-        // Rotate Dice 90
-        t.setAttribute('transform', `rotate(90, ${cx + 7}, ${cy + 30})`);
-        t.textContent = '🎲';
-        g.appendChild(t);
-
-        this.rootGroup.appendChild(g);
     }
 
-    deck(x, y, col, lbl) {
-        const g = document.createElementNS(this.ns, 'g');
-        g.setAttribute('class', 'deck');
-        g.setAttribute('data-deck', lbl.toLowerCase());
-        g.style.cursor = 'pointer';
+    const t = document.createElementNS(this.ns, 'text');
+    t.setAttribute('x', x + 25);
+    t.setAttribute('y', y + 95);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '11');
+    t.textContent = lbl;
+    g.appendChild(t);
 
-        for (let i = 2; i >= 0; i--) {
-            const r = document.createElementNS(this.ns, 'rect');
-            r.setAttribute('x', x + i * 2);
-            r.setAttribute('y', y + i * 2);
-            r.setAttribute('width', 50);
-            r.setAttribute('height', 75);
-            r.setAttribute('rx', 4);
-            r.setAttribute('fill', col);
-            r.setAttribute('stroke', '#333');
-            r.setAttribute('stroke-width', 2);
-            g.appendChild(r);
-        }
+    this.rootGroup.appendChild(g);
+}
 
-        const t = document.createElementNS(this.ns, 'text');
-        t.setAttribute('x', x + 25);
-        t.setAttribute('y', y + 95);
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('font-size', '11');
-        t.textContent = lbl;
-        g.appendChild(t);
+label(x, y, txt, col = '#666', sz = 14, rot = 90) {
+    const t = document.createElementNS(this.ns, 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y);
+    t.setAttribute('font-size', sz);
+    t.setAttribute('fill', col);
+    // Default rot is now 90
+    t.setAttribute('transform', `rotate(${rot},${x},${y})`);
+    t.textContent = txt;
+    this.rootGroup.appendChild(t);
+}
 
-        this.rootGroup.appendChild(g);
-    }
+// Capture standard graph connections
+addEdge(fromId, toId) {
+    this.edges.push([fromId, toId]);
+}
 
-    label(x, y, txt, col = '#666', sz = 14, rot = 90) {
-        const t = document.createElementNS(this.ns, 'text');
-        t.setAttribute('x', x);
-        t.setAttribute('y', y);
-        t.setAttribute('font-size', sz);
-        t.setAttribute('fill', col);
-        // Default rot is now 90
-        t.setAttribute('transform', `rotate(${rot},${x},${y})`);
-        t.textContent = txt;
-        this.rootGroup.appendChild(t);
-    }
+drawEdges() {
+    // Remove existing
+    const oldGrp = this.svg.querySelector('#connections-layer');
+    if (oldGrp) oldGrp.remove();
 
-    // Capture standard graph connections
-    addEdge(fromId, toId) {
-        this.edges.push([fromId, toId]);
-    }
+    const grp = document.createElementNS(this.ns, 'g');
+    grp.id = 'connections-layer';
 
-    drawEdges() {
-        // Remove existing
-        const oldGrp = this.svg.querySelector('#connections-layer');
-        if (oldGrp) oldGrp.remove();
-
-        const grp = document.createElementNS(this.ns, 'g');
-        grp.id = 'connections-layer';
-
-        // Try to insert after background, but use appendChild as fallback
-        try {
-            const bg = this.svg.querySelector('rect');
-            if (bg && bg.nextSibling && bg.parentNode === this.svg) {
-                this.svg.insertBefore(grp, bg.nextSibling);
-            } else {
-                // Fallback: just append to root
-                this.svg.appendChild(grp);
-            }
-        } catch (e) {
-            console.warn('[drawEdges] insertBefore failed, using appendChild:', e);
+    // Try to insert after background, but use appendChild as fallback
+    try {
+        const bg = this.svg.querySelector('rect');
+        if (bg && bg.nextSibling && bg.parentNode === this.svg) {
+            this.svg.insertBefore(grp, bg.nextSibling);
+        } else {
+            // Fallback: just append to root
             this.svg.appendChild(grp);
         }
+    } catch (e) {
+        console.warn('[drawEdges] insertBefore failed, using appendChild:', e);
+        this.svg.appendChild(grp);
+    }
 
-        this.edges.forEach(([id1, id2]) => {
-            const t1 = this.svg.querySelector(`.tile-group[data-id="${id1}"]`);
-            const t2 = this.svg.querySelector(`.tile-group[data-id="${id2}"]`);
+    this.edges.forEach(([id1, id2]) => {
+        const t1 = this.svg.querySelector(`.tile-group[data-id="${id1}"]`);
+        const t2 = this.svg.querySelector(`.tile-group[data-id="${id2}"]`);
 
-            if (t1 && t2) {
-                // Determine centers
-                // Transforms
+        if (t1 && t2) {
+            // Determine centers
+            // Transforms
+            const getPos = (el) => {
+                const tr = el.transform.baseVal.getItem(0).matrix;
+                return { x: tr.e + this.ts / 2, y: tr.f + this.ts / 2 };
+            };
+
+            const p1 = getPos(t1);
+            const p2 = getPos(t2);
+
+            const line = document.createElementNS(this.ns, 'line');
+            line.setAttribute('x1', p1.x);
+            line.setAttribute('y1', p1.y);
+            line.setAttribute('x2', p2.x);
+            line.setAttribute('y2', p2.y);
+            line.setAttribute('stroke', '#6c757d');
+            line.setAttribute('stroke-width', '2');
+            // line.setAttribute('stroke-dasharray', '4'); // Optional dashed
+            grp.appendChild(line);
+        }
+    });
+}
+
+// Logic for Snap to Path (Class Method)
+getSnapToPathPos(id, x, y) {
+    let candidates = [];
+    const threshold = 15; // Pixel threshold for snap
+
+    // Find neighbors
+    this.edges.forEach(edge => {
+        const [id1, id2] = edge;
+        let otherId = null;
+        if (String(id1) === String(id)) otherId = id2;
+        else if (String(id2) === String(id)) otherId = id1;
+
+        if (otherId) {
+            const otherTile = this.svg.querySelector(`.tile-group[data-id="${otherId}"]`);
+            if (otherTile) {
+                const tr = otherTile.transform.baseVal.getItem(0).matrix;
+                const ox = tr.e;
+                const oy = tr.f;
+                candidates.push({ x: ox, y: oy });
+            }
+        }
+    });
+
+    let bestX = x;
+    let bestY = y;
+    let minDx = threshold;
+    let minDy = threshold;
+
+    candidates.forEach(c => {
+        // X Alignment
+        if (Math.abs(c.x - x) < minDx) {
+            bestX = c.x;
+            minDx = Math.abs(c.x - x);
+        }
+        // Y Alignment
+        if (Math.abs(c.y - y) < minDy) {
+            bestY = c.y;
+            minDy = Math.abs(c.y - y);
+        }
+    });
+
+    // Midpoint Logic if 2 neighbors
+    if (candidates.length === 2) {
+        const p1 = candidates[0];
+        const p2 = candidates[1];
+
+        // Line: P1 -> P2
+        // Closest point on line segment?
+        // Vector math: Proj P onto AB
+        const A = p1;
+        const B = p2;
+        const P = { x: x, y: y };
+
+        const AB = { x: B.x - A.x, y: B.y - A.y };
+        const AP = { x: P.x - A.x, y: P.y - A.y };
+
+        const ab2 = AB.x * AB.x + AB.y * AB.y;
+        const ap_ab = AP.x * AB.x + AP.y * AB.y;
+        let t = ap_ab / ab2;
+
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+
+        const closest = { x: A.x + AB.x * t, y: A.y + AB.y * t };
+
+        if (Math.abs(closest.x - x) < threshold && Math.abs(closest.y - y) < threshold) {
+            return closest; // Priorities Midpoint/Line snap
+        }
+    }
+
+    return { x: bestX, y: bestY };
+}
+
+// Optimized edge update for drag (Only rerenders connected lines)
+updateConnectedEdges(nodeId, newX, newY) {
+    // Center of the moving node
+    const cx = newX + this.ts / 2;
+    const cy = newY + this.ts / 2;
+
+    const grp = this.svg.querySelector('#connections-layer');
+    if (!grp) return;
+
+    // Smart Update: Scan existing lines and update coordinates
+    this.edges.forEach((edge, index) => {
+        const [id1, id2] = edge;
+        // Check if this edge involves our moving node
+        if (String(id1) === String(nodeId) || String(id2) === String(nodeId)) {
+            // Find line by index (relying on drawEdges order)
+            const line = grp.childNodes[index];
+            if (!line) return;
+
+            // Determine other node's position
+            const otherId = (String(id1) === String(nodeId)) ? id2 : id1;
+            const otherTile = this.svg.querySelector(`.tile-group[data-id="${otherId}"]`);
+
+            if (otherTile) {
+                // Start relative to SVG origin since line is in root group
                 const getPos = (el) => {
                     const tr = el.transform.baseVal.getItem(0).matrix;
                     return { x: tr.e + this.ts / 2, y: tr.f + this.ts / 2 };
                 };
 
-                const p1 = getPos(t1);
-                const p2 = getPos(t2);
+                const otherPos = getPos(otherTile);
 
-                const line = document.createElementNS(this.ns, 'line');
-                line.setAttribute('x1', p1.x);
-                line.setAttribute('y1', p1.y);
-                line.setAttribute('x2', p2.x);
-                line.setAttribute('y2', p2.y);
-                line.setAttribute('stroke', '#6c757d');
-                line.setAttribute('stroke-width', '2');
-                // line.setAttribute('stroke-dasharray', '4'); // Optional dashed
-                grp.appendChild(line);
-            }
-        });
-    }
-
-    addInteractivity() {
-        console.log('[INTERACTIVITY] addInteractivity() called, this.svg:', this.svg);
-        // DRAG AND DROP LOGIC
-        let draggedElement = null;
-        let offset = { x: 0, y: 0 };
-        let startPos = { x: 0, y: 0 }; // Track start for threshold
-        let isDragging = false;
-
-        const startDrag = (evt) => {
-            console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
-            if (!this.isEditorMode) return; // EDITOR GUARD
-
-            // --- CRITICAL FIX: Only allow drag if tool is "select" ---
-            if (this.currentTool && this.currentTool !== 'select') {
-                console.log('[DRAG] Drag blocked because tool is not SELECT (current:', this.currentTool, ')');
-                return;
-            }
-
-            const group = evt.target.closest('.draggable');
-            console.log('[DRAG] draggable group:', group);
-            if (group) {
-                isDragging = false;
-                draggedElement = group;
-                startPos = { x: evt.clientX, y: evt.clientY };
-
-                // Get transforms
-                const transforms = group.transform.baseVal;
-                let tx = 0, ty = 0;
-                if (transforms.length > 0 && transforms.getItem(0).type === SVGTransform.SVG_TRANSFORM_TRANSLATE) {
-                    tx = transforms.getItem(0).matrix.e;
-                    ty = transforms.getItem(0).matrix.f;
+                if (String(id1) === String(nodeId)) {
+                    // Moving node is START (x1, y1)
+                    line.setAttribute('x1', cx);
+                    line.setAttribute('y1', cy);
+                    line.setAttribute('x2', otherPos.x);
+                    line.setAttribute('y2', otherPos.y);
+                } else {
+                    // Moving node is END (x2, y2)
+                    line.setAttribute('x1', otherPos.x);
+                    line.setAttribute('y1', otherPos.y);
+                    line.setAttribute('x2', cx);
+                    line.setAttribute('y2', cy);
                 }
-
-                // Get click position in rootGroup coordinate space
-                const pt = this.svg.createSVGPoint();
-                pt.x = evt.clientX;
-                pt.y = evt.clientY;
-                const ctm = this.rootGroup.getScreenCTM().inverse();
-                const svgPt = pt.matrixTransform(ctm);
-
-                offset.x = svgPt.x - tx;
-                offset.y = svgPt.y - ty;
-
-                // Bring to front
-                this.rootGroup.appendChild(group);
-                console.log('[DRAG] Drag started for element:', group.getAttribute('data-id'));
             }
-        };
-
-        const drag = (evt) => {
-            if (!this.isEditorMode) return; // EDITOR GUARD
-
-            if (draggedElement) {
-                // THRESHOLD CHECK
-                const dx = Math.abs(evt.clientX - startPos.x);
-                const dy = Math.abs(evt.clientY - startPos.y);
-                if (dx < 3 && dy < 3) return; // Ignore jitter
-
-                isDragging = true;
-                evt.preventDefault();
-
-                // Get point in SVG coordinate space
-                const pt = this.svg.createSVGPoint();
-                pt.x = evt.clientX;
-                pt.y = evt.clientY;
-
-                // Transform to rootGroup coordinate space (accounting for rotation)
-                const ctm = this.rootGroup.getScreenCTM().inverse();
-                const svgPt = pt.matrixTransform(ctm);
-
-                // Apply snap-to-grid if enabled
-                let newX = Math.round(svgPt.x - offset.x);
-                let newY = Math.round(svgPt.y - offset.y);
-
-                if (this.snapToGrid && this.isEditorMode) {
-                    newX = this.snapToGridPos(newX);
-                    newY = this.snapToGridPos(newY);
-                }
-
-                draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
-                draggedElement.dataset.x = newX;
-                draggedElement.dataset.y = newY;
-                draggedElement.style.cursor = 'grabbing';
-
-                this.drawEdges();
-            }
-        };
-
-        const endDrag = (evt) => {
-            if (!this.isEditorMode) return; // EDITOR GUARD
-
-            if (draggedElement) {
-                draggedElement.style.cursor = 'pointer';
-
-                // If it wasn't a drag (just a click), open Inspector
-                // ONLY if not in editor mode (inspector conflicts with dragging)
-                if (!isDragging && !this.isEditorMode) {
-                    this.openInspector(draggedElement);
-                }
-
-                draggedElement = null;
-            }
-        };
-
-        console.log('[INTERACTIVITY] Attaching event listeners');
-
-        // Helper to get clientX/Y from mouse or touch event
-        const getClientPos = (evt) => {
-            if (evt.touches && evt.touches.length > 0) {
-                return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
-            }
-            return { x: evt.clientX, y: evt.clientY };
-        };
-
-        // Wrapped handlers for touch support
-        const handleStart = (evt) => {
-            const pos = getClientPos(evt);
-            // Create a mock event-like object with the coordinates
-            const eventWithPos = {
-                clientX: pos.x,
-                clientY: pos.y,
-                target: evt.target,
-                preventDefault: () => evt.preventDefault?.(),
-                stopPropagation: () => evt.stopPropagation?.()
-            };
-            startDrag(eventWithPos);
-        };
-
-        const handleMove = (evt) => {
-            const pos = getClientPos(evt);
-            // Create a mock event-like object with the coordinates
-            const eventWithPos = {
-                clientX: pos.x,
-                clientY: pos.y,
-                target: evt.target,
-                preventDefault: () => evt.preventDefault?.(),
-                stopPropagation: () => evt.stopPropagation?.()
-            };
-            drag(eventWithPos);
-        };
-
-        // Mouse events
-        this.svg.addEventListener('mousedown', handleStart);
-        document.addEventListener('mousemove', handleMove);
-        document.addEventListener('mouseup', endDrag);
-
-        // Touch events for mobile tile dragging
-        this.svg.addEventListener('touchstart', handleStart, { passive: true });
-        document.addEventListener('touchmove', handleMove, { passive: false });
-        document.addEventListener('touchend', endDrag);
-
-        console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
-    }
-
-    getSVGPoint(evt) {
-        const pt = this.svg.createSVGPoint();
-        pt.x = evt.clientX;
-        pt.y = evt.clientY;
-        return pt.matrixTransform(this.svg.getScreenCTM().inverse());
-    }
-
-    // REMOVED DUPLICATE openInspector/closeInspector
-    // modifyEdge IS NEEDED if not defined earlier.
-    // Let's check if modifyEdge was defined earlier. 
-    // It was likely at the end. I should Keep modifyEdge.
-
-    modifyEdge(id1, id2, action) {
-        if (action === 'add') {
-            const exists = this.edges.some(e =>
-                (e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1)
-            );
-            if (!exists) {
-                this.edges.push([id1, id2]);
-            }
-        } else if (action === 'remove') {
-            this.edges = this.edges.filter(e =>
-                !((e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1))
-            );
         }
-        this.drawEdges();
-    }
+    });
+}
 
-    drawPlayers(players) {
-        // Clear existing tokens
-        const oldTokens = this.svg.querySelectorAll('.player-token');
-        oldTokens.forEach(t => {
-            if (!t.classList.contains('animating')) t.remove();
-        });
+addInteractivity() {
+    console.log('[INTERACTIVITY] addInteractivity() called, this.svg:', this.svg);
+    // DRAG AND DROP LOGIC
+    let draggedElement = null;
+    let offset = { x: 0, y: 0 };
+    let startPos = { x: 0, y: 0 }; // Track start for threshold
+    let isDragging = false;
 
-        if (!players || players.length === 0) return;
+    const startDrag = (evt) => {
+        console.log('[DRAG] mousedown detected, isEditorMode:', this.isEditorMode);
+        if (!this.isEditorMode) return; // EDITOR GUARD
 
-        // 1. Pre-Count players per tile to decide layout mode
-        const tileTotals = {};
-        players.forEach(p => {
-            const tileId = String(p.pos || '1');
-            tileTotals[tileId] = (tileTotals[tileId] || 0) + 1;
-        });
-
-        // 2. Render
-        const tileCurrentCount = {}; // Track how many we've drawn per tile
-
-        players.forEach((p, index) => {
-            // SKIP IF ANIMATING
-            const existing = this.svg.querySelector(`.player-token[data-player-id="${p.id}"]`);
-            if (existing && existing.classList.contains('animating')) return;
-            if (existing) existing.remove(); // Remove old static if exists
-
-            const tileId = String(p.pos || '1');
-
-            // Find Position in DATA, not DOM
-            const tileData = this.layoutData.tiles.find(t => String(t.id) === tileId);
-
-            if (tileData) {
-                // Base Center
-                let x = tileData.x + (this.ts / 2);
-                let y = tileData.y + (this.ts / 2);
-
-                const totalOnTile = tileTotals[tileId];
-                tileCurrentCount[tileId] = (tileCurrentCount[tileId] || 0) + 1;
-                const idx = tileCurrentCount[tileId] - 1; // 0-based index
-
-                // Stacking Logic: Grid Distribution if > 1 player
-                if (totalOnTile > 1) {
-                    const offset = 9; // Displace 9px from center
-                    // 2x2 Grid Pattern:
-                    // 0: Top-Left, 1: Top-Right, 2: Bot-Left, 3: Bot-Right
-                    if (idx === 0) { x -= offset; y -= offset; }
-                    else if (idx === 1) { x += offset; y -= offset; }
-                    else if (idx === 2) { x -= offset; y += offset; }
-                    else if (idx === 3) { x += offset; y += offset; }
-                }
-
-                // Create Token Group
-                const tokenGroup = document.createElementNS(this.ns, 'g');
-                tokenGroup.setAttribute('class', 'player-token');
-                tokenGroup.setAttribute('transform', `translate(${x}, ${y})`);
-                tokenGroup.setAttribute('data-player-id', p.id);
-
-                const circle = document.createElementNS(this.ns, 'circle');
-                circle.setAttribute('r', '14'); // Slightly smaller (28px)
-                circle.setAttribute('fill', p.color || this.colors[index % this.colors.length]);
-                circle.setAttribute('stroke', '#fff');
-                circle.setAttribute('stroke-width', '2');
-                circle.setAttribute('filter', 'drop-shadow(0px 2px 2px rgba(0,0,0,0.5))');
-                circle.classList.add('token-body');
-
-                const text = document.createElementNS(this.ns, 'text');
-                text.textContent = (p.name || `P${index + 1}`).substring(0, 1).toUpperCase();
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('dominant-baseline', 'central');
-                text.setAttribute('fill', '#fff');
-                text.setAttribute('font-size', '13px');
-                text.setAttribute('font-weight', 'bold');
-                text.setAttribute('transform', 'rotate(90)'); // Rotate upright for vertical board
-
-                tokenGroup.appendChild(circle);
-                tokenGroup.appendChild(text);
-                this.rootGroup.appendChild(tokenGroup);
-            }
-        });
-    }
-
-    animateMove(playerId, path, callback) {
-        // path is Array of Tile IDs ['1', '2', '3']
-        if (!path || path.length < 2) {
-            if (callback) callback();
+        // --- CRITICAL FIX: Only allow drag if tool is "select" ---
+        if (this.currentTool && this.currentTool !== 'select') {
+            console.log('[DRAG] Drag blocked because tool is not SELECT (current:', this.currentTool, ')');
             return;
         }
 
-        const token = this.svg.querySelector(`.player-token[data-player-id="${playerId}"]`);
-        if (!token) {
-            console.error("Token not found for animation:", playerId);
-            if (callback) callback();
+        const group = evt.target.closest('.draggable');
+        console.log('[DRAG] draggable group:', group);
+        if (group) {
+            isDragging = false;
+            draggedElement = group;
+            startPos = { x: evt.clientX, y: evt.clientY };
+
+            // Get transforms
+            const transforms = group.transform.baseVal;
+            let tx = 0, ty = 0;
+            if (transforms.length > 0 && transforms.getItem(0).type === SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+                tx = transforms.getItem(0).matrix.e;
+                ty = transforms.getItem(0).matrix.f;
+            }
+
+            // Get click position in rootGroup coordinate space
+            const pt = this.svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+            const ctm = this.rootGroup.getScreenCTM().inverse();
+            const svgPt = pt.matrixTransform(ctm);
+
+            offset.x = svgPt.x - tx;
+            offset.y = svgPt.y - ty;
+
+            // Bring to front
+            this.rootGroup.appendChild(group);
+            console.log('[DRAG] Drag started for element:', group.getAttribute('data-id'));
+        }
+    };
+
+    const drag = (evt) => {
+        if (!this.isEditorMode) return; // EDITOR GUARD
+
+        if (draggedElement) {
+            // THRESHOLD CHECK
+            const dx = Math.abs(evt.clientX - startPos.x);
+            const dy = Math.abs(evt.clientY - startPos.y);
+            if (dx < 3 && dy < 3) return; // Ignore jitter
+
+            isDragging = true;
+            evt.preventDefault();
+
+            // Get point in SVG coordinate space
+            const pt = this.svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+
+            // Transform to rootGroup coordinate space (accounting for rotation)
+            const ctm = this.rootGroup.getScreenCTM().inverse();
+            const svgPt = pt.matrixTransform(ctm);
+
+            let newX = Math.round(svgPt.x - offset.x);
+            let newY = Math.round(svgPt.y - offset.y);
+
+            // S: Snap to Grid (Fixed 50px/25px)
+            // P: Snap to Path (Align with neighbors)
+
+            // Allow Shift to invert "Snap to Path" preference
+            const forceSnapPath = evt.shiftKey ? !this.snapToPath : this.snapToPath; // Shift toggles
+
+            if (forceSnapPath && this.isEditorMode) {
+                const snapPos = this.getSnapToPathPos(draggedElement.getAttribute('data-id'), newX, newY);
+                newX = snapPos.x;
+                newY = snapPos.y;
+            } else if (this.snapToGrid && this.isEditorMode) {
+                newX = this.snapToGridPos(newX);
+                newY = this.snapToGridPos(newY);
+            }
+
+            draggedElement.setAttribute('transform', `translate(${newX},${newY})`);
+            draggedElement.dataset.x = newX;
+            draggedElement.dataset.y = newY;
+            draggedElement.style.cursor = 'grabbing';
+
+            // Real-time edge update (Performance optimized)
+            const id = draggedElement.getAttribute('data-id');
+            this.updateConnectedEdges(id, newX, newY);
+        }
+    };
+
+    // === SMART ID MANAGEMENT ===
+
+    updateTileId(oldId, newId) {
+        if (oldId === newId) return;
+
+        // Check conflict
+        const conflict = this.layoutData.tiles.find(t => t.id === newId);
+        if (conflict) {
+            if (confirm(`El ID "${newId}" ya existe. ¿Quieres intercambiar las casillas?`)) {
+                this.swapTiles(oldId, newId);
+            }
             return;
         }
 
-        // Cancel any ongoing animation for this token
-        if (this.currentTimeout) {
-            clearTimeout(this.currentTimeout);
+        // Update Tile Data
+        const tile = this.layoutData.tiles.find(t => t.id === oldId);
+        if (tile) {
+            tile.id = newId;
+            tile.display = newId;
+        }
+
+        // Update Edges (References)
+        this.edges.forEach(edge => {
+            if (String(edge[0]) === String(oldId)) edge[0] = parseInt(newId); // Ensure int for edges
+            if (String(edge[1]) === String(oldId)) edge[1] = parseInt(newId);
+        });
+
+        // Update Selection
+        this.selectedTileId = newId;
+
+        // Re-render
+        this.render();
+        this.showTileInspector(newId);
+        this.showEditorNotification(`✅ Renombrado: ${oldId} -> ${newId}`);
+    }
+
+    swapTiles(id1, id2) {
+        const t1 = this.layoutData.tiles.find(t => t.id === id1);
+        const t2 = this.layoutData.tiles.find(t => t.id === id2);
+
+        if (!t1 || !t2) return;
+
+        // Swap coordinates and Type (keep ID structurally but swap content effectively)
+        // Actually, user expects IDs to stay put and content to move? 
+        // No, user changed ID "10" to "15". "15" exists.
+        // Expectation: The tile physically at "10" becomes "15", and physical "15" becomes "10".
+        // SO: We swap payloads BUT KEEP IDs? 
+        // No, we swap IDs on the objects. 
+
+        // Strategy: Swap IDs in data objects
+        // BUT we must also update all edges pointing to them!
+        // Edge 9->10 should become 9->15.
+        // Edge 14->15 should become 14->10.
+
+        // 1. Update Edges
+        this.edges.forEach(edge => {
+            const start = String(edge[0]);
+            const end = String(edge[1]);
+
+            if (start === id1) edge[0] = parseInt(id2);
+            else if (start === id2) edge[0] = parseInt(id1);
+
+            if (end === id1) edge[1] = parseInt(id2);
+            else if (end === id2) edge[1] = parseInt(id1);
+        });
+
+        // 2. Swap IDs in Object
+        // We need temp distinct ID to avoid collision search issues if using methods
+        t1.id = "TEMP_SWAP";
+        t2.id = id1;
+        t1.id = id2;
+
+        t1.display = t1.id;
+        t2.display = t2.id;
+
+        // Re-render
+        this.render();
+        this.showEditorNotification(`🔄 Intercambiados: ${id1} <-> ${id2}`);
+        this.showTileInspector(id2); // Show the one we just renamed to target
+    }
+
+    autoRenumberPath() {
+        if (!confirm('¿Renumerar TODA la ruta automáticamente desde el inicio?')) return;
+
+        // Find Start
+        const startTile = this.layoutData.tiles.find(t => t.type === 'start') || this.layoutData.tiles[0];
+        if (!startTile) {
+            alert('No se encontró casilla "Inicio"');
+            return;
+        }
+
+        // Build Graph for traversal
+        const graph = {};
+        this.edges.forEach(([a, b]) => {
+            if (!graph[a]) graph[a] = [];
+            graph[a].push(b);
+        });
+
+        // BFS/Traversal
+        // We want a linear path + logical numbering.
+        // If branching exists, we number branch A then branch B? 
+        // Simple BFS is good for "distance from start".
+
+        const queue = [parseInt(startTile.id)];
+        const visited = new Set();
+        const newIds = new Map(); // oldId -> newId
+        let counter = 1;
+
+        while (queue.length > 0) {
+            const currId = queue.shift();
+            if (visited.has(currId)) continue;
+            visited.add(currId);
+
+            newIds.set(String(currId), String(counter++));
+
+            const neighbors = graph[currId] || [];
+            neighbors.forEach(n => {
+                if (!visited.has(n)) queue.push(n);
+            });
+        }
+
+        // Apply Changes
+        // 1. Edges
+        this.edges.forEach(edge => {
+            if (newIds.has(String(edge[0]))) edge[0] = parseInt(newIds.get(String(edge[0])));
+            if (newIds.has(String(edge[1]))) edge[1] = parseInt(newIds.get(String(edge[1])));
+        });
+
+        // 2. Tiles
+        this.layoutData.tiles.forEach(t => {
+            if (newIds.has(String(t.id))) {
+                const nid = newIds.get(String(t.id));
+                t.id = nid;
+                t.display = nid;
+            }
+        });
+
+        this.render();
+        this.showEditorNotification('🔢 Ruta renumerada exitosamente');
+    }
+
+    console.log('[INTERACTIVITY] Attaching event listeners');
+
+    // Helper to get clientX/Y from mouse or touch event
+    const getClientPos = (evt) => {
+        if (evt.touches && evt.touches.length > 0) {
+            return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+        }
+        return { x: evt.clientX, y: evt.clientY };
+    };
+
+    // Wrapped handlers for touch support
+    const handleStart = (evt) => {
+        const pos = getClientPos(evt);
+        // Create a mock event-like object with the coordinates
+        const eventWithPos = {
+            clientX: pos.x,
+            clientY: pos.y,
+            target: evt.target,
+            preventDefault: () => evt.preventDefault?.(),
+            stopPropagation: () => evt.stopPropagation?.()
+        };
+        startDrag(eventWithPos);
+    };
+
+    const handleMove = (evt) => {
+        const pos = getClientPos(evt);
+        // Create a mock event-like object with the coordinates
+        const eventWithPos = {
+            clientX: pos.x,
+            clientY: pos.y,
+            target: evt.target,
+            preventDefault: () => evt.preventDefault?.(),
+            stopPropagation: () => evt.stopPropagation?.()
+        };
+        drag(eventWithPos);
+    };
+
+    // Mouse events
+    this.svg.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', endDrag);
+
+    // Touch events for mobile tile dragging
+    this.svg.addEventListener('touchstart', handleStart, { passive: true });
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', endDrag);
+
+    console.log('[INTERACTIVITY] Event listeners attached (mouse + touch)');
+}
+
+getSVGPoint(evt) {
+    const pt = this.svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+}
+
+// REMOVED DUPLICATE openInspector/closeInspector
+// modifyEdge IS NEEDED if not defined earlier.
+// Let's check if modifyEdge was defined earlier. 
+// It was likely at the end. I should Keep modifyEdge.
+
+modifyEdge(id1, id2, action) {
+    if (action === 'add') {
+        const exists = this.edges.some(e =>
+            (e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1)
+        );
+        if (!exists) {
+            this.edges.push([id1, id2]);
+        }
+    } else if (action === 'remove') {
+        this.edges = this.edges.filter(e =>
+            !((e[0] === id1 && e[1] === id2) || (e[0] === id2 && e[1] === id1))
+        );
+    }
+    this.drawEdges();
+}
+
+drawPlayers(players) {
+    // Clear existing tokens
+    const oldTokens = this.svg.querySelectorAll('.player-token');
+    oldTokens.forEach(t => {
+        if (!t.classList.contains('animating')) t.remove();
+    });
+
+    if (!players || players.length === 0) return;
+
+    // 1. Pre-Count players per tile to decide layout mode
+    const tileTotals = {};
+    players.forEach(p => {
+        const tileId = String(p.pos || '1');
+        tileTotals[tileId] = (tileTotals[tileId] || 0) + 1;
+    });
+
+    // 2. Render
+    const tileCurrentCount = {}; // Track how many we've drawn per tile
+
+    players.forEach((p, index) => {
+        // SKIP IF ANIMATING
+        const existing = this.svg.querySelector(`.player-token[data-player-id="${p.id}"]`);
+        if (existing && existing.classList.contains('animating')) return;
+        if (existing) existing.remove(); // Remove old static if exists
+
+        const tileId = String(p.pos || '1');
+
+        // Find Position in DATA, not DOM
+        const tileData = this.layoutData.tiles.find(t => String(t.id) === tileId);
+
+        if (tileData) {
+            // Base Center
+            let x = tileData.x + (this.ts / 2);
+            let y = tileData.y + (this.ts / 2);
+
+            const totalOnTile = tileTotals[tileId];
+            tileCurrentCount[tileId] = (tileCurrentCount[tileId] || 0) + 1;
+            const idx = tileCurrentCount[tileId] - 1; // 0-based index
+
+            // Stacking Logic: Grid Distribution if > 1 player
+            if (totalOnTile > 1) {
+                const offset = 9; // Displace 9px from center
+                // 2x2 Grid Pattern:
+                // 0: Top-Left, 1: Top-Right, 2: Bot-Left, 3: Bot-Right
+                if (idx === 0) { x -= offset; y -= offset; }
+                else if (idx === 1) { x += offset; y -= offset; }
+                else if (idx === 2) { x -= offset; y += offset; }
+                else if (idx === 3) { x += offset; y += offset; }
+            }
+
+            // Create Token Group
+            const tokenGroup = document.createElementNS(this.ns, 'g');
+            tokenGroup.setAttribute('class', 'player-token');
+            tokenGroup.setAttribute('transform', `translate(${x}, ${y})`);
+            tokenGroup.setAttribute('data-player-id', p.id);
+
+            const circle = document.createElementNS(this.ns, 'circle');
+            circle.setAttribute('r', '14'); // Slightly smaller (28px)
+            circle.setAttribute('fill', p.color || this.colors[index % this.colors.length]);
+            circle.setAttribute('stroke', '#fff');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('filter', 'drop-shadow(0px 2px 2px rgba(0,0,0,0.5))');
+            circle.classList.add('token-body');
+
+            const text = document.createElementNS(this.ns, 'text');
+            text.textContent = (p.name || `P${index + 1}`).substring(0, 1).toUpperCase();
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'central');
+            text.setAttribute('fill', '#fff');
+            text.setAttribute('font-size', '13px');
+            text.setAttribute('font-weight', 'bold');
+            text.setAttribute('transform', 'rotate(90)'); // Rotate upright for vertical board
+
+            tokenGroup.appendChild(circle);
+            tokenGroup.appendChild(text);
+            this.rootGroup.appendChild(tokenGroup);
+        }
+    });
+}
+
+animateMove(playerId, path, callback) {
+    // path is Array of Tile IDs ['1', '2', '3']
+    if (!path || path.length < 2) {
+        if (callback) callback();
+        return;
+    }
+
+    const token = this.svg.querySelector(`.player-token[data-player-id="${playerId}"]`);
+    if (!token) {
+        console.error("Token not found for animation:", playerId);
+        if (callback) callback();
+        return;
+    }
+
+    // Cancel any ongoing animation for this token
+    if (this.currentTimeout) {
+        clearTimeout(this.currentTimeout);
+        this.currentTimeout = null;
+    }
+
+    // ✨ ADAPTIVE SPEED: Faster for longer paths
+    const pathLength = path.length - 1;
+    let baseSpeed = 400;
+
+    if (pathLength >= 6) {
+        baseSpeed = 250; // Fast for long distances
+    } else if (pathLength >= 3) {
+        baseSpeed = 350; // Medium
+    }
+
+    console.log(`🎬 [ANIMATION] ${pathLength} steps, speed: ${baseSpeed}ms/step`);
+
+    // ✨ PATH PREVIEW
+    this.highlightPath && this.highlightPath(path);
+    this.highlightDestination && this.highlightDestination(path[path.length - 1]);
+
+    token.classList.add('animating');
+
+    let pathIdx = 0;
+    const animationId = Date.now();
+    this.currentAnimationId = animationId;
+
+    const hop = () => {
+        if (this.currentAnimationId !== animationId) {
+            console.log('[MOVE] Animation cancelled');
+            this.clearPathHighlight && this.clearPathHighlight();
+            this.clearDestinationHighlight && this.clearDestinationHighlight();
+            return;
+        }
+
+        if (pathIdx >= path.length - 1) {
+            // Finished
+            token.classList.remove('animating');
+            this.currentAnimationId = null;
             this.currentTimeout = null;
+            if (callback) callback();
+            return;
         }
 
-        // ✨ ADAPTIVE SPEED: Faster for longer paths
-        const pathLength = path.length - 1;
-        let baseSpeed = 400;
+        const nextId = String(path[pathIdx + 1]);
+        pathIdx++;
 
-        if (pathLength >= 6) {
-            baseSpeed = 250; // Fast for long distances
-        } else if (pathLength >= 3) {
-            baseSpeed = 350; // Medium
+        // Lookup Data
+        const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
+
+        console.log(`[MOVE] Step ${pathIdx}/${path.length - 1}: Tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
+
+        if (!nextTileData) {
+            console.warn(`[MOVE] Tile "${nextId}" NOT in layout! Skipping...`);
+            hop(); return;
         }
 
-        console.log(`🎬 [ANIMATION] ${pathLength} steps, speed: ${baseSpeed}ms/step`);
+        // Get target coords
+        const tx = nextTileData.x + (this.ts / 2);
+        const ty = nextTileData.y + (this.ts / 2);
 
-        // ✨ PATH PREVIEW
-        this.highlightPath && this.highlightPath(path);
-        this.highlightDestination && this.highlightDestination(path[path.length - 1]);
+        // ✨ SMOOTH EASING
+        token.style.transition = `transform ${baseSpeed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+        token.setAttribute('transform', `translate(${tx}, ${ty})`);
 
-        token.classList.add('animating');
+        this.currentTimeout = setTimeout(() => {
+            hop();
+        }, baseSpeed + 50);
+    };
 
-        let pathIdx = 0;
-        const animationId = Date.now();
-        this.currentAnimationId = animationId;
+    // Start after brief delay to show preview
+    setTimeout(() => hop(), 300);
+}
 
-        const hop = () => {
-            if (this.currentAnimationId !== animationId) {
-                console.log('[MOVE] Animation cancelled');
-                this.clearPathHighlight && this.clearPathHighlight();
-                this.clearDestinationHighlight && this.clearDestinationHighlight();
-                return;
-            }
+// v7.6: Tile Inspector - Full editor inspector
+enableTileInspector() {
+    console.log('%c🔧 Editor Inspector Enabled', 'color: cyan; font-weight: bold');
+    console.log('Click cualquier casilla para editar sus propiedades');
 
-            if (pathIdx >= path.length - 1) {
-                // Finished
-                token.classList.remove('animating');
-                this.currentAnimationId = null;
-                this.currentTimeout = null;
-                if (callback) callback();
-                return;
-            }
+    this.svg.addEventListener('click', (evt) => {
+        // Only show inspector in editor mode
+        if (!this.isEditorMode) return;
 
-            const nextId = String(path[pathIdx + 1]);
-            pathIdx++;
+        // Find tile element (look for tile-group class)
+        let target = evt.target;
+        while (target && !target.classList.contains('tile-group')) {
+            target = target.parentElement;
+            if (target === this.svg) return;
+        }
 
-            // Lookup Data
-            const nextTileData = this.layoutData.tiles.find(t => String(t.id) === nextId);
+        if (!target) return;
 
-            console.log(`[MOVE] Step ${pathIdx}/${path.length - 1}: Tile "${nextId}":`, nextTileData ? 'FOUND' : 'MISSING');
+        // Show full editor inspector with type dropdown
+        this.openInspector(target);
+    });
+}
 
-            if (!nextTileData) {
-                console.warn(`[MOVE] Tile "${nextId}" NOT in layout! Skipping...`);
-                hop(); return;
-            }
+// v7.6: SIMPLE Tile Info Display - Works everywhere
+showSimpleTileInfo(tileGroup) {
+    const id = tileGroup.getAttribute('data-id');
+    const display = tileGroup.getAttribute('data-display');
+    const x = tileGroup.dataset.x || 0;
+    const y = tileGroup.dataset.y || 0;
 
-            // Get target coords
-            const tx = nextTileData.x + (this.ts / 2);
-            const ty = nextTileData.y + (this.ts / 2);
-
-            // ✨ SMOOTH EASING
-            token.style.transition = `transform ${baseSpeed}ms cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
-            token.setAttribute('transform', `translate(${tx}, ${ty})`);
-
-            this.currentTimeout = setTimeout(() => {
-                hop();
-            }, baseSpeed + 50);
-        };
-
-        // Start after brief delay to show preview
-        setTimeout(() => hop(), 300);
+    // Crear overlay si no existe
+    let overlay = document.getElementById('simple-tile-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'simple-tile-overlay';
+        document.body.appendChild(overlay);
     }
 
-    // v7.6: Tile Inspector - Full editor inspector
-    enableTileInspector() {
-        console.log('%c🔧 Editor Inspector Enabled', 'color: cyan; font-weight: bold');
-        console.log('Click cualquier casilla para editar sus propiedades');
+    // Obtener posición secuencial y conexión
+    const seqPos = this.getSequentialPosition ? this.getSequentialPosition(id) : '?';
+    const node = this.boardGraph?.[id];
+    const nextTile = node?.next;
+    const isJunction = Array.isArray(nextTile);
 
-        this.svg.addEventListener('click', (evt) => {
-            // Only show inspector in editor mode
-            if (!this.isEditorMode) return;
-
-            // Find tile element (look for tile-group class)
-            let target = evt.target;
-            while (target && !target.classList.contains('tile-group')) {
-                target = target.parentElement;
-                if (target === this.svg) return;
-            }
-
-            if (!target) return;
-
-            // Show full editor inspector with type dropdown
-            this.openInspector(target);
-        });
-    }
-
-    // v7.6: SIMPLE Tile Info Display - Works everywhere
-    showSimpleTileInfo(tileGroup) {
-        const id = tileGroup.getAttribute('data-id');
-        const display = tileGroup.getAttribute('data-display');
-        const x = tileGroup.dataset.x || 0;
-        const y = tileGroup.dataset.y || 0;
-
-        // Crear overlay si no existe
-        let overlay = document.getElementById('simple-tile-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'simple-tile-overlay';
-            document.body.appendChild(overlay);
-        }
-
-        // Obtener posición secuencial y conexión
-        const seqPos = this.getSequentialPosition ? this.getSequentialPosition(id) : '?';
-        const node = this.boardGraph?.[id];
-        const nextTile = node?.next;
-        const isJunction = Array.isArray(nextTile);
-
-        // HTML simple y claro
-        overlay.innerHTML = `
+    // HTML simple y claro
+    overlay.innerHTML = `
             <div style="
                 position: fixed;
                 top: 50%;
@@ -3035,234 +3331,234 @@ export class SVGBoardRenderer {
             </div>
         `;
 
-        console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
-    }
+    console.log('📍 Tile Info:', { id, display, x, y, seqPos, next: nextTile });
+}
 
-    // ✨ Highlight path preview
-    highlightPath(path) {
-        this.clearPathHighlight();
-        const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        pathGroup.id = 'path-preview';
+// ✨ Highlight path preview
+highlightPath(path) {
+    this.clearPathHighlight();
+    const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    pathGroup.id = 'path-preview';
 
-        path.slice(1).forEach(tileId => {
-            const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
-            if (!tileData) return;
-
-            const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            highlight.setAttribute('cx', tileData.x + this.ts / 2);
-            highlight.setAttribute('cy', tileData.y + this.ts / 2);
-            highlight.setAttribute('r', this.ts * 0.4);
-            highlight.setAttribute('fill', 'rgba(255, 215, 0, 0.3)');
-            highlight.setAttribute('stroke', '#FFD700');
-            highlight.setAttribute('stroke-width', '2');
-            pathGroup.appendChild(highlight);
-        });
-
-        this.svg.insertBefore(pathGroup, this.svg.firstChild);
-    }
-
-    clearPathHighlight() {
-        const existing = this.svg.querySelector('#path-preview');
-        if (existing) existing.remove();
-    }
-
-    highlightDestination(tileId) {
-        this.clearDestinationHighlight();
+    path.slice(1).forEach(tileId => {
         const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
         if (!tileData) return;
 
-        const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        pulse.id = 'destination-highlight';
-        pulse.setAttribute('cx', tileData.x + this.ts / 2);
-        pulse.setAttribute('cy', tileData.y + this.ts / 2);
-        pulse.setAttribute('r', this.ts * 0.5);
-        pulse.setAttribute('fill', 'none');
-        pulse.setAttribute('stroke', '#10b981');
-        pulse.setAttribute('stroke-width', '3');
-        pulse.setAttribute('opacity', '0.8');
-        pulse.style.animation = 'destination-pulse 1s ease-in-out infinite';
-        this.svg.insertBefore(pulse, this.svg.firstChild);
-    }
+        const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        highlight.setAttribute('cx', tileData.x + this.ts / 2);
+        highlight.setAttribute('cy', tileData.y + this.ts / 2);
+        highlight.setAttribute('r', this.ts * 0.4);
+        highlight.setAttribute('fill', 'rgba(255, 215, 0, 0.3)');
+        highlight.setAttribute('stroke', '#FFD700');
+        highlight.setAttribute('stroke-width', '2');
+        pathGroup.appendChild(highlight);
+    });
 
-    clearDestinationHighlight() {
-        const existing = this.svg.querySelector('#destination-highlight');
-        if (existing) existing.remove();
-    }
+    this.svg.insertBefore(pathGroup, this.svg.firstChild);
+}
 
-    // v8.0: Render tile type icons on special tiles
-    renderTileTypeIcons() {
-        console.log('🎨 [TILE ICONS] Rendering tile type icons...');
+clearPathHighlight() {
+    const existing = this.svg.querySelector('#path-preview');
+    if (existing) existing.remove();
+}
 
-        const tilesRendered = [];
+highlightDestination(tileId) {
+    this.clearDestinationHighlight();
+    const tileData = this.layoutData.tiles.find(t => String(t.id) === String(tileId));
+    if (!tileData) return;
 
-        // Loop through all tiles that have special types
-        for (const [tileId, typeName] of Object.entries(TILE_TYPE_MAP)) {
-            const tileType = getTileType(tileId);
-            if (!tileType || !tileType.icon) continue;
+    const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    pulse.id = 'destination-highlight';
+    pulse.setAttribute('cx', tileData.x + this.ts / 2);
+    pulse.setAttribute('cy', tileData.y + this.ts / 2);
+    pulse.setAttribute('r', this.ts * 0.5);
+    pulse.setAttribute('fill', 'none');
+    pulse.setAttribute('stroke', '#10b981');
+    pulse.setAttribute('stroke-width', '3');
+    pulse.setAttribute('opacity', '0.8');
+    pulse.style.animation = 'destination-pulse 1s ease-in-out infinite';
+    this.svg.insertBefore(pulse, this.svg.firstChild);
+}
 
-            // Find the tile in SVG
-            const tileGroup = this.svg.querySelector(`g[data-id="${tileId}"]`);
-            if (!tileGroup) {
-                console.log(`  Tile ${tileId} not found in SVG`);
-                continue;
-            }
+clearDestinationHighlight() {
+    const existing = this.svg.querySelector('#destination-highlight');
+    if (existing) existing.remove();
+}
 
-            // Get tile position
-            const transform = tileGroup.getAttribute('transform');
-            const match = transform?.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            if (!match) continue;
+// v8.0: Render tile type icons on special tiles
+renderTileTypeIcons() {
+    console.log('🎨 [TILE ICONS] Rendering tile type icons...');
 
-            const x = parseFloat(match[1]);
-            const y = parseFloat(match[2]);
+    const tilesRendered = [];
 
-            // Create icon element - ADD TO TILE GROUP so it moves together
-            const icon = document.createElementNS(this.ns, 'text');
+    // Loop through all tiles that have special types
+    for (const [tileId, typeName] of Object.entries(TILE_TYPE_MAP)) {
+        const tileType = getTileType(tileId);
+        if (!tileType || !tileType.icon) continue;
 
-            // Position relative to tile center (tile is 50x50)
-            icon.setAttribute('x', 25);  // Center of tile
-            icon.setAttribute('y', 38);  // Slightly below center
-            icon.setAttribute('text-anchor', 'middle');
-            icon.setAttribute('font-size', '20');
-            icon.setAttribute('class', 'tile-type-icon');
-            icon.setAttribute('data-tile-id', tileId);
-            icon.setAttribute('pointer-events', 'none');
-            icon.textContent = tileType.icon;
-
-            // Add to tileGroup (not rootGroup) so icon moves with tile
-            tileGroup.appendChild(icon);
-            tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
+        // Find the tile in SVG
+        const tileGroup = this.svg.querySelector(`g[data-id="${tileId}"]`);
+        if (!tileGroup) {
+            console.log(`  Tile ${tileId} not found in SVG`);
+            continue;
         }
 
-        console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
+        // Get tile position
+        const transform = tileGroup.getAttribute('transform');
+        const match = transform?.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        if (!match) continue;
+
+        const x = parseFloat(match[1]);
+        const y = parseFloat(match[2]);
+
+        // Create icon element - ADD TO TILE GROUP so it moves together
+        const icon = document.createElementNS(this.ns, 'text');
+
+        // Position relative to tile center (tile is 50x50)
+        icon.setAttribute('x', 25);  // Center of tile
+        icon.setAttribute('y', 38);  // Slightly below center
+        icon.setAttribute('text-anchor', 'middle');
+        icon.setAttribute('font-size', '20');
+        icon.setAttribute('class', 'tile-type-icon');
+        icon.setAttribute('data-tile-id', tileId);
+        icon.setAttribute('pointer-events', 'none');
+        icon.textContent = tileType.icon;
+
+        // Add to tileGroup (not rootGroup) so icon moves with tile
+        tileGroup.appendChild(icon);
+        tilesRendered.push({ id: tileId, type: typeName, icon: tileType.icon });
     }
 
-    /**
-     * LAYER 2: Render building sprites on top of terrain
-     * Buildings are placed strategically around the game path
-     */
-    renderBuildingSprites() {
-        const buildingsGroup = document.createElementNS(this.ns, 'g');
-        buildingsGroup.setAttribute('id', 'buildings-layer');
+    console.log(`🎨 [TILE ICONS] Rendered ${tilesRendered.length} icons:`, tilesRendered);
+}
 
-        // Building positions (x, y, type)
-        // Types: 0=house, 1=apartment, 2=skyscraper, 3=hospital, 4=store, 5=ruins
-        const buildingPlacements = [
-            // Top area - safer zone
-            { x: 50, y: 80, type: 0 },
-            { x: 150, y: 60, type: 1 },
-            { x: 280, y: 100, type: 0 },
-            { x: 400, y: 50, type: 1 },
-            { x: 550, y: 90, type: 3 }, // Hospital near start
-            { x: 700, y: 70, type: 0 },
+/**
+ * LAYER 2: Render building sprites on top of terrain
+ * Buildings are placed strategically around the game path
+ */
+renderBuildingSprites() {
+    const buildingsGroup = document.createElementNS(this.ns, 'g');
+    buildingsGroup.setAttribute('id', 'buildings-layer');
 
-            // Middle area
-            { x: 80, y: 300, type: 1 },
-            { x: 200, y: 350, type: 2 },
-            { x: 350, y: 280, type: 4 }, // Store
-            { x: 500, y: 320, type: 1 },
-            { x: 650, y: 300, type: 0 },
-            { x: 750, y: 380, type: 2 },
+    // Building positions (x, y, type)
+    // Types: 0=house, 1=apartment, 2=skyscraper, 3=hospital, 4=store, 5=ruins
+    const buildingPlacements = [
+        // Top area - safer zone
+        { x: 50, y: 80, type: 0 },
+        { x: 150, y: 60, type: 1 },
+        { x: 280, y: 100, type: 0 },
+        { x: 400, y: 50, type: 1 },
+        { x: 550, y: 90, type: 3 }, // Hospital near start
+        { x: 700, y: 70, type: 0 },
 
-            // Mid-lower area
-            { x: 100, y: 550, type: 5 }, // Ruins
-            { x: 250, y: 500, type: 2 },
-            { x: 400, y: 580, type: 4 }, // Store
-            { x: 550, y: 520, type: 1 },
-            { x: 700, y: 600, type: 5 }, // Ruins
+        // Middle area
+        { x: 80, y: 300, type: 1 },
+        { x: 200, y: 350, type: 2 },
+        { x: 350, y: 280, type: 4 }, // Store
+        { x: 500, y: 320, type: 1 },
+        { x: 650, y: 300, type: 0 },
+        { x: 750, y: 380, type: 2 },
 
-            // Lower area - danger zone
-            { x: 60, y: 800, type: 5 }, // Ruins
-            { x: 200, y: 750, type: 2 },
-            { x: 350, y: 820, type: 5 }, // Ruins
-            { x: 500, y: 780, type: 3 }, // Hospital
-            { x: 650, y: 850, type: 5 }, // Ruins
-            { x: 780, y: 800, type: 2 },
+        // Mid-lower area
+        { x: 100, y: 550, type: 5 }, // Ruins
+        { x: 250, y: 500, type: 2 },
+        { x: 400, y: 580, type: 4 }, // Store
+        { x: 550, y: 520, type: 1 },
+        { x: 700, y: 600, type: 5 }, // Ruins
 
-            // Bottom area - boss zone
-            { x: 100, y: 1050, type: 5 },
-            { x: 280, y: 1000, type: 5 },
-            { x: 450, y: 1100, type: 5 },
-            { x: 600, y: 1000, type: 5 },
-            { x: 750, y: 1080, type: 5 },
-        ];
+        // Lower area - danger zone
+        { x: 60, y: 800, type: 5 }, // Ruins
+        { x: 200, y: 750, type: 2 },
+        { x: 350, y: 820, type: 5 }, // Ruins
+        { x: 500, y: 780, type: 3 }, // Hospital
+        { x: 650, y: 850, type: 5 }, // Ruins
+        { x: 780, y: 800, type: 2 },
 
-        // Individual sprite file paths
-        const spriteFiles = {
-            0: './assets/tiles/house.png',
-            1: './assets/tiles/apartment.png',
-            2: './assets/tiles/skyscraper.png',
-            3: './assets/tiles/hospital.png',
-            4: './assets/tiles/store.png',
-            5: './assets/tiles/ruins.png'
-        };
+        // Bottom area - boss zone
+        { x: 100, y: 1050, type: 5 },
+        { x: 280, y: 1000, type: 5 },
+        { x: 450, y: 1100, type: 5 },
+        { x: 600, y: 1000, type: 5 },
+        { x: 750, y: 1080, type: 5 },
+    ];
 
-        // Building sizes for each type
-        const spriteSizes = {
-            0: { w: 80, h: 90 },
-            1: { w: 70, h: 110 },
-            2: { w: 60, h: 140 },
-            3: { w: 90, h: 100 },
-            4: { w: 75, h: 70 },
-            5: { w: 85, h: 85 }
-        };
+    // Individual sprite file paths
+    const spriteFiles = {
+        0: './assets/tiles/house.png',
+        1: './assets/tiles/apartment.png',
+        2: './assets/tiles/skyscraper.png',
+        3: './assets/tiles/hospital.png',
+        4: './assets/tiles/store.png',
+        5: './assets/tiles/ruins.png'
+    };
 
-        // Render each building
-        buildingPlacements.forEach((b) => {
-            const building = document.createElementNS(this.ns, 'image');
-            const size = spriteSizes[b.type];
+    // Building sizes for each type
+    const spriteSizes = {
+        0: { w: 80, h: 90 },
+        1: { w: 70, h: 110 },
+        2: { w: 60, h: 140 },
+        3: { w: 90, h: 100 },
+        4: { w: 75, h: 70 },
+        5: { w: 85, h: 85 }
+    };
 
-            building.setAttribute('href', spriteFiles[b.type]);
-            building.setAttribute('x', b.x);
-            building.setAttribute('y', b.y - size.h + 40);
-            building.setAttribute('width', size.w);
-            building.setAttribute('height', size.h);
-            building.setAttribute('opacity', '0.95');
-            building.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+    // Render each building
+    buildingPlacements.forEach((b) => {
+        const building = document.createElementNS(this.ns, 'image');
+        const size = spriteSizes[b.type];
 
-            buildingsGroup.appendChild(building);
-        });
+        building.setAttribute('href', spriteFiles[b.type]);
+        building.setAttribute('x', b.x);
+        building.setAttribute('y', b.y - size.h + 40);
+        building.setAttribute('width', size.w);
+        building.setAttribute('height', size.h);
+        building.setAttribute('opacity', '0.95');
+        building.setAttribute('preserveAspectRatio', 'xMidYMax meet');
 
-        this.rootGroup.appendChild(buildingsGroup);
-        console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
+        buildingsGroup.appendChild(building);
+    });
+
+    this.rootGroup.appendChild(buildingsGroup);
+    console.log('🏢 [BUILDINGS] Rendered', buildingPlacements.length, 'buildings');
+}
+
+/**
+ * Draw grid lines to help visualize tile positions
+ */
+drawGridLines() {
+    const gridGroup = document.createElementNS(this.ns, 'g');
+    gridGroup.setAttribute('id', 'grid-lines');
+    gridGroup.setAttribute('opacity', '0.3');
+    gridGroup.style.pointerEvents = 'none'; // CRITICAL: Pass clicks through
+
+    const gridSize = 50; // 50px grid
+    const strokeColor = '#4a4a6a';
+
+    // Vertical lines
+    for (let x = 0; x <= this.width; x += gridSize) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', this.height);
+        line.setAttribute('stroke', strokeColor);
+        line.setAttribute('stroke-width', x % 100 === 0 ? '1' : '0.5');
+        gridGroup.appendChild(line);
     }
 
-    /**
-     * Draw grid lines to help visualize tile positions
-     */
-    drawGridLines() {
-        const gridGroup = document.createElementNS(this.ns, 'g');
-        gridGroup.setAttribute('id', 'grid-lines');
-        gridGroup.setAttribute('opacity', '0.3');
-        gridGroup.style.pointerEvents = 'none'; // CRITICAL: Pass clicks through
-
-        const gridSize = 50; // 50px grid
-        const strokeColor = '#4a4a6a';
-
-        // Vertical lines
-        for (let x = 0; x <= this.width; x += gridSize) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', 0);
-            line.setAttribute('x2', x);
-            line.setAttribute('y2', this.height);
-            line.setAttribute('stroke', strokeColor);
-            line.setAttribute('stroke-width', x % 100 === 0 ? '1' : '0.5');
-            gridGroup.appendChild(line);
-        }
-
-        // Horizontal lines
-        for (let y = 0; y <= this.height; y += gridSize) {
-            const line = document.createElementNS(this.ns, 'line');
-            line.setAttribute('x1', 0);
-            line.setAttribute('y1', y);
-            line.setAttribute('x2', this.width);
-            line.setAttribute('y2', y);
-            line.setAttribute('stroke', strokeColor);
-            line.setAttribute('stroke-width', y % 100 === 0 ? '1' : '0.5');
-            gridGroup.appendChild(line);
-        }
-
-        this.rootGroup.appendChild(gridGroup);
-        console.log('📐 [GRID] Rendered grid lines');
+    // Horizontal lines
+    for (let y = 0; y <= this.height; y += gridSize) {
+        const line = document.createElementNS(this.ns, 'line');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', this.width);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', strokeColor);
+        line.setAttribute('stroke-width', y % 100 === 0 ? '1' : '0.5');
+        gridGroup.appendChild(line);
     }
+
+    this.rootGroup.appendChild(gridGroup);
+    console.log('📐 [GRID] Rendered grid lines');
+}
 }
