@@ -1340,6 +1340,27 @@ export class SVGBoardRenderer {
         // Clear Conn listener (Global)
         const btnClearConn = document.getElementById('btn-clear-conn');
         if (btnClearConn) btnClearConn.onclick = () => this.clearAllConnections();
+
+        // Canvas Click for ADD TOOL (Background click)
+        this.svg.addEventListener('click', (evt) => {
+            if (this.currentTool !== 'add' || !this.isEditorMode) return;
+
+            // Ignore if clicked on a tile (target should be svg or rootGroup)
+            // But rootGroup children catch clicks too.
+            // Check if target is a tile-group or inside one.
+            let target = evt.target;
+            while (target && target !== this.svg) {
+                if (target.classList && target.classList.contains('tile-group')) return;
+                target = target.parentElement;
+            }
+
+            // Get coords
+            const pt = this.getSVGPoint(evt);
+            const x = Math.round(pt.x - this.ts / 2); // Center tile on click
+            const y = Math.round(pt.y - this.ts / 2);
+
+            this.addNewTile(x, y);
+        });
     }
 
     // === ACTION METHODS ===
@@ -1347,15 +1368,18 @@ export class SVGBoardRenderer {
     newProject() {
         if (!confirm('⚠️ ¿BORRAR TODO EL TABLERO?\nEsto eliminará todas las casillas y conexiones. No se puede deshacer.')) return;
 
-        // Reset to minimal state
-        this.layoutData.tiles = [{ "id": "1", "display": "Start", "x": 400, "y": 1300, "type": "start" }];
+        // Reset to minimal state with START and FINISH
+        this.layoutData.tiles = [
+            { "id": "1", "display": "Start", "x": 400, "y": 1300, "type": "start" },
+            { "id": "80", "display": "Meta", "x": 400, "y": 100, "type": "finish" }
+        ];
         this.edges = [];
 
         // Reset counters/state
         this.selectedTileId = null;
 
         this.render();
-        this.showEditorNotification('✨ Nuevo Proyecto Iniciado');
+        this.showEditorNotification('✨ Nuevo Proyecto: Inicio + Meta');
     }
 
     clearAllConnections() {
@@ -3368,6 +3392,22 @@ export class SVGBoardRenderer {
             // Show full editor inspector with type dropdown
             this.openInspector(target);
         });
+    }
+
+    // Unified Inspector Opener (Syncs Docked & Floating)
+    openInspector(target) {
+        const id = target.getAttribute('data-id');
+        if (!id) return;
+
+        console.log(`🔍 Inspecting Tile ${id}`);
+
+        // 1. Show Docked Inspector (Editor Panel)
+        this.showTileInspector(id);
+
+        // 2. Show Floating Inspector (Overlay)
+        // Only if we want both? User said "actualizar el inspector ambios".
+        // Let's show the Floating one as a "Quick View" and Docked as "Edit".
+        this.showSimpleTileInfo(target);
     }
 
     // v7.6: SIMPLE Tile Info Display - Works everywhere
