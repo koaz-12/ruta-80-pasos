@@ -1342,6 +1342,29 @@ export class SVGBoardRenderer {
         if (btnClearConn) btnClearConn.onclick = () => this.clearAllConnections();
     }
 
+    // === ACTION METHODS ===
+
+    newProject() {
+        if (!confirm('⚠️ ¿BORRAR TODO EL TABLERO?\nEsto eliminará todas las casillas y conexiones. No se puede deshacer.')) return;
+
+        // Reset to minimal state
+        this.layoutData.tiles = [{ "id": "1", "display": "Start", "x": 400, "y": 1300, "type": "start" }];
+        this.edges = [];
+
+        // Reset counters/state
+        this.selectedTileId = null;
+
+        this.render();
+        this.showEditorNotification('✨ Nuevo Proyecto Iniciado');
+    }
+
+    clearAllConnections() {
+        if (!confirm('¿Eliminar TODAS las conexiones? Las casillas se mantendrán.')) return;
+        this.edges = [];
+        this.drawEdges();
+        this.showEditorNotification('🗑️ Conexiones eliminadas');
+    }
+
     showTileInspector(id) {
         this.selectedTileId = id;
         this.drawUnifiedControls(); // Refresh panel to show inspector data
