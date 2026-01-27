@@ -187,6 +187,11 @@ export class SVGBoardRenderer {
                 line.setAttribute('stroke', 'rgba(255, 220, 100, 0.5)');
                 line.setAttribute('stroke-width', '3');
                 line.setAttribute('stroke-linecap', 'round');
+
+                // CRITICAL: Add identifiers for real-time updates in Editor
+                line.setAttribute('data-from', fromId);
+                line.setAttribute('data-to', toId);
+
                 linesGroup.appendChild(line);
             });
         });
@@ -203,7 +208,7 @@ export class SVGBoardRenderer {
             this.rootGroup.appendChild(linesGroup);
         }
 
-        console.log('🔗 [BOARD] Connection lines drawn');
+        console.log('🔗 [BOARD] Connection lines drawn (with data-ids)');
     }
 
     // v6.0: Get sequential position for a tile ID
