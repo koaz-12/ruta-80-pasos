@@ -851,17 +851,21 @@ export class SVGBoardRenderer {
     }
 
     connectTiles(fromId, toId) {
-        // Prevent dupes
-        const exists = this.edges.some(e =>
+        // Check if connection already exists (bidirectional check)
+        const existingIndex = this.edges.findIndex(e =>
             (e[0] === parseInt(fromId) && e[1] === parseInt(toId)) ||
-            (e[0] === parseInt(toId) && e[1] === parseInt(fromId)) // Undirected check? Usually directed.
+            (e[0] === parseInt(toId) && e[1] === parseInt(fromId))
         );
 
-        if (exists) {
-            this.showEditorNotification('⚠️ Ya están conectados');
+        if (existingIndex !== -1) {
+            // Connection exists: REMOVE IT (Toggle OFF)
+            this.edges.splice(existingIndex, 1);
+            this.showEditorNotification(`🚫 Desconectado: ${fromId} ↮ ${toId}`);
+            this.drawEdges();
             return;
         }
 
+        // No connection: ADD IT (Toggle ON)
         this.edges.push([parseInt(fromId), parseInt(toId)]);
 
         this.showEditorNotification(`🔗 Conectado: ${fromId} -> ${toId}`);
