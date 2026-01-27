@@ -27,7 +27,22 @@ export class SVGBoardRenderer {
         // } else {
         this.layoutData = SAVED_LAYOUT;
         // }
-        this.edges = this.layoutData.edges || [];   // Load Edges
+
+        // v9.0: Populate edges from Initial Graph if empty (so Editor sees them)
+        this.edges = this.layoutData.edges || [];
+        if (this.edges.length === 0) {
+            const graph = buildGraph();
+            Object.keys(graph).forEach(fromId => {
+                const node = graph[fromId];
+                if (!node || !node.next) return;
+                const nexts = Array.isArray(node.next) ? node.next : [node.next];
+                nexts.forEach(toId => {
+                    // Store as [from, to] - Use Strings to match graph IDs
+                    this.edges.push([fromId, toId]);
+                });
+            });
+            console.log(`[INIT] Loaded ${this.edges.length} edges from map-data graph.`);
+        }
 
         // Colors - City Street Theme (semi-transparent to show city underneath)
         this.colors = ['rgba(60, 60, 70, 0.7)', 'rgba(70, 70, 80, 0.7)', 'rgba(50, 55, 65, 0.7)', 'rgba(65, 65, 75, 0.7)'];
@@ -80,7 +95,8 @@ export class SVGBoardRenderer {
         this.svg.appendChild(this.rootGroup);
 
         this.drawBoard();
-        this.drawConnectionLines();  // Draw paths between connected tiles
+        // v9.0: Unified Edge Drawing (uses this.edges for BOTH initial and editor)
+        this.drawEdges(); // Draw paths between connected tiles
         this.addInteractivity();
         // Camera init not needed for simple mode
         // this.initCamera();
