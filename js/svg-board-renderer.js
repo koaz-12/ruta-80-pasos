@@ -650,8 +650,8 @@ export class SVGBoardRenderer {
                     if (group && confirm(`¿Eliminar casilla ${this.selectedTileId}?`)) {
                         group.remove();
                         this.edges = this.edges.filter(edge =>
-                            edge[0] !== parseInt(this.selectedTileId) &&
-                            edge[1] !== parseInt(this.selectedTileId)
+                            String(edge[0]) !== String(this.selectedTileId) &&
+                            String(edge[1]) !== String(this.selectedTileId)
                         );
                         this.drawEdges();
                         this.selectedTileId = null;
@@ -842,7 +842,7 @@ export class SVGBoardRenderer {
         this.layoutData.tiles = this.layoutData.tiles.filter(t => t.id !== id);
 
         // Remove connections
-        this.edges = this.edges.filter(edge => edge[0] !== parseInt(id) && edge[1] !== parseInt(id));
+        this.edges = this.edges.filter(edge => String(edge[0]) !== String(id) && String(edge[1]) !== String(id));
 
         this.render();
         this.selectedTileId = null;
@@ -852,9 +852,10 @@ export class SVGBoardRenderer {
 
     connectTiles(fromId, toId) {
         // Check if connection already exists (bidirectional check)
+        // Use String() to allow non-numeric IDs (e.g. "Start", "Meta")
         const existingIndex = this.edges.findIndex(e =>
-            (e[0] === parseInt(fromId) && e[1] === parseInt(toId)) ||
-            (e[0] === parseInt(toId) && e[1] === parseInt(fromId))
+            (String(e[0]) === String(fromId) && String(e[1]) === String(toId)) ||
+            (String(e[0]) === String(toId) && String(e[1]) === String(fromId))
         );
 
         if (existingIndex !== -1) {
@@ -866,7 +867,7 @@ export class SVGBoardRenderer {
         }
 
         // No connection: ADD IT (Toggle ON)
-        this.edges.push([parseInt(fromId), parseInt(toId)]);
+        this.edges.push([fromId, toId]);
 
         this.showEditorNotification(`🔗 Conectado: ${fromId} -> ${toId}`);
         this.drawEdges(); // Refresh lines
@@ -2667,6 +2668,11 @@ export class SVGBoardRenderer {
                 line.setAttribute('y2', p2.y);
                 line.setAttribute('stroke', '#6c757d');
                 line.setAttribute('stroke-width', '2');
+
+                // CRITICAL: Add identifiers for real-time updates
+                line.setAttribute('data-from', id1);
+                line.setAttribute('data-to', id2);
+
                 // line.setAttribute('stroke-dasharray', '4'); // Optional dashed
                 grp.appendChild(line);
             }
@@ -2755,42 +2761,40 @@ export class SVGBoardRenderer {
         const grp = this.svg.querySelector('#connections-layer');
         if (!grp) return;
 
-        // Smart Update: Scan existing lines and update coordinates
-        this.edges.forEach((edge, index) => {
-            const [id1, id2] = edge;
-            // Check if this edge involves our moving node
-            if (String(id1) === String(nodeId) || String(id2) === String(nodeId)) {
-                // Find line by index (relying on drawEdges order)
-                const line = grp.childNodes[index];
-                if (!line) return;
+        // Find all lines connected to this node
+        // We use querySelectorAll with data attributes which is much more robust than index
+        const linesFrom = grp.querySelectorAll(`line[data-from="${nodeId}"]`);
+        const linesTo = grp.querySelectorAll(`line[data-to="${nodeId}"]`);
 
-                // Determine other node's position
-                const otherId = (String(id1) === String(nodeId)) ? id2 : id1;
-                const otherTile = this.svg.querySelector(`.tile-group[data-id="${otherId}"]`);
+        // Helper to get position of a tile by ID
+        const getTilePos = (id) => {
+            const tile = this.svg.querySelector(`.tile-group[data-id="${id}"]`);
+            if (!tile) return null;
+            const tr = tile.transform.baseVal.getItem(0).matrix;
+            return { x: tr.e + this.ts / 2, y: tr.f + this.ts / 2 };
+        };
 
-                if (otherTile) {
-                    // Start relative to SVG origin since line is in root group
-                    const getPos = (el) => {
-                        const tr = el.transform.baseVal.getItem(0).matrix;
-                        return { x: tr.e + this.ts / 2, y: tr.f + this.ts / 2 };
-                    };
+        // Update lines where nodeId is START
+        linesFrom.forEach(line => {
+            const otherId = line.getAttribute('data-to');
+            const otherPos = getTilePos(otherId);
+            if (otherPos) {
+                line.setAttribute('x1', cx);
+                line.setAttribute('y1', cy);
+                line.setAttribute('x2', otherPos.x);
+                line.setAttribute('y2', otherPos.y);
+            }
+        });
 
-                    const otherPos = getPos(otherTile);
-
-                    if (String(id1) === String(nodeId)) {
-                        // Moving node is START (x1, y1)
-                        line.setAttribute('x1', cx);
-                        line.setAttribute('y1', cy);
-                        line.setAttribute('x2', otherPos.x);
-                        line.setAttribute('y2', otherPos.y);
-                    } else {
-                        // Moving node is END (x2, y2)
-                        line.setAttribute('x1', otherPos.x);
-                        line.setAttribute('y1', otherPos.y);
-                        line.setAttribute('x2', cx);
-                        line.setAttribute('y2', cy);
-                    }
-                }
+        // Update lines where nodeId is END
+        linesTo.forEach(line => {
+            const otherId = line.getAttribute('data-from');
+            const otherPos = getTilePos(otherId);
+            if (otherPos) {
+                line.setAttribute('x1', otherPos.x);
+                line.setAttribute('y1', otherPos.y);
+                line.setAttribute('x2', cx);
+                line.setAttribute('y2', cy);
             }
         });
     }
